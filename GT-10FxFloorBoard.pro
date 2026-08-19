@@ -23,10 +23,8 @@
 #############################################################################
 
 TEMPLATE = app
-CONFIG += static
-CONFIG += embed_manifest_exe
 #ifdef Q_OS_MAC
-CONFIG += release ppc x86
+CONFIG += release
 TARGET = "GT-10FxFloorBoard"
 DESTDIR = ./packager
 #else 
@@ -48,7 +46,7 @@ TRANSLATIONS = language_fr.ts \
 CODECFORTR = UTF-8
 
 DEPENDPATH += .
-QT += xml
+QT += core gui widgets xml printsupport
 
 #Platform dependent file(s)
 win32 {
@@ -108,3 +106,7 @@ include(GT-10FxFloorBoard.pri)
 
 #Windows resource file
 win32:RC_FILE = GT-10FxFloorBoard.rc
+
+# Qt4 -> Qt5 baseline compatibility
+HEADERS += qt4compat.h
+QMAKE_CXXFLAGS += -include $$PWD/qt4compat.h

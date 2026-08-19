@@ -1,0 +1,8 @@
+
+# Local qmake / macOS ARM64 build artifacts
+.qmake.stash
+Makefile
+generatedfiles/
+release/
+qrc_GT-10FxFloorBoard.cpp
+packager/GT-10FxFloorBoard.app/

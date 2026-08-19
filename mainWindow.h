@@ -28,7 +28,7 @@
 #include "floorBoard.h"
 #include "sysxWriter.h"
 #include "MidiTable.h"
-#include <QPrintDialog>
+#include <QtPrintSupport/QPrintDialog>
 #include <QPrinter>
 
 //class mainWindow : public QWidget
