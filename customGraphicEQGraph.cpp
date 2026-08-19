@@ -25,6 +25,7 @@
 //#include <QMessageBox>
 #include <QPainter>
 #include <QMouseEvent>
+#include <QPainterPath>
 
 customGraphicEQGraph::customGraphicEQGraph (QWidget *parent) : poly(13), m_iDragNode(-1)
 {

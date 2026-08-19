@@ -110,3 +110,7 @@ win32:RC_FILE = GT-10FxFloorBoard.rc
 # Qt4 -> Qt5 baseline compatibility
 HEADERS += qt4compat.h
 QMAKE_CXXFLAGS += -include $$PWD/qt4compat.h
+
+# GT-10 FxFloorBoard Modern UI
+SOURCES += modernFloorBoard.cpp
+HEADERS += modernFloorBoard.h

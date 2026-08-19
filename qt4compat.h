@@ -24,6 +24,10 @@
 #include <QCheckBox>
 #include <QRadioButton>
 #include <QComboBox>
+#include <QListWidget>
+#include <QListWidgetItem>
+#include <QListView>
+#include <QAbstractItemView>
 
 #include <QGroupBox>
 #include <QStackedWidget>

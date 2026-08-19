@@ -22,6 +22,7 @@
 ****************************************************************************/
 
 #include <QApplication>
+#include <QDesktopWidget>
 #include "mainWindow.h"
 #include "Preferences.h"
 #include "MidiTable.h"

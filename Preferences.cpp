@@ -29,6 +29,24 @@
 #include <QHash>
 #include "xmlwriter/xmlwriter.h"
 #include <QMessageBox>
+#include <QStandardPaths>
+#include <QDir>
+
+
+static QString preferencesFilePath()
+{
+    QString base = QStandardPaths::writableLocation(
+        QStandardPaths::AppDataLocation
+    );
+
+    QDir dir(base);
+
+    if (!dir.exists())
+        dir.mkpath(".");
+
+    return dir.filePath("preferences.xml");
+}
+
 
 Preferences::Preferences() 
 {
@@ -36,13 +54,13 @@ Preferences::Preferences()
 
 	QString buildVersion = this->getPreferences("General", "Application", "version");
 
-	if(!QFile("preferences.xml").exists())
+	if(!QFile(preferencesFilePath()).exists())
 	{
 		loadPreferences(":preferences.xml.dist");
 	}
 	else
 	{
-		loadPreferences("preferences.xml");
+		loadPreferences(preferencesFilePath());
 		if(this->getPreferences("General", "Application", "version")!=buildVersion)
 		{
 			loadPreferences(":preferences.xml.dist");
@@ -168,7 +186,7 @@ bool IndexList::operator<(const IndexList& rhs) const
 void Preferences::savePreferences()
 {
 	//Write back to file/create
-    QFile file("preferences.xml");
+    QFile file(preferencesFilePath());
     if (!file.open(QIODevice::WriteOnly)) {
     // ERROR
     }
