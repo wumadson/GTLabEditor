@@ -21,6 +21,7 @@
 #include <QEvent>
 #include <QTimer>
 #include <QSignalBlocker>
+#include <QSet>
 #include <QStackedWidget>
 #include <QVBoxLayout>
 #include "globalVariables.h"
@@ -157,6 +158,30 @@ bool centerValueFromMapping(const Midi &parameter, int *rawCenter)
     *rawCenter = qRound(rawMinimum
         + ratio * (rawMaximum - rawMinimum));
     return true;
+}
+
+bool preampBrightAvailable(int type, int customType)
+{
+    static const QSet<int> brightTypes = {
+        0x00, 0x01, 0x02, 0x04, 0x05, 0x06,
+        0x08, 0x09, 0x0B, 0x12, 0x13, 0x14
+    };
+    static const QSet<int> brightCustomTypes = {
+        0x00, 0x01, 0x02, 0x04
+    };
+    return brightTypes.contains(type)
+        || (type == 0x27 && brightCustomTypes.contains(customType));
+}
+
+QString preampDisplayText(const QString &value, int offset)
+{
+    if (offset != 0x0E || value.compare("Center", Qt::CaseInsensitive) == 0
+        || value.contains("cm", Qt::CaseInsensitive))
+        return value;
+
+    bool numeric = false;
+    value.trimmed().toInt(&numeric);
+    return numeric ? value.trimmed() + " cm" : value;
 }
 }
 
@@ -616,6 +641,9 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     delayParameterLayout->addStretch(1);
     effectEditorStack->addWidget(delayEditor);
 
+    effectEditorStack->addWidget(createPreampEditor(PreampChannel::A));
+    effectEditorStack->addWidget(createPreampEditor(PreampChannel::B));
+
     mainLayout->addWidget(effectEditorStack, 1);
 
     BottomControlStrip *bottomControlStrip = new BottomControlStrip;
@@ -627,6 +655,253 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     root->addLayout(body, 1);
 
     backendDisconnected();
+}
+
+modernFloorBoard::PreampEditorState &modernFloorBoard::preampState(
+    PreampChannel channel)
+{
+    return channel == PreampChannel::A ? preampA : preampB;
+}
+
+const modernFloorBoard::PreampEditorState &modernFloorBoard::preampState(
+    PreampChannel channel) const
+{
+    return channel == PreampChannel::A ? preampA : preampB;
+}
+
+QString modernFloorBoard::preampAddress(PreampChannel channel,
+                                         int offset) const
+{
+    const int base = channel == PreampChannel::A ? 0x10 : 0x30;
+    return QString("%1").arg(base + offset, 2, 16, QChar('0')).toUpper();
+}
+
+EffectEditorPanel *modernFloorBoard::createPreampEditor(
+    PreampChannel channel)
+{
+    PreampEditorState &state = preampState(channel);
+    const QString name = channel == PreampChannel::A
+        ? "PREAMP A" : "PREAMP B";
+    const int channelValue = channel == PreampChannel::A ? 0 : 1;
+    const QColor accent(ModernTheme::activeEffectAccent(name));
+
+    state.editor = new EffectEditorPanel(name);
+    state.editor->typeLabel()->hide();
+    state.browser = new EffectModelBrowser;
+    state.browser->setAccentColor(accent);
+    state.browser->setProperty("preampChannel", channelValue);
+    state.editor->setModelBrowserWidget(state.browser);
+    connect(state.browser, SIGNAL(modelSelected(int)),
+            this, SLOT(preampModelSelected(int)));
+
+    state.artwork = new EffectArtworkWidget;
+    state.artwork->setArtwork(channel == PreampChannel::A
+        ? ":/assets/effects/preamp_a.png"
+        : ":/assets/effects/preamp_b.png");
+    state.editor->setArtworkWidget(state.artwork);
+
+    QVBoxLayout *layout = new QVBoxLayout(state.editor->parameterArea());
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(8);
+
+    QWidget *primary = new QWidget;
+    QHBoxLayout *primaryLayout = new QHBoxLayout(primary);
+    primaryLayout->setContentsMargins(0, 0, 0, 0);
+    EffectToggleControl *globalControl =
+        new EffectToggleControl("State (A/B)");
+    state.globalState = globalControl->toggle();
+    state.globalState->setAccentColor(accent);
+    state.globalState->setProperty("preampChannel", channelValue);
+    state.globalState->setProperty("preampGlobalState", true);
+    state.toggles.append(state.globalState);
+    connect(state.globalState, SIGNAL(clicked()),
+            this, SLOT(preampToggleChanged()));
+    primaryLayout->addWidget(globalControl, 0, Qt::AlignTop);
+    primaryLayout->addStretch(1);
+    layout->addWidget(primary);
+
+    QWidget *typeControl = createPreampCombo(channel, "Type", 0x00);
+    typeControl->setParent(state.editor->parameterArea());
+    typeControl->hide();
+
+    auto addTitle = [layout](const QString &text) {
+        QLabel *title = new QLabel(text);
+        title->setObjectName("ParameterSectionTitle");
+        layout->addWidget(title);
+    };
+
+    addTitle("AMP");
+    layout->addWidget(createPreampBar(channel, "Gain", 0x01));
+    layout->addWidget(createPreampBar(channel, "Level", 0x06));
+    layout->addWidget(createPreampCombo(channel, "Gain Switch", 0x08));
+    state.brightControl = createPreampToggle(
+        channel, "Bright", 0x07, &state.bright);
+    layout->addWidget(state.brightControl);
+
+    addTitle("EQ");
+    layout->addWidget(createPreampBar(channel, "Bass", 0x02));
+    layout->addWidget(createPreampBar(channel, "Middle", 0x03));
+    layout->addWidget(createPreampBar(channel, "Treble", 0x04));
+    layout->addWidget(createPreampBar(channel, "Presence", 0x05));
+
+    addTitle("SOLO");
+    layout->addWidget(createPreampToggle(
+        channel, "Solo", 0x09, &state.solo));
+    layout->addWidget(createPreampBar(channel, "Solo Level", 0x0A));
+
+    addTitle("SPEAKER");
+    layout->addWidget(createPreampCombo(
+        channel, "Speaker Type", 0x0B));
+
+    state.customSpeakerSection = new QWidget;
+    QVBoxLayout *customSpeaker =
+        new QVBoxLayout(state.customSpeakerSection);
+    customSpeaker->setContentsMargins(0, 0, 0, 0);
+    customSpeaker->setSpacing(8);
+    QLabel *customSpeakerTitle = new QLabel("CUSTOM SPEAKER");
+    customSpeakerTitle->setObjectName("ParameterSectionTitle");
+    customSpeaker->addWidget(customSpeakerTitle);
+    customSpeaker->addWidget(createPreampBar(channel, "Size", 0x18));
+    customSpeaker->addWidget(createPreampBar(
+        channel, "Color Low", 0x19));
+    customSpeaker->addWidget(createPreampBar(
+        channel, "Color High", 0x1A));
+    customSpeaker->addWidget(createPreampCombo(
+        channel, "Speaker Number", 0x1B));
+    customSpeaker->addWidget(createPreampCombo(
+        channel, "Cabinet Back", 0x1C));
+    layout->addWidget(state.customSpeakerSection);
+
+    addTitle("MIC / MIX");
+    layout->addWidget(createPreampCombo(channel, "Mic Type", 0x0C));
+    layout->addWidget(createPreampCombo(
+        channel, "Mic Distance", 0x0D));
+    layout->addWidget(createPreampBar(
+        channel, "Mic Position", 0x0E));
+    layout->addWidget(createPreampBar(channel, "Mic Level", 0x0F));
+    layout->addWidget(createPreampBar(channel, "Direct Level", 0x10));
+
+    state.customPreampSection = new QWidget;
+    QVBoxLayout *customPreamp =
+        new QVBoxLayout(state.customPreampSection);
+    customPreamp->setContentsMargins(0, 0, 0, 0);
+    customPreamp->setSpacing(8);
+    QLabel *customPreampTitle = new QLabel("CUSTOM PREAMP");
+    customPreampTitle->setObjectName("ParameterSectionTitle");
+    customPreamp->addWidget(customPreampTitle);
+    customPreamp->addWidget(createPreampCombo(
+        channel, "Custom Preamp Type", 0x11));
+    customPreamp->addWidget(createPreampBar(
+        channel, "Custom Bottom", 0x12));
+    customPreamp->addWidget(createPreampBar(
+        channel, "Custom Edge", 0x13));
+    customPreamp->addWidget(createPreampBar(
+        channel, "Custom Bass Frequency", 0x14));
+    customPreamp->addWidget(createPreampBar(
+        channel, "Custom Treble Frequency", 0x15));
+    customPreamp->addWidget(createPreampBar(
+        channel, "Custom Pre Low", 0x16));
+    customPreamp->addWidget(createPreampBar(
+        channel, "Custom Pre High", 0x17));
+    layout->addWidget(state.customPreampSection);
+    layout->addStretch(1);
+
+    state.customPreampSection->hide();
+    state.customSpeakerSection->hide();
+    state.brightControl->hide();
+    return state.editor;
+}
+
+QWidget *modernFloorBoard::createPreampCombo(PreampChannel channel,
+                                              const QString &label,
+                                              int offset)
+{
+    PreampEditorState &state = preampState(channel);
+    ParameterCombo *container = new ParameterCombo(label);
+    QComboBox *combo = container->comboBox();
+    combo->setProperty("preampChannel",
+                       channel == PreampChannel::A ? 0 : 1);
+    combo->setProperty("preampOffset", offset);
+
+    const Midi parameter = MidiTable::Instance()->getMidiMap(
+        "Structure", "01", "00", preampAddress(channel, offset));
+    QStringList labels;
+    for (const Midi &item : parameter.level) {
+        if (item.value == "range")
+            continue;
+        const QString text = !item.customdesc.isEmpty()
+            ? item.customdesc
+            : (!item.desc.isEmpty() ? item.desc : item.name);
+        combo->addItem(text);
+        labels.append(text);
+    }
+    connect(combo, SIGNAL(currentIndexChanged(int)),
+            this, SLOT(preampComboChanged(int)));
+    state.combos.append(combo);
+    if (offset == 0x00) {
+        state.type = combo;
+        if (state.browser)
+            state.browser->setModels(labels);
+    } else if (offset == 0x0B) {
+        state.speakerType = combo;
+    } else if (offset == 0x11) {
+        state.customType = combo;
+    }
+    return container;
+}
+
+QWidget *modernFloorBoard::createPreampBar(PreampChannel channel,
+                                            const QString &label,
+                                            int offset)
+{
+    PreampEditorState &state = preampState(channel);
+    ParameterBar *bar = new ParameterBar(label);
+    bar->setAccentColor(QColor(ModernTheme::activeEffectAccent(
+        channel == PreampChannel::A ? "PREAMP A" : "PREAMP B")));
+    bar->setProperty("preampChannel",
+                     channel == PreampChannel::A ? 0 : 1);
+    bar->setProperty("preampOffset", offset);
+    const QString address = preampAddress(channel, offset);
+    MidiTable *midiTable = MidiTable::Instance();
+    const Midi parameter = midiTable->getMidiMap(
+        "Structure", "01", "00", address);
+    bar->setRange(midiTable->getRangeMinimum(
+                      "Structure", "01", "00", address),
+                  midiTable->getRange(
+                      "Structure", "01", "00", address));
+
+    if (offset >= 0x12 && offset <= 0x17)
+        bar->setCenterValue(5);
+    else if (offset == 0x19 || offset == 0x1A)
+        bar->setCenterValue(10);
+    else {
+        int rawCenter = 0;
+        if (centerValueFromMapping(parameter, &rawCenter))
+            bar->setCenterValue(rawCenter);
+    }
+    connect(bar, &QAbstractSlider::valueChanged,
+            this, &modernFloorBoard::preampBarChanged);
+    state.bars.append(bar);
+    return bar;
+}
+
+QWidget *modernFloorBoard::createPreampToggle(
+    PreampChannel channel, const QString &label, int offset,
+    ModernToggleSwitch **target)
+{
+    PreampEditorState &state = preampState(channel);
+    EffectToggleControl *control = new EffectToggleControl(label);
+    ModernToggleSwitch *toggle = control->toggle();
+    toggle->setAccentColor(QColor(ModernTheme::activeEffectAccent(
+        channel == PreampChannel::A ? "PREAMP A" : "PREAMP B")));
+    toggle->setProperty("preampChannel",
+                        channel == PreampChannel::A ? 0 : 1);
+    toggle->setProperty("preampOffset", offset);
+    connect(toggle, SIGNAL(clicked()), this, SLOT(preampToggleChanged()));
+    state.toggles.append(toggle);
+    if (target)
+        *target = toggle;
+    return control;
 }
 
 QWidget *modernFloorBoard::createReverbCombo(const QString &label,
@@ -918,6 +1193,22 @@ bool modernFloorBoard::hasValidDelayBuffer() const
         && valueIndex < source.hex.at(addressIndex).size();
 }
 
+bool modernFloorBoard::hasValidPreampBuffer() const
+{
+    SysxIO *sysxIO = SysxIO::Instance();
+    const SysxData source = sysxIO->getFileSource();
+    const int addressIndex = source.address.indexOf("0100");
+
+    if (!backendIsConnected || !backendHasPatchData
+        || !sysxIO->isConnected() || addressIndex < 0)
+        return false;
+
+    const int valueIndex = sysxDataOffset + 0x4C;
+    return addressIndex < source.hex.size()
+        && valueIndex >= 0
+        && valueIndex < source.hex.at(addressIndex).size();
+}
+
 void modernFloorBoard::setReverbUnavailable()
 {
     if (reverbCard)
@@ -946,6 +1237,16 @@ void modernFloorBoard::setDelayUnavailable()
     updateDelayParameterControls(false);
 }
 
+void modernFloorBoard::setPreampUnavailable()
+{
+    if (preampACard)
+        preampACard->setEffectState(false, false);
+    if (preampBCard)
+        preampBCard->setEffectState(false, false);
+    updatePreampParameterControls(PreampChannel::A, false);
+    updatePreampParameterControls(PreampChannel::B, false);
+}
+
 void modernFloorBoard::backendConnected()
 {
     backendIsConnected = true;
@@ -955,6 +1256,7 @@ void modernFloorBoard::backendConnected()
     setCompUnavailable();
     setOddsUnavailable();
     setDelayUnavailable();
+    setPreampUnavailable();
 }
 
 void modernFloorBoard::backendDisconnected()
@@ -968,6 +1270,7 @@ void modernFloorBoard::backendDisconnected()
     setCompUnavailable();
     setOddsUnavailable();
     setDelayUnavailable();
+    setPreampUnavailable();
     patchNumber->setText(QString::fromUtf8("—"));
     patchName->setText("NO PATCH DATA");
     patchListModel.setCurrentPatch(0, 0, QString());
@@ -1000,6 +1303,9 @@ void modernFloorBoard::refreshReverbState()
         refreshCompState();
         refreshOddsState();
         refreshDelayState();
+        refreshPreamp(PreampChannel::A);
+        refreshPreamp(PreampChannel::B);
+        refreshPreampGlobalState();
         return;
     }
 
@@ -1013,6 +1319,9 @@ void modernFloorBoard::refreshReverbState()
     refreshCompState();
     refreshOddsState();
     refreshDelayState();
+    refreshPreamp(PreampChannel::A);
+    refreshPreamp(PreampChannel::B);
+    refreshPreampGlobalState();
 }
 
 void modernFloorBoard::refreshCompState()
@@ -1085,11 +1394,14 @@ SignalChainModule *modernFloorBoard::createSignalChainModule(
     const bool isComp = entry.moduleId == 0x00;
     const bool isOdds = entry.moduleId == 0x01;
     const bool isDelay = entry.moduleId == 0x07;
+    const bool isPreampA = entry.moduleId == 0x02;
+    const bool isPreampB = entry.moduleId == 0x03;
     SignalChainModule *module = new SignalChainModule(
         name, QColor(ModernTheme::effectColor(fullName)),
         QColor(ModernTheme::effectFaceColor(fullName)));
     module->setEffectState(false, false);
-    module->setNavigable(isComp || isReverb || isOdds || isDelay);
+    module->setNavigable(isComp || isReverb || isOdds || isDelay
+                         || isPreampA || isPreampB);
     module->setProperty("chainPosition", entry.originalPosition);
     module->setProperty("rawValue", entry.rawValue);
     module->setProperty("signalPath", entry.path);
@@ -1115,6 +1427,18 @@ SignalChainModule *modernFloorBoard::createSignalChainModule(
         delayCard->setSelected(selectedEditor == "DELAY");
         connect(module, SIGNAL(clicked()), this, SLOT(showDelayEditor()));
     }
+    if (isPreampA) {
+        preampACard = module;
+        preampACard->setSelected(selectedEditor == "PREAMP A");
+        connect(module, SIGNAL(clicked()),
+                this, SLOT(showPreampAEditor()));
+    }
+    if (isPreampB) {
+        preampBCard = module;
+        preampBCard->setSelected(selectedEditor == "PREAMP B");
+        connect(module, SIGNAL(clicked()),
+                this, SLOT(showPreampBEditor()));
+    }
     return module;
 }
 
@@ -1123,6 +1447,8 @@ void modernFloorBoard::rebuildSignalChainView()
     reverbCard = nullptr;
     compCard = nullptr;
     delayCard = nullptr;
+    preampACard = nullptr;
+    preampBCard = nullptr;
     signalChainModules.clear();
     signalChainJunctions.clear();
     signalChainConnectors.clear();
@@ -1452,6 +1778,10 @@ void modernFloorBoard::showCompEditor()
         oddsCard->setSelected(false);
     if (delayCard)
         delayCard->setSelected(false);
+    if (preampACard)
+        preampACard->setSelected(false);
+    if (preampBCard)
+        preampBCard->setSelected(false);
 }
 
 void modernFloorBoard::showReverbEditor()
@@ -1467,6 +1797,10 @@ void modernFloorBoard::showReverbEditor()
         oddsCard->setSelected(false);
     if (delayCard)
         delayCard->setSelected(false);
+    if (preampACard)
+        preampACard->setSelected(false);
+    if (preampBCard)
+        preampBCard->setSelected(false);
 }
 
 void modernFloorBoard::showOddsEditor()
@@ -1482,6 +1816,10 @@ void modernFloorBoard::showOddsEditor()
         reverbCard->setSelected(false);
     if (delayCard)
         delayCard->setSelected(false);
+    if (preampACard)
+        preampACard->setSelected(false);
+    if (preampBCard)
+        preampBCard->setSelected(false);
 }
 
 void modernFloorBoard::showDelayEditor()
@@ -1497,6 +1835,275 @@ void modernFloorBoard::showDelayEditor()
         reverbCard->setSelected(false);
     if (oddsCard)
         oddsCard->setSelected(false);
+    if (preampACard)
+        preampACard->setSelected(false);
+    if (preampBCard)
+        preampBCard->setSelected(false);
+}
+
+void modernFloorBoard::showPreampAEditor()
+{
+    selectedEditor = "PREAMP A";
+    if (effectEditorStack && preampA.editor)
+        effectEditorStack->setCurrentWidget(preampA.editor);
+    if (preampACard)
+        preampACard->setSelected(true);
+    if (preampBCard)
+        preampBCard->setSelected(false);
+    if (compCard)
+        compCard->setSelected(false);
+    if (reverbCard)
+        reverbCard->setSelected(false);
+    if (oddsCard)
+        oddsCard->setSelected(false);
+    if (delayCard)
+        delayCard->setSelected(false);
+}
+
+void modernFloorBoard::showPreampBEditor()
+{
+    selectedEditor = "PREAMP B";
+    if (effectEditorStack && preampB.editor)
+        effectEditorStack->setCurrentWidget(preampB.editor);
+    if (preampBCard)
+        preampBCard->setSelected(true);
+    if (preampACard)
+        preampACard->setSelected(false);
+    if (compCard)
+        compCard->setSelected(false);
+    if (reverbCard)
+        reverbCard->setSelected(false);
+    if (oddsCard)
+        oddsCard->setSelected(false);
+    if (delayCard)
+        delayCard->setSelected(false);
+}
+
+void modernFloorBoard::updatePreampConditionalSections(
+    PreampChannel channel)
+{
+    PreampEditorState &state = preampState(channel);
+    const int type = state.type ? state.type->currentIndex() : -1;
+    const int customType = state.customType
+        ? state.customType->currentIndex() : -1;
+    const int speakerType = state.speakerType
+        ? state.speakerType->currentIndex() : -1;
+
+    if (state.customPreampSection)
+        state.customPreampSection->setVisible(type == 0x27);
+    if (state.customSpeakerSection)
+        state.customSpeakerSection->setVisible(speakerType == 0x09);
+    if (state.brightControl)
+        state.brightControl->setVisible(
+            preampBrightAvailable(type, customType));
+}
+
+void modernFloorBoard::updatePreampParameterControls(
+    PreampChannel channel, bool available)
+{
+    PreampEditorState &state = preampState(channel);
+    if (state.browser)
+        state.browser->setEnabled(available);
+
+    for (QComboBox *combo : state.combos) {
+        if (combo)
+            combo->setEnabled(available);
+    }
+    for (ModernToggleSwitch *toggle : state.toggles) {
+        if (!toggle)
+            continue;
+        toggle->setEnabled(available);
+        if (!available)
+            toggle->setChecked(false);
+    }
+    for (ParameterBar *bar : state.bars) {
+        if (!bar)
+            continue;
+        bar->setEnabled(available);
+        if (!available)
+            bar->setDisplayText(QString::fromUtf8("—"));
+    }
+
+    if (!available) {
+        for (QComboBox *combo : state.combos) {
+            if (!combo)
+                continue;
+            const QSignalBlocker blocker(combo);
+            combo->setCurrentIndex(-1);
+        }
+        if (state.browser)
+            state.browser->setCurrentIndex(-1);
+        if (state.brightControl)
+            state.brightControl->hide();
+        if (state.customPreampSection)
+            state.customPreampSection->hide();
+        if (state.customSpeakerSection)
+            state.customSpeakerSection->hide();
+        return;
+    }
+
+    SysxIO *sysxIO = SysxIO::Instance();
+    MidiTable *midiTable = MidiTable::Instance();
+    for (QComboBox *combo : state.combos) {
+        if (!combo)
+            continue;
+        const int offset = combo->property("preampOffset").toInt();
+        const QSignalBlocker blocker(combo);
+        combo->setCurrentIndex(sysxIO->getSourceValue(
+            "Structure", "01", "00", preampAddress(channel, offset)));
+    }
+
+    if (state.browser && state.type)
+        state.browser->setCurrentIndex(state.type->currentIndex());
+
+    for (ModernToggleSwitch *toggle : state.toggles) {
+        if (!toggle || toggle->property("preampGlobalState").toBool())
+            continue;
+        const int offset = toggle->property("preampOffset").toInt();
+        toggle->setChecked(sysxIO->getSourceValue(
+            "Structure", "01", "00", preampAddress(channel, offset)) == 1);
+    }
+
+    for (ParameterBar *bar : state.bars) {
+        if (!bar)
+            continue;
+        const int offset = bar->property("preampOffset").toInt();
+        const QString address = preampAddress(channel, offset);
+        const int value = sysxIO->getSourceValue(
+            "Structure", "01", "00", address);
+        const QSignalBlocker blocker(bar);
+        bar->setValue(value);
+        bar->setDisplayText(preampDisplayText(
+            midiTable->getValue(
+                "Structure", "01", "00", address,
+                QString::number(value, 16).toUpper()),
+            offset));
+    }
+    updatePreampConditionalSections(channel);
+}
+
+void modernFloorBoard::refreshPreamp(PreampChannel channel)
+{
+    if (!hasValidPreampBuffer()) {
+        updatePreampParameterControls(channel, false);
+        return;
+    }
+    updatePreampParameterControls(channel, true);
+}
+
+void modernFloorBoard::refreshPreampGlobalState()
+{
+    if (!hasValidPreampBuffer()) {
+        setPreampUnavailable();
+        return;
+    }
+
+    const bool on = SysxIO::Instance()->getSourceValue(
+        "Structure", "01", "00", "00") == 1;
+    if (preampA.globalState)
+        preampA.globalState->setChecked(on);
+    if (preampB.globalState)
+        preampB.globalState->setChecked(on);
+    if (preampACard)
+        preampACard->setEffectState(true, on);
+    if (preampBCard)
+        preampBCard->setEffectState(true, on);
+}
+
+void modernFloorBoard::setPreampValue(PreampChannel channel,
+                                       int offset, int value)
+{
+    if (!hasValidPreampBuffer())
+        return;
+    SysxIO::Instance()->setFileSource(
+        "Structure", "01", "00", preampAddress(channel, offset),
+        QString("%1").arg(value, 2, 16, QChar('0')).toUpper());
+}
+
+void modernFloorBoard::setPreampGlobalState(bool on)
+{
+    if (!hasValidPreampBuffer())
+        return;
+    SysxIO::Instance()->setFileSource(
+        "Structure", "01", "00", "00", on ? "01" : "00");
+    refreshPreampGlobalState();
+}
+
+void modernFloorBoard::setPreampType(PreampChannel channel, int index)
+{
+    PreampEditorState &state = preampState(channel);
+    if (!state.type || index < 0 || index >= state.type->count()
+        || !hasValidPreampBuffer())
+        return;
+
+    {
+        const QSignalBlocker blocker(state.type);
+        state.type->setCurrentIndex(index);
+    }
+    setPreampValue(channel, 0x00, index);
+    if (state.browser)
+        state.browser->setCurrentIndex(index);
+    updatePreampConditionalSections(channel);
+}
+
+void modernFloorBoard::preampModelSelected(int index)
+{
+    QObject *browser = sender();
+    if (!browser)
+        return;
+    const PreampChannel channel = browser->property("preampChannel").toInt()
+        == 0 ? PreampChannel::A : PreampChannel::B;
+    setPreampType(channel, index);
+}
+
+void modernFloorBoard::preampComboChanged(int value)
+{
+    QComboBox *combo = qobject_cast<QComboBox *>(sender());
+    if (!combo)
+        return;
+    const PreampChannel channel = combo->property("preampChannel").toInt()
+        == 0 ? PreampChannel::A : PreampChannel::B;
+    const int offset = combo->property("preampOffset").toInt();
+    if (offset == 0x00) {
+        setPreampType(channel, value);
+        return;
+    }
+    setPreampValue(channel, offset, value);
+    if (offset == 0x0B || offset == 0x11)
+        updatePreampConditionalSections(channel);
+}
+
+void modernFloorBoard::preampBarChanged(int value)
+{
+    ParameterBar *bar = qobject_cast<ParameterBar *>(sender());
+    if (!bar)
+        return;
+    const PreampChannel channel = bar->property("preampChannel").toInt()
+        == 0 ? PreampChannel::A : PreampChannel::B;
+    const int offset = bar->property("preampOffset").toInt();
+    const QString address = preampAddress(channel, offset);
+    setPreampValue(channel, offset, value);
+    bar->setDisplayText(preampDisplayText(
+        MidiTable::Instance()->getValue(
+            "Structure", "01", "00", address,
+            QString::number(value, 16).toUpper()),
+        offset));
+}
+
+void modernFloorBoard::preampToggleChanged()
+{
+    ModernToggleSwitch *toggle =
+        static_cast<ModernToggleSwitch *>(sender());
+    if (!toggle || !hasValidPreampBuffer())
+        return;
+    if (toggle->property("preampGlobalState").toBool()) {
+        setPreampGlobalState(toggle->isChecked());
+        return;
+    }
+    const PreampChannel channel = toggle->property("preampChannel").toInt()
+        == 0 ? PreampChannel::A : PreampChannel::B;
+    setPreampValue(channel, toggle->property("preampOffset").toInt(),
+                   toggle->isChecked() ? 1 : 0);
 }
 
 void modernFloorBoard::updateCompParameterControls(bool available)

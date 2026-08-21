@@ -57,6 +57,8 @@ private slots:
     void showReverbEditor();
     void showOddsEditor();
     void showDelayEditor();
+    void showPreampAEditor();
+    void showPreampBEditor();
     void compTypeChanged(int value);
     void compModelSelected(int index);
     void compBarChanged(int value);
@@ -69,6 +71,10 @@ private slots:
     void delayModelSelected(int index);
     void delayBarChanged(int value);
     void delayToggleChanged();
+    void preampComboChanged(int value);
+    void preampModelSelected(int index);
+    void preampBarChanged(int value);
+    void preampToggleChanged();
 
 private:
     EffectModule *createEffectBlock(const QString &name, bool available);
@@ -107,6 +113,45 @@ private:
     void updateDelayParameterControls(bool available);
     void updateDelayPageForType(int type);
     void refreshDelayState();
+    enum class PreampChannel { A, B };
+    struct PreampEditorState {
+        EffectEditorPanel *editor = nullptr;
+        EffectArtworkWidget *artwork = nullptr;
+        EffectModelBrowser *browser = nullptr;
+        QComboBox *type = nullptr;
+        QComboBox *customType = nullptr;
+        QComboBox *speakerType = nullptr;
+        ModernToggleSwitch *globalState = nullptr;
+        ModernToggleSwitch *bright = nullptr;
+        ModernToggleSwitch *solo = nullptr;
+        QWidget *brightControl = nullptr;
+        QWidget *customPreampSection = nullptr;
+        QWidget *customSpeakerSection = nullptr;
+        QList<QComboBox *> combos;
+        QList<ParameterBar *> bars;
+        QList<ModernToggleSwitch *> toggles;
+    };
+    PreampEditorState &preampState(PreampChannel channel);
+    const PreampEditorState &preampState(PreampChannel channel) const;
+    QString preampAddress(PreampChannel channel, int offset) const;
+    EffectEditorPanel *createPreampEditor(PreampChannel channel);
+    QWidget *createPreampCombo(PreampChannel channel,
+                               const QString &label, int offset);
+    QWidget *createPreampBar(PreampChannel channel,
+                             const QString &label, int offset);
+    QWidget *createPreampToggle(PreampChannel channel,
+                                const QString &label, int offset,
+                                ModernToggleSwitch **target = nullptr);
+    bool hasValidPreampBuffer() const;
+    void setPreampUnavailable();
+    void setPreampValue(PreampChannel channel, int offset, int value);
+    void setPreampType(PreampChannel channel, int index);
+    void setPreampGlobalState(bool on);
+    void updatePreampConditionalSections(PreampChannel channel);
+    void updatePreampParameterControls(PreampChannel channel,
+                                       bool available);
+    void refreshPreamp(PreampChannel channel);
+    void refreshPreampGlobalState();
     void refreshSignalChainModel();
     void rebuildSignalChainView();
     void applyResponsiveSignalChainLayout();
@@ -127,11 +172,15 @@ private:
     SignalChainModule *compCard = nullptr;
     SignalChainModule *oddsCard = nullptr;
     SignalChainModule *delayCard = nullptr;
+    SignalChainModule *preampACard = nullptr;
+    SignalChainModule *preampBCard = nullptr;
     QStackedWidget *effectEditorStack = nullptr;
     EffectEditorPanel *reverbEditor = nullptr;
     EffectEditorPanel *compEditor = nullptr;
     EffectEditorPanel *oddsEditor = nullptr;
     EffectEditorPanel *delayEditor = nullptr;
+    PreampEditorState preampA;
+    PreampEditorState preampB;
     EffectArtworkWidget *reverbArtwork = nullptr;
     EffectModelBrowser *reverbModelBrowser = nullptr;
     EffectArtworkWidget *oddsArtwork = nullptr;

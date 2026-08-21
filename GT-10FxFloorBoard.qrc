@@ -93,5 +93,7 @@
         <file>assets/effects/reverb.png</file>
         <file>assets/effects/od_ds.png</file>
         <file>assets/effects/delay.png</file>
+        <file>assets/effects/preamp_a.png</file>
+        <file>assets/effects/preamp_b.png</file>
     </qresource>
 </RCC>
