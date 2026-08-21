@@ -906,6 +906,10 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     effectEditorStack->addWidget(fx1Editor->widget());
     connect(fx1Editor, &ModernFxEditor::stateChanged,
             this, &modernFloorBoard::fx1StateChanged);
+    fx2Editor = new ModernFxEditor(FxSlot::FX2, this);
+    effectEditorStack->addWidget(fx2Editor->widget());
+    connect(fx2Editor, &ModernFxEditor::stateChanged,
+            this, &modernFloorBoard::fx2StateChanged);
 
     mainLayout->addWidget(effectEditorStack, 1);
 
@@ -1739,6 +1743,7 @@ void modernFloorBoard::backendConnected()
     setPreampUnavailable();
     updateChannelRoutingControls(false);
     refreshFx(FxSlot::FX1);
+    refreshFx(FxSlot::FX2);
 }
 
 void modernFloorBoard::backendDisconnected()
@@ -1756,6 +1761,7 @@ void modernFloorBoard::backendDisconnected()
     setPreampUnavailable();
     updateChannelRoutingControls(false);
     refreshFx(FxSlot::FX1);
+    refreshFx(FxSlot::FX2);
     patchNumber->setText(QString::fromUtf8("—"));
     patchName->setText("NO PATCH DATA");
     patchListModel.setCurrentPatch(0, 0, QString());
@@ -1794,6 +1800,7 @@ void modernFloorBoard::refreshReverbState()
         refreshPreampGlobalState();
         refreshChannelRouting();
         refreshFx(FxSlot::FX1);
+        refreshFx(FxSlot::FX2);
         return;
     }
 
@@ -1813,6 +1820,7 @@ void modernFloorBoard::refreshReverbState()
     refreshPreampGlobalState();
     refreshChannelRouting();
     refreshFx(FxSlot::FX1);
+    refreshFx(FxSlot::FX2);
 }
 
 void modernFloorBoard::refreshCompState()
@@ -1901,6 +1909,7 @@ SignalChainModule *modernFloorBoard::createSignalChainModule(
     const bool isDelay = entry.moduleId == 0x07;
     const bool isEq = entry.moduleId == 0x04;
     const bool isFx1 = entry.moduleId == 0x05;
+    const bool isFx2 = entry.moduleId == 0x06;
     const bool isPreampA = entry.moduleId == 0x02;
     const bool isPreampB = entry.moduleId == 0x03;
     SignalChainModule *module = new SignalChainModule(
@@ -1908,7 +1917,8 @@ SignalChainModule *modernFloorBoard::createSignalChainModule(
         QColor(ModernTheme::effectFaceColor(fullName)));
     module->setEffectState(false, false);
     module->setNavigable(isComp || isReverb || isOdds || isDelay
-                         || isEq || isFx1 || isPreampA || isPreampB);
+                         || isEq || isFx1 || isFx2
+                         || isPreampA || isPreampB);
     module->setProperty("chainPosition", entry.originalPosition);
     module->setProperty("rawValue", entry.rawValue);
     module->setProperty("signalPath", entry.path);
@@ -1944,6 +1954,11 @@ SignalChainModule *modernFloorBoard::createSignalChainModule(
         fx1Card->setSelected(selectedEditor == "FX-1");
         connect(module, SIGNAL(clicked()), this, SLOT(showFx1Editor()));
     }
+    if (isFx2) {
+        fx2Card = module;
+        fx2Card->setSelected(selectedEditor == "FX-2");
+        connect(module, SIGNAL(clicked()), this, SLOT(showFx2Editor()));
+    }
     if (isPreampA) {
         preampACard = module;
         preampACard->setSelected(selectedEditor == "PREAMP A");
@@ -1966,6 +1981,7 @@ void modernFloorBoard::rebuildSignalChainView()
     delayCard = nullptr;
     eqCard = nullptr;
     fx1Card = nullptr;
+    fx2Card = nullptr;
     preampACard = nullptr;
     preampBCard = nullptr;
     splitJunction = nullptr;
@@ -2305,6 +2321,8 @@ void modernFloorBoard::showCompEditor()
         eqCard->setSelected(false);
     if (fx1Card)
         fx1Card->setSelected(false);
+    if (fx2Card)
+        fx2Card->setSelected(false);
     if (preampACard)
         preampACard->setSelected(false);
     if (preampBCard)
@@ -2330,6 +2348,8 @@ void modernFloorBoard::showReverbEditor()
         eqCard->setSelected(false);
     if (fx1Card)
         fx1Card->setSelected(false);
+    if (fx2Card)
+        fx2Card->setSelected(false);
     if (preampACard)
         preampACard->setSelected(false);
     if (preampBCard)
@@ -2355,6 +2375,8 @@ void modernFloorBoard::showOddsEditor()
         eqCard->setSelected(false);
     if (fx1Card)
         fx1Card->setSelected(false);
+    if (fx2Card)
+        fx2Card->setSelected(false);
     if (preampACard)
         preampACard->setSelected(false);
     if (preampBCard)
@@ -2384,6 +2406,8 @@ void modernFloorBoard::showDelayEditor()
         eqCard->setSelected(false);
     if (fx1Card)
         fx1Card->setSelected(false);
+    if (fx2Card)
+        fx2Card->setSelected(false);
     if (splitJunction)
         splitJunction->setSelected(false);
 }
@@ -2405,6 +2429,8 @@ void modernFloorBoard::showEqEditor()
         delayCard->setSelected(false);
     if (fx1Card)
         fx1Card->setSelected(false);
+    if (fx2Card)
+        fx2Card->setSelected(false);
     if (preampACard)
         preampACard->setSelected(false);
     if (preampBCard)
@@ -2434,6 +2460,8 @@ void modernFloorBoard::showPreampAEditor()
         eqCard->setSelected(false);
     if (fx1Card)
         fx1Card->setSelected(false);
+    if (fx2Card)
+        fx2Card->setSelected(false);
     if (splitJunction)
         splitJunction->setSelected(false);
 }
@@ -2459,6 +2487,8 @@ void modernFloorBoard::showPreampBEditor()
         eqCard->setSelected(false);
     if (fx1Card)
         fx1Card->setSelected(false);
+    if (fx2Card)
+        fx2Card->setSelected(false);
     if (splitJunction)
         splitJunction->setSelected(false);
 }
@@ -2468,16 +2498,27 @@ void modernFloorBoard::showFx1Editor()
     showFxEditor(FxSlot::FX1);
 }
 
+void modernFloorBoard::showFx2Editor()
+{
+    showFxEditor(FxSlot::FX2);
+}
+
 void modernFloorBoard::showFxEditor(FxSlot slot)
 {
-    if (slot != FxSlot::FX1 || !fx1Editor)
+    ModernFxEditor *targetEditor = slot == FxSlot::FX1
+        ? fx1Editor : fx2Editor;
+    SignalChainModule *targetCard = slot == FxSlot::FX1
+        ? fx1Card : fx2Card;
+    if (!targetEditor)
         return;
 
-    selectedEditor = "FX-1";
+    selectedEditor = slot == FxSlot::FX1 ? "FX-1" : "FX-2";
     if (effectEditorStack)
-        effectEditorStack->setCurrentWidget(fx1Editor->widget());
+        effectEditorStack->setCurrentWidget(targetEditor->widget());
     if (fx1Card)
-        fx1Card->setSelected(true);
+        fx1Card->setSelected(targetCard == fx1Card);
+    if (fx2Card)
+        fx2Card->setSelected(targetCard == fx2Card);
     if (preampACard)
         preampACard->setSelected(false);
     if (preampBCard)
@@ -2498,14 +2539,22 @@ void modernFloorBoard::showFxEditor(FxSlot slot)
 
 void modernFloorBoard::refreshFx(FxSlot slot)
 {
-    if (slot == FxSlot::FX1 && fx1Editor)
-        fx1Editor->refreshFx(backendIsConnected, backendHasPatchData);
+    ModernFxEditor *targetEditor = slot == FxSlot::FX1
+        ? fx1Editor : fx2Editor;
+    if (targetEditor)
+        targetEditor->refreshFx(backendIsConnected, backendHasPatchData);
 }
 
 void modernFloorBoard::fx1StateChanged(bool available, bool on)
 {
     if (fx1Card)
         fx1Card->setEffectState(available, on);
+}
+
+void modernFloorBoard::fx2StateChanged(bool available, bool on)
+{
+    if (fx2Card)
+        fx2Card->setEffectState(available, on);
 }
 
 void modernFloorBoard::showChannelRoutingEditor()
@@ -2532,6 +2581,8 @@ void modernFloorBoard::showChannelRoutingEditor()
         eqCard->setSelected(false);
     if (fx1Card)
         fx1Card->setSelected(false);
+    if (fx2Card)
+        fx2Card->setSelected(false);
 }
 
 void modernFloorBoard::updateChannelRoutingPage(int mode)

@@ -64,6 +64,7 @@ private slots:
     void showPreampAEditor();
     void showPreampBEditor();
     void showFx1Editor();
+    void showFx2Editor();
     void showChannelRoutingEditor();
     void compTypeChanged(int value);
     void compModelSelected(int index);
@@ -174,6 +175,7 @@ private:
     void showFxEditor(FxSlot slot);
     void refreshFx(FxSlot slot);
     void fx1StateChanged(bool available, bool on);
+    void fx2StateChanged(bool available, bool on);
     QWidget *createChannelRoutingEditor();
     void updateChannelRoutingPage(int mode);
     void updateChannelRoutingControls(bool available);
@@ -207,6 +209,7 @@ private:
     SignalChainModule *preampACard = nullptr;
     SignalChainModule *preampBCard = nullptr;
     SignalChainModule *fx1Card = nullptr;
+    SignalChainModule *fx2Card = nullptr;
     SignalJunction *splitJunction = nullptr;
     QStackedWidget *effectEditorStack = nullptr;
     EffectEditorPanel *reverbEditor = nullptr;
@@ -217,6 +220,7 @@ private:
     PreampEditorState preampA;
     PreampEditorState preampB;
     ModernFxEditor *fx1Editor = nullptr;
+    ModernFxEditor *fx2Editor = nullptr;
     QWidget *channelRoutingEditor = nullptr;
     QWidget *channelRoutingDiagram = nullptr;
     QComboBox *channelMode = nullptr;
