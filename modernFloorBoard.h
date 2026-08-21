@@ -60,6 +60,7 @@ private slots:
     void showReverbEditor();
     void showOddsEditor();
     void showDelayEditor();
+    void showChorusEditor();
     void showEqEditor();
     void showPreampAEditor();
     void showPreampBEditor();
@@ -78,6 +79,9 @@ private slots:
     void delayModelSelected(int index);
     void delayBarChanged(int value);
     void delayToggleChanged();
+    void chorusComboChanged(int index);
+    void chorusBarChanged(int value);
+    void toggleChorus();
     void eqComboChanged(int value);
     void eqBarChanged(int value);
     void toggleEq();
@@ -125,6 +129,16 @@ private:
     void updateDelayParameterControls(bool available);
     void updateDelayPageForType(int type);
     void refreshDelayState();
+    bool hasValidChorusBuffer() const;
+    bool hasValidChorusParameter(const QString &address) const;
+    void setChorusUnavailable();
+    QWidget *createChorusCombo(const QString &label,
+                               const QString &address);
+    QWidget *createChorusBar(const QString &label,
+                             const QString &address);
+    void setChorusValue(const QString &address, int value);
+    void updateChorusParameterControls(bool available);
+    void refreshChorus();
     bool hasValidEqBuffer() const;
     void setEqUnavailable();
     QWidget *createEqCombo(const QString &label, const QString &address);
@@ -205,6 +219,7 @@ private:
     SignalChainModule *compCard = nullptr;
     SignalChainModule *oddsCard = nullptr;
     SignalChainModule *delayCard = nullptr;
+    SignalChainModule *chorusCard = nullptr;
     SignalChainModule *eqCard = nullptr;
     SignalChainModule *preampACard = nullptr;
     SignalChainModule *preampBCard = nullptr;
@@ -216,6 +231,7 @@ private:
     EffectEditorPanel *compEditor = nullptr;
     EffectEditorPanel *oddsEditor = nullptr;
     EffectEditorPanel *delayEditor = nullptr;
+    EffectEditorPanel *chorusEditor = nullptr;
     QWidget *eqEditor = nullptr;
     PreampEditorState preampA;
     PreampEditorState preampB;
@@ -262,6 +278,11 @@ private:
     QStackedWidget *delayExtraStack = nullptr;
     QList<QComboBox *> delayCombos;
     QList<ParameterBar *> delayBars;
+    QComboBox *chorusMode = nullptr;
+    QLabel *chorusModeDisplay = nullptr;
+    ModernToggleSwitch *chorusOnOff = nullptr;
+    QList<QComboBox *> chorusCombos;
+    QList<ParameterBar *> chorusBars;
     ModernToggleSwitch *eqOnOff = nullptr;
     ModernEqGraph *eqGraph = nullptr;
     QList<QComboBox *> eqCombos;

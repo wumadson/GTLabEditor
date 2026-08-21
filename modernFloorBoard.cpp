@@ -60,9 +60,23 @@ QVector<int> rhythmicDivisionRawValues(const Midi &parameter)
 
     QVector<RhythmicEntry> entries;
     for (const Midi &highByte : parameter.level) {
+        if (highByte.value == "range")
+            continue;
+
+        if (highByte.level.isEmpty()) {
+            bool recognized = false;
+            const QString display = FxPresentation::formatRhythmicDivision(
+                highByte.name, &recognized);
+            bool rawOk = false;
+            const int raw = highByte.value.toInt(&rawOk, 16);
+            if (recognized && rawOk)
+                entries.append({raw, display});
+            continue;
+        }
+
         bool highByteOk = false;
         const int high = highByte.value.toInt(&highByteOk, 16);
-        if (!highByteOk || highByte.level.isEmpty())
+        if (!highByteOk)
             continue;
 
         for (const Midi &entry : highByte.level) {
@@ -819,6 +833,60 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     delayParameterLayout->addStretch(1);
     effectEditorStack->addWidget(delayEditor);
 
+    chorusEditor = new EffectEditorPanel("CHORUS");
+    chorusModeDisplay = chorusEditor->typeLabel();
+    chorusEditor->setRightPanelTitle("CHORUS MODE");
+    chorusEditor->setRightPanelWidget(createChorusCombo("Mode", "21"));
+
+    QVBoxLayout *chorusParameterLayout =
+        new QVBoxLayout(chorusEditor->parameterArea());
+    chorusParameterLayout->setContentsMargins(0, 0, 0, 0);
+    chorusParameterLayout->setSpacing(7);
+
+    QWidget *chorusPrimaryControls = new QWidget;
+    QHBoxLayout *chorusPrimaryLayout =
+        new QHBoxLayout(chorusPrimaryControls);
+    chorusPrimaryLayout->setContentsMargins(0, 0, 0, 0);
+    chorusPrimaryLayout->setSpacing(0);
+    EffectToggleControl *chorusToggle = new EffectToggleControl("State");
+    chorusOnOff = chorusToggle->toggle();
+    chorusOnOff->setAccentColor(QColor(
+        ModernTheme::activeEffectAccent("CHORUS")));
+    connect(chorusOnOff, SIGNAL(clicked()), this, SLOT(toggleChorus()));
+    chorusPrimaryLayout->addWidget(chorusToggle, 0, Qt::AlignTop);
+    chorusPrimaryLayout->addStretch(1);
+    chorusParameterLayout->addWidget(chorusPrimaryControls);
+
+    QLabel *chorusModulationTitle = new QLabel("MODULATION");
+    chorusModulationTitle->setObjectName("ParameterSectionTitle");
+    chorusParameterLayout->addWidget(chorusModulationTitle);
+    chorusParameterLayout->addWidget(createChorusBar("Rate", "22"));
+    chorusParameterLayout->addWidget(createChorusBar("Depth", "23"));
+
+    QLabel *chorusTimingTitle = new QLabel("TIMING");
+    chorusTimingTitle->setObjectName("ParameterSectionTitle");
+    chorusParameterLayout->addWidget(chorusTimingTitle);
+    chorusParameterLayout->addWidget(createChorusBar("Pre Delay", "24"));
+
+    QLabel *chorusFilterTitle = new QLabel("FILTER");
+    chorusFilterTitle->setObjectName("ParameterSectionTitle");
+    chorusParameterLayout->addWidget(chorusFilterTitle);
+    QWidget *chorusFilterControls = new QWidget;
+    QHBoxLayout *chorusFilterLayout = new QHBoxLayout(chorusFilterControls);
+    chorusFilterLayout->setContentsMargins(0, 0, 0, 0);
+    chorusFilterLayout->setSpacing(10);
+    chorusFilterLayout->addWidget(createChorusCombo("Low Cut", "25"));
+    chorusFilterLayout->addWidget(createChorusCombo("High Cut", "26"));
+    chorusFilterLayout->addStretch(1);
+    chorusParameterLayout->addWidget(chorusFilterControls);
+
+    QLabel *chorusOutputTitle = new QLabel("OUTPUT");
+    chorusOutputTitle->setObjectName("ParameterSectionTitle");
+    chorusParameterLayout->addWidget(chorusOutputTitle);
+    chorusParameterLayout->addWidget(createChorusBar("Effect Level", "27"));
+    chorusParameterLayout->addStretch(1);
+    effectEditorStack->addWidget(chorusEditor);
+
     QFrame *eqFullWidthEditor = new QFrame;
     eqFullWidthEditor->setObjectName("EffectEditorPanel");
     eqEditor = eqFullWidthEditor;
@@ -1541,6 +1609,74 @@ QWidget *modernFloorBoard::createDelayBar(const QString &label,
     return bar;
 }
 
+QWidget *modernFloorBoard::createChorusCombo(const QString &label,
+                                             const QString &address)
+{
+    ParameterCombo *container = new ParameterCombo(label);
+    QComboBox *combo = container->comboBox();
+    combo->setProperty("address", address);
+
+    const Midi parameter = MidiTable::Instance()->getMidiMap(
+        "Structure", "0A", "00", address);
+    for (const Midi &item : parameter.level) {
+        if (item.value == "range")
+            continue;
+
+        bool rawOk = false;
+        const int raw = item.value.toInt(&rawOk, 16);
+        if (!rawOk)
+            continue;
+
+        QString text = item.desc.isEmpty() ? item.name : item.desc;
+        if (address == "21") {
+            if (raw == 0x00) text = "MONO";
+            else if (raw == 0x01) text = "STEREO 1";
+            else if (raw == 0x02) text = "STEREO 2";
+        }
+        combo->addItem(text, raw);
+    }
+
+    connect(combo, SIGNAL(currentIndexChanged(int)),
+            this, SLOT(chorusComboChanged(int)));
+    chorusCombos.append(combo);
+    if (address == "21")
+        chorusMode = combo;
+    return container;
+}
+
+QWidget *modernFloorBoard::createChorusBar(const QString &label,
+                                           const QString &address)
+{
+    ParameterBar *bar = new ParameterBar(label);
+    bar->setAccentColor(QColor(
+        ModernTheme::activeEffectAccent("CHORUS")));
+    bar->setProperty("address", address);
+
+    MidiTable *midiTable = MidiTable::Instance();
+    const Midi parameter = midiTable->getMidiMap(
+        "Structure", "0A", "00", address);
+    bar->setRange(midiTable->getRangeMinimum(
+                      "Structure", "0A", "00", address),
+                  midiTable->getRange(
+                      "Structure", "0A", "00", address));
+    if (address == "22") {
+        const QVector<int> rhythmicRawValues =
+            rhythmicDivisionRawValues(parameter);
+        if (!rhythmicRawValues.isEmpty()) {
+            const int firstRhythmicRaw = *std::min_element(
+                rhythmicRawValues.constBegin(),
+                rhythmicRawValues.constEnd());
+            bar->setSegmentedMapping(
+                firstRhythmicRaw - 1, rhythmicRawValues, 0.5);
+        }
+    }
+
+    connect(bar, &QAbstractSlider::valueChanged,
+            this, &modernFloorBoard::chorusBarChanged);
+    chorusBars.append(bar);
+    return bar;
+}
+
 QWidget *modernFloorBoard::createEqCombo(const QString &label,
                                          const QString &address)
 {
@@ -1653,6 +1789,33 @@ bool modernFloorBoard::hasValidDelayBuffer() const
         && valueIndex < source.hex.at(addressIndex).size();
 }
 
+bool modernFloorBoard::hasValidChorusParameter(
+    const QString &address) const
+{
+    bool addressOk = false;
+    const int offset = address.toInt(&addressOk, 16);
+    if (!addressOk)
+        return false;
+
+    SysxIO *sysxIO = SysxIO::Instance();
+    const SysxData source = sysxIO->getFileSource();
+    const int addressIndex = source.address.indexOf("0A00");
+    if (!backendIsConnected || !backendHasPatchData
+        || !sysxIO->isConnected() || addressIndex < 0
+        || addressIndex >= source.hex.size())
+        return false;
+
+    const int valueIndex = sysxDataOffset + offset;
+    return valueIndex >= 0
+        && valueIndex < source.hex.at(addressIndex).size();
+}
+
+bool modernFloorBoard::hasValidChorusBuffer() const
+{
+    return hasValidChorusParameter("20")
+        && hasValidChorusParameter("21");
+}
+
 bool modernFloorBoard::hasValidEqBuffer() const
 {
     SysxIO *sysxIO = SysxIO::Instance();
@@ -1713,6 +1876,13 @@ void modernFloorBoard::setDelayUnavailable()
     updateDelayParameterControls(false);
 }
 
+void modernFloorBoard::setChorusUnavailable()
+{
+    if (chorusCard)
+        chorusCard->setEffectState(false, false);
+    updateChorusParameterControls(false);
+}
+
 void modernFloorBoard::setEqUnavailable()
 {
     if (eqCard)
@@ -1739,6 +1909,7 @@ void modernFloorBoard::backendConnected()
     setCompUnavailable();
     setOddsUnavailable();
     setDelayUnavailable();
+    setChorusUnavailable();
     setEqUnavailable();
     setPreampUnavailable();
     updateChannelRoutingControls(false);
@@ -1757,6 +1928,7 @@ void modernFloorBoard::backendDisconnected()
     setCompUnavailable();
     setOddsUnavailable();
     setDelayUnavailable();
+    setChorusUnavailable();
     setEqUnavailable();
     setPreampUnavailable();
     updateChannelRoutingControls(false);
@@ -1794,6 +1966,7 @@ void modernFloorBoard::refreshReverbState()
         refreshCompState();
         refreshOddsState();
         refreshDelayState();
+        refreshChorus();
         refreshEq();
         refreshPreamp(PreampChannel::A);
         refreshPreamp(PreampChannel::B);
@@ -1814,6 +1987,7 @@ void modernFloorBoard::refreshReverbState()
     refreshCompState();
     refreshOddsState();
     refreshDelayState();
+    refreshChorus();
     refreshEq();
     refreshPreamp(PreampChannel::A);
     refreshPreamp(PreampChannel::B);
@@ -1865,6 +2039,20 @@ void modernFloorBoard::refreshDelayState()
     updateDelayParameterControls(true);
 }
 
+void modernFloorBoard::refreshChorus()
+{
+    if (!hasValidChorusBuffer()) {
+        setChorusUnavailable();
+        return;
+    }
+
+    const bool on = SysxIO::Instance()->getSourceValue(
+        "Structure", "0A", "00", "20") == 1;
+    if (chorusCard)
+        chorusCard->setEffectState(true, on);
+    updateChorusParameterControls(true);
+}
+
 void modernFloorBoard::refreshEq()
 {
     if (!hasValidEqBuffer()) {
@@ -1907,6 +2095,7 @@ SignalChainModule *modernFloorBoard::createSignalChainModule(
     const bool isComp = entry.moduleId == 0x00;
     const bool isOdds = entry.moduleId == 0x01;
     const bool isDelay = entry.moduleId == 0x07;
+    const bool isChorus = entry.moduleId == 0x08;
     const bool isEq = entry.moduleId == 0x04;
     const bool isFx1 = entry.moduleId == 0x05;
     const bool isFx2 = entry.moduleId == 0x06;
@@ -1916,7 +2105,7 @@ SignalChainModule *modernFloorBoard::createSignalChainModule(
         name, QColor(ModernTheme::effectColor(fullName)),
         QColor(ModernTheme::effectFaceColor(fullName)));
     module->setEffectState(false, false);
-    module->setNavigable(isComp || isReverb || isOdds || isDelay
+    module->setNavigable(isComp || isReverb || isOdds || isDelay || isChorus
                          || isEq || isFx1 || isFx2
                          || isPreampA || isPreampB);
     module->setProperty("chainPosition", entry.originalPosition);
@@ -1943,6 +2132,11 @@ SignalChainModule *modernFloorBoard::createSignalChainModule(
         delayCard = module;
         delayCard->setSelected(selectedEditor == "DELAY");
         connect(module, SIGNAL(clicked()), this, SLOT(showDelayEditor()));
+    }
+    if (isChorus) {
+        chorusCard = module;
+        chorusCard->setSelected(selectedEditor == "CHORUS");
+        connect(module, SIGNAL(clicked()), this, SLOT(showChorusEditor()));
     }
     if (isEq) {
         eqCard = module;
@@ -1979,6 +2173,7 @@ void modernFloorBoard::rebuildSignalChainView()
     reverbCard = nullptr;
     compCard = nullptr;
     delayCard = nullptr;
+    chorusCard = nullptr;
     eqCard = nullptr;
     fx1Card = nullptr;
     fx2Card = nullptr;
@@ -2317,6 +2512,8 @@ void modernFloorBoard::showCompEditor()
         oddsCard->setSelected(false);
     if (delayCard)
         delayCard->setSelected(false);
+    if (chorusCard)
+        chorusCard->setSelected(false);
     if (eqCard)
         eqCard->setSelected(false);
     if (fx1Card)
@@ -2344,6 +2541,8 @@ void modernFloorBoard::showReverbEditor()
         oddsCard->setSelected(false);
     if (delayCard)
         delayCard->setSelected(false);
+    if (chorusCard)
+        chorusCard->setSelected(false);
     if (eqCard)
         eqCard->setSelected(false);
     if (fx1Card)
@@ -2371,6 +2570,8 @@ void modernFloorBoard::showOddsEditor()
         reverbCard->setSelected(false);
     if (delayCard)
         delayCard->setSelected(false);
+    if (chorusCard)
+        chorusCard->setSelected(false);
     if (eqCard)
         eqCard->setSelected(false);
     if (fx1Card)
@@ -2392,6 +2593,8 @@ void modernFloorBoard::showDelayEditor()
         effectEditorStack->setCurrentWidget(delayEditor);
     if (delayCard)
         delayCard->setSelected(true);
+    if (chorusCard)
+        chorusCard->setSelected(false);
     if (compCard)
         compCard->setSelected(false);
     if (reverbCard)
@@ -2412,6 +2615,36 @@ void modernFloorBoard::showDelayEditor()
         splitJunction->setSelected(false);
 }
 
+void modernFloorBoard::showChorusEditor()
+{
+    refreshChorus();
+    selectedEditor = "CHORUS";
+    if (effectEditorStack && chorusEditor)
+        effectEditorStack->setCurrentWidget(chorusEditor);
+    if (chorusCard)
+        chorusCard->setSelected(true);
+    if (compCard)
+        compCard->setSelected(false);
+    if (reverbCard)
+        reverbCard->setSelected(false);
+    if (oddsCard)
+        oddsCard->setSelected(false);
+    if (delayCard)
+        delayCard->setSelected(false);
+    if (eqCard)
+        eqCard->setSelected(false);
+    if (fx1Card)
+        fx1Card->setSelected(false);
+    if (fx2Card)
+        fx2Card->setSelected(false);
+    if (preampACard)
+        preampACard->setSelected(false);
+    if (preampBCard)
+        preampBCard->setSelected(false);
+    if (splitJunction)
+        splitJunction->setSelected(false);
+}
+
 void modernFloorBoard::showEqEditor()
 {
     selectedEditor = "EQ";
@@ -2427,6 +2660,8 @@ void modernFloorBoard::showEqEditor()
         oddsCard->setSelected(false);
     if (delayCard)
         delayCard->setSelected(false);
+    if (chorusCard)
+        chorusCard->setSelected(false);
     if (fx1Card)
         fx1Card->setSelected(false);
     if (fx2Card)
@@ -2456,6 +2691,8 @@ void modernFloorBoard::showPreampAEditor()
         oddsCard->setSelected(false);
     if (delayCard)
         delayCard->setSelected(false);
+    if (chorusCard)
+        chorusCard->setSelected(false);
     if (eqCard)
         eqCard->setSelected(false);
     if (fx1Card)
@@ -2483,6 +2720,8 @@ void modernFloorBoard::showPreampBEditor()
         oddsCard->setSelected(false);
     if (delayCard)
         delayCard->setSelected(false);
+    if (chorusCard)
+        chorusCard->setSelected(false);
     if (eqCard)
         eqCard->setSelected(false);
     if (fx1Card)
@@ -2531,6 +2770,8 @@ void modernFloorBoard::showFxEditor(FxSlot slot)
         oddsCard->setSelected(false);
     if (delayCard)
         delayCard->setSelected(false);
+    if (chorusCard)
+        chorusCard->setSelected(false);
     if (eqCard)
         eqCard->setSelected(false);
     if (splitJunction)
@@ -2577,6 +2818,8 @@ void modernFloorBoard::showChannelRoutingEditor()
         oddsCard->setSelected(false);
     if (delayCard)
         delayCard->setSelected(false);
+    if (chorusCard)
+        chorusCard->setSelected(false);
     if (eqCard)
         eqCard->setSelected(false);
     if (fx1Card)
@@ -3454,6 +3697,111 @@ void modernFloorBoard::delayBarChanged(int value)
         peer->setValue(value);
         peer->setDisplayText(display);
     }
+}
+
+void modernFloorBoard::updateChorusParameterControls(bool available)
+{
+    SysxIO *sysxIO = SysxIO::Instance();
+    MidiTable *midiTable = MidiTable::Instance();
+
+    if (chorusOnOff) {
+        const QSignalBlocker blocker(chorusOnOff);
+        chorusOnOff->setEnabled(available);
+        chorusOnOff->setVisible(true);
+        chorusOnOff->setChecked(available && sysxIO->getSourceValue(
+            "Structure", "0A", "00", "20") == 1);
+    }
+
+    for (QComboBox *combo : chorusCombos) {
+        if (!combo)
+            continue;
+        const QString address = combo->property("address").toString();
+        const bool parameterAvailable = available
+            && hasValidChorusParameter(address);
+        const QSignalBlocker blocker(combo);
+        combo->setEnabled(parameterAvailable);
+        if (!parameterAvailable) {
+            combo->setCurrentIndex(-1);
+            continue;
+        }
+
+        const int raw = sysxIO->getSourceValue(
+            "Structure", "0A", "00", address);
+        combo->setCurrentIndex(combo->findData(raw));
+    }
+
+    if (chorusModeDisplay) {
+        chorusModeDisplay->setText(
+            available && chorusMode && chorusMode->currentIndex() >= 0
+                ? chorusMode->currentText() : QString::fromUtf8("—"));
+    }
+
+    for (ParameterBar *bar : chorusBars) {
+        if (!bar)
+            continue;
+        const QString address = bar->property("address").toString();
+        const bool parameterAvailable = available
+            && hasValidChorusParameter(address);
+        bar->setEnabled(parameterAvailable);
+        if (!parameterAvailable) {
+            bar->setDisplayText(QString::fromUtf8("—"));
+            continue;
+        }
+
+        const int value = sysxIO->getSourceValue(
+            "Structure", "0A", "00", address);
+        const QSignalBlocker blocker(bar);
+        bar->setValue(value);
+        bar->setDisplayText(FxPresentation::formatRhythmicDivision(
+            midiTable->getValue(
+                "Structure", "0A", "00", address,
+                QString::number(value, 16).toUpper())));
+    }
+}
+
+void modernFloorBoard::setChorusValue(const QString &address, int value)
+{
+    if (!hasValidChorusBuffer() || !hasValidChorusParameter(address))
+        return;
+    SysxIO::Instance()->setFileSource(
+        "Structure", "0A", "00", address,
+        QString("%1").arg(value, 2, 16, QChar('0')).toUpper());
+}
+
+void modernFloorBoard::chorusComboChanged(int index)
+{
+    QComboBox *combo = qobject_cast<QComboBox *>(sender());
+    if (!combo || index < 0)
+        return;
+
+    bool rawOk = false;
+    const int raw = combo->itemData(index).toInt(&rawOk);
+    if (!rawOk)
+        return;
+    setChorusValue(combo->property("address").toString(), raw);
+    if (combo == chorusMode && chorusModeDisplay)
+        chorusModeDisplay->setText(combo->itemText(index));
+}
+
+void modernFloorBoard::chorusBarChanged(int value)
+{
+    ParameterBar *bar = qobject_cast<ParameterBar *>(sender());
+    if (!bar)
+        return;
+    const QString address = bar->property("address").toString();
+    setChorusValue(address, value);
+    bar->setDisplayText(FxPresentation::formatRhythmicDivision(
+        MidiTable::Instance()->getValue(
+            "Structure", "0A", "00", address,
+            QString::number(value, 16).toUpper())));
+}
+
+void modernFloorBoard::toggleChorus()
+{
+    if (!chorusOnOff || !hasValidChorusBuffer())
+        return;
+    setChorusValue("20", chorusOnOff->isChecked() ? 1 : 0);
+    refreshChorus();
 }
 
 void modernFloorBoard::updateEqParameterControls(bool available)
