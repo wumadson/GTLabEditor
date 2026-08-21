@@ -29,6 +29,8 @@ class ParameterBar;
 class AudioGearSwitch;
 class ModernToggleSwitch;
 class ModernEqGraph;
+enum class FxSlot;
+class ModernFxEditor;
 class StatusBadge;
 class PatchSidebar;
 
@@ -61,6 +63,7 @@ private slots:
     void showEqEditor();
     void showPreampAEditor();
     void showPreampBEditor();
+    void showFx1Editor();
     void showChannelRoutingEditor();
     void compTypeChanged(int value);
     void compModelSelected(int index);
@@ -168,6 +171,9 @@ private:
                                        bool available);
     void refreshPreamp(PreampChannel channel);
     void refreshPreampGlobalState();
+    void showFxEditor(FxSlot slot);
+    void refreshFx(FxSlot slot);
+    void fx1StateChanged(bool available, bool on);
     QWidget *createChannelRoutingEditor();
     void updateChannelRoutingPage(int mode);
     void updateChannelRoutingControls(bool available);
@@ -200,6 +206,7 @@ private:
     SignalChainModule *eqCard = nullptr;
     SignalChainModule *preampACard = nullptr;
     SignalChainModule *preampBCard = nullptr;
+    SignalChainModule *fx1Card = nullptr;
     SignalJunction *splitJunction = nullptr;
     QStackedWidget *effectEditorStack = nullptr;
     EffectEditorPanel *reverbEditor = nullptr;
@@ -209,6 +216,7 @@ private:
     QWidget *eqEditor = nullptr;
     PreampEditorState preampA;
     PreampEditorState preampB;
+    ModernFxEditor *fx1Editor = nullptr;
     QWidget *channelRoutingEditor = nullptr;
     QWidget *channelRoutingDiagram = nullptr;
     QComboBox *channelMode = nullptr;
