@@ -80,6 +80,7 @@ private slots:
     void delayBarChanged(int value);
     void delayToggleChanged();
     void chorusComboChanged(int index);
+    void chorusModeSelected(int index);
     void chorusBarChanged(int value);
     void toggleChorus();
     void eqComboChanged(int value);
@@ -137,6 +138,7 @@ private:
     QWidget *createChorusBar(const QString &label,
                              const QString &address);
     void setChorusValue(const QString &address, int value);
+    void setChorusMode(int index);
     void updateChorusParameterControls(bool available);
     void refreshChorus();
     bool hasValidEqBuffer() const;
@@ -251,6 +253,8 @@ private:
     EffectModelBrowser *oddsModelBrowser = nullptr;
     EffectArtworkWidget *delayArtwork = nullptr;
     EffectModelBrowser *delayModelBrowser = nullptr;
+    EffectArtworkWidget *chorusArtwork = nullptr;
+    EffectModelBrowser *chorusModeBrowser = nullptr;
     QString selectedEditor = "REVERB";
     QComboBox *reverbType = nullptr;
     QLabel *reverbTypeDisplay = nullptr;
@@ -279,7 +283,6 @@ private:
     QList<QComboBox *> delayCombos;
     QList<ParameterBar *> delayBars;
     QComboBox *chorusMode = nullptr;
-    QLabel *chorusModeDisplay = nullptr;
     ModernToggleSwitch *chorusOnOff = nullptr;
     QList<QComboBox *> chorusCombos;
     QList<ParameterBar *> chorusBars;

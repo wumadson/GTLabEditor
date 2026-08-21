@@ -834,9 +834,35 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     effectEditorStack->addWidget(delayEditor);
 
     chorusEditor = new EffectEditorPanel("CHORUS");
-    chorusModeDisplay = chorusEditor->typeLabel();
-    chorusEditor->setRightPanelTitle("CHORUS MODE");
-    chorusEditor->setRightPanelWidget(createChorusCombo("Mode", "21"));
+    chorusEditor->typeLabel()->hide();
+    chorusModeBrowser = new EffectModelBrowser;
+    chorusModeBrowser->setAccentColor(QColor(
+        ModernTheme::activeEffectAccent("CHORUS")));
+    chorusEditor->setRightPanelTitle("CHORUS MODES");
+    chorusEditor->setModelBrowserWidget(chorusModeBrowser);
+    connect(chorusModeBrowser, &EffectModelBrowser::modelSelected,
+            this, &modernFloorBoard::chorusModeSelected);
+
+    QWidget *chorusModeControl = createChorusCombo("Mode", "21");
+    chorusModeControl->setParent(chorusEditor->parameterArea());
+    chorusModeControl->hide();
+    QStringList chorusModes;
+    if (chorusMode) {
+        for (int index = 0; index < chorusMode->count(); ++index)
+            chorusModes.append(chorusMode->itemText(index));
+    }
+    chorusModeBrowser->setModels(chorusModes);
+
+    chorusArtwork = new EffectArtworkWidget;
+    chorusArtwork->setArtwork(":/assets/effects/chorus.png");
+    QFont chorusDisplayFont;
+    chorusDisplayFont.setFamily("Menlo");
+    chorusDisplayFont.setBold(true);
+    chorusDisplayFont.setStretch(QFont::Condensed);
+    chorusArtwork->setTextOverlay(
+        "mode", QRectF(0.29, 0.229, 0.42, 0.057), QString(),
+        chorusDisplayFont, QColor("#35D8FF"), Qt::AlignCenter, 0.50);
+    chorusEditor->setArtworkWidget(chorusArtwork);
 
     QVBoxLayout *chorusParameterLayout =
         new QVBoxLayout(chorusEditor->parameterArea());
@@ -1627,12 +1653,7 @@ QWidget *modernFloorBoard::createChorusCombo(const QString &label,
         if (!rawOk)
             continue;
 
-        QString text = item.desc.isEmpty() ? item.name : item.desc;
-        if (address == "21") {
-            if (raw == 0x00) text = "MONO";
-            else if (raw == 0x01) text = "STEREO 1";
-            else if (raw == 0x02) text = "STEREO 2";
-        }
+        const QString text = item.desc.isEmpty() ? item.name : item.desc;
         combo->addItem(text, raw);
     }
 
@@ -3704,6 +3725,9 @@ void modernFloorBoard::updateChorusParameterControls(bool available)
     SysxIO *sysxIO = SysxIO::Instance();
     MidiTable *midiTable = MidiTable::Instance();
 
+    if (chorusModeBrowser)
+        chorusModeBrowser->setEnabled(available);
+
     if (chorusOnOff) {
         const QSignalBlocker blocker(chorusOnOff);
         chorusOnOff->setEnabled(available);
@@ -3730,10 +3754,16 @@ void modernFloorBoard::updateChorusParameterControls(bool available)
         combo->setCurrentIndex(combo->findData(raw));
     }
 
-    if (chorusModeDisplay) {
-        chorusModeDisplay->setText(
-            available && chorusMode && chorusMode->currentIndex() >= 0
-                ? chorusMode->currentText() : QString::fromUtf8("—"));
+    if (chorusModeBrowser) {
+        const QSignalBlocker blocker(chorusModeBrowser);
+        chorusModeBrowser->setCurrentIndex(
+            available && chorusMode ? chorusMode->currentIndex() : -1);
+    }
+    if (chorusArtwork) {
+        chorusArtwork->setTextOverlayText(
+            "mode", available && chorusMode
+                ? chorusMode->currentText().toUpper()
+                : QString());
     }
 
     for (ParameterBar *bar : chorusBars) {
@@ -3768,19 +3798,50 @@ void modernFloorBoard::setChorusValue(const QString &address, int value)
         QString("%1").arg(value, 2, 16, QChar('0')).toUpper());
 }
 
+void modernFloorBoard::setChorusMode(int index)
+{
+    if (!chorusMode || index < 0 || index >= chorusMode->count()
+        || !hasValidChorusBuffer())
+        return;
+
+    bool rawOk = false;
+    const int raw = chorusMode->itemData(index).toInt(&rawOk);
+    if (!rawOk)
+        return;
+
+    {
+        const QSignalBlocker blocker(chorusMode);
+        chorusMode->setCurrentIndex(index);
+    }
+    setChorusValue("21", raw);
+    if (chorusModeBrowser)
+        chorusModeBrowser->setCurrentIndex(index);
+    if (chorusArtwork)
+        chorusArtwork->setTextOverlayText(
+            "mode", chorusMode->itemText(index).toUpper());
+}
+
 void modernFloorBoard::chorusComboChanged(int index)
 {
     QComboBox *combo = qobject_cast<QComboBox *>(sender());
     if (!combo || index < 0)
         return;
 
+    if (combo == chorusMode) {
+        setChorusMode(index);
+        return;
+    }
+
     bool rawOk = false;
     const int raw = combo->itemData(index).toInt(&rawOk);
     if (!rawOk)
         return;
     setChorusValue(combo->property("address").toString(), raw);
-    if (combo == chorusMode && chorusModeDisplay)
-        chorusModeDisplay->setText(combo->itemText(index));
+}
+
+void modernFloorBoard::chorusModeSelected(int index)
+{
+    setChorusMode(index);
 }
 
 void modernFloorBoard::chorusBarChanged(int value)
