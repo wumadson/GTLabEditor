@@ -5,6 +5,7 @@
 #include "modernWidgets.h"
 #include "effectArtworkWidget.h"
 #include "effectModelBrowser.h"
+#include "modernEqGraph.h"
 #include "parameterBar.h"
 #include "patchSidebar.h"
 
@@ -162,6 +163,52 @@ bool centerValueFromMapping(const Midi &parameter, int *rawCenter)
     return true;
 }
 
+QString formatEqDisplay(QString value, const QString &address, int rawValue)
+{
+    static const QSet<QString> gainAddresses = {
+        "72", "75", "78", "79", "7B"
+    };
+    if (!gainAddresses.contains(address))
+        return value;
+
+    QString numeric = value.trimmed();
+    if (numeric.endsWith("dB", Qt::CaseInsensitive)) {
+        numeric.chop(2);
+        numeric = numeric.trimmed();
+    }
+    if (rawValue > 0x14 && !numeric.startsWith('+'))
+        numeric.prepend('+');
+    return numeric + " dB";
+}
+
+qreal numericPresentationValue(QString text, bool *ok = nullptr)
+{
+    text = text.trimmed();
+    QString numeric;
+    for (const QChar character : text) {
+        if (character.isDigit() || character == '.' || character == ','
+            || ((character == '+' || character == '-') && numeric.isEmpty())) {
+            numeric.append(character == ',' ? '.' : character);
+        }
+    }
+    bool converted = false;
+    const qreal value = numeric.toDouble(&converted);
+    if (ok)
+        *ok = converted;
+    return converted ? value : 0.0;
+}
+
+qreal frequencyPresentationValue(const QString &text, bool *ok = nullptr)
+{
+    bool converted = false;
+    qreal frequency = numericPresentationValue(text, &converted);
+    if (converted && text.contains("k", Qt::CaseInsensitive))
+        frequency *= 1000.0;
+    if (ok)
+        *ok = converted;
+    return frequency;
+}
+
 bool preampBrightAvailable(int type, int customType)
 {
     static const QSet<int> brightTypes = {
@@ -185,6 +232,86 @@ QString preampDisplayText(const QString &value, int offset)
     value.trimmed().toInt(&numeric);
     return numeric ? value.trimmed() + " cm" : value;
 }
+
+class EqBandArea : public QWidget
+{
+public:
+    explicit EqBandArea(QWidget *parent = nullptr)
+        : QWidget(parent), currentColumns(0)
+    {
+        setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+        grid = new QGridLayout(this);
+        grid->setContentsMargins(0, 0, 0, 0);
+        grid->setHorizontalSpacing(10);
+        grid->setVerticalSpacing(10);
+    }
+
+    void addBand(QWidget *band)
+    {
+        if (!band)
+            return;
+        band->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+        bands.append(band);
+        updateBands();
+    }
+
+protected:
+    void resizeEvent(QResizeEvent *event) override
+    {
+        QWidget::resizeEvent(event);
+        updateBands();
+    }
+
+private:
+    void updateBands()
+    {
+        int fourColumnMinimum = grid->horizontalSpacing() * 3;
+        for (QWidget *band : bands)
+            fourColumnMinimum += qMax(220, band->minimumSizeHint().width());
+        const int columns = width() >= fourColumnMinimum ? 4 : 2;
+        if (columns == currentColumns && grid->count() == bands.size())
+            return;
+        currentColumns = columns;
+        while (grid->count() > 0)
+            delete grid->takeAt(0);
+        for (int index = 0; index < bands.size(); ++index)
+            grid->addWidget(bands.at(index), index / columns,
+                            index % columns);
+        for (int column = 0; column < 4; ++column)
+            grid->setColumnStretch(column, column < columns ? 1 : 0);
+        updateGeometry();
+    }
+
+    QGridLayout *grid;
+    QList<QWidget *> bands;
+    int currentColumns;
+};
+
+class EqBandColumn : public QWidget
+{
+public:
+    explicit EqBandColumn(const QString &title, QWidget *parent = nullptr)
+        : QWidget(parent)
+    {
+        setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+        column = new QVBoxLayout(this);
+        column->setContentsMargins(0, 0, 0, 0);
+        column->setSpacing(4);
+        QLabel *heading = new QLabel(title.toUpper());
+        heading->setObjectName("ParameterSectionTitle");
+        heading->setMinimumHeight(18);
+        column->addWidget(heading);
+    }
+
+    void addControl(QWidget *control)
+    {
+        if (control)
+            column->addWidget(control);
+    }
+
+private:
+    QVBoxLayout *column;
+};
 
 class ChannelRoutingDiagram : public QWidget
 {
@@ -719,6 +846,85 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     delayParameterLayout->addWidget(delayPageStack);
     delayParameterLayout->addStretch(1);
     effectEditorStack->addWidget(delayEditor);
+
+    QFrame *eqFullWidthEditor = new QFrame;
+    eqFullWidthEditor->setObjectName("EffectEditorPanel");
+    eqEditor = eqFullWidthEditor;
+    QVBoxLayout *eqLayout = new QVBoxLayout(eqFullWidthEditor);
+    eqLayout->setContentsMargins(10, 8, 10, 8);
+    eqLayout->setSpacing(5);
+
+    QWidget *eqHeader = new QWidget;
+    QHBoxLayout *eqHeaderLayout = new QHBoxLayout(eqHeader);
+    eqHeaderLayout->setContentsMargins(0, 0, 0, 0);
+    eqHeaderLayout->setSpacing(12);
+    QLabel *eqTitle = new QLabel("EQ");
+    eqTitle->setObjectName("EditorTitle");
+    eqTitle->setStyleSheet(QString("color:%1;").arg(
+        ModernTheme::activeEffectAccent("EQ")));
+    eqHeaderLayout->addWidget(eqTitle);
+    eqHeaderLayout->addStretch(1);
+    EffectToggleControl *eqToggle = new EffectToggleControl("State");
+    eqOnOff = eqToggle->toggle();
+    eqOnOff->setAccentColor(QColor(
+        ModernTheme::activeEffectAccent("EQ")));
+    connect(eqOnOff, SIGNAL(clicked()), this, SLOT(toggleEq()));
+    eqHeaderLayout->addWidget(eqToggle, 0, Qt::AlignTop);
+    eqLayout->addWidget(eqHeader);
+
+    eqGraph = new ModernEqGraph;
+    eqLayout->addWidget(eqGraph, 1);
+
+    QWidget *eqControlsContent = new QWidget;
+    QVBoxLayout *eqControlsLayout = new QVBoxLayout(eqControlsContent);
+    eqControlsLayout->setContentsMargins(0, 0, 0, 0);
+    eqControlsLayout->setSpacing(4);
+
+    EqBandArea *eqBandArea = new EqBandArea;
+
+    EqBandColumn *eqLow = new EqBandColumn("LOW");
+    eqLow->addControl(createEqCombo("Low Cut", "71"));
+    eqLow->addControl(createEqBar("Low Gain", "72"));
+    eqBandArea->addBand(eqLow);
+
+    EqBandColumn *eqLowMid = new EqBandColumn("LOW-MID");
+    eqLowMid->addControl(createEqCombo("Frequency", "73"));
+    eqLowMid->addControl(createEqCombo("Q", "74"));
+    eqLowMid->addControl(createEqBar("Gain", "75"));
+    eqBandArea->addBand(eqLowMid);
+
+    EqBandColumn *eqHighMid = new EqBandColumn("HIGH-MID");
+    eqHighMid->addControl(createEqCombo("Frequency", "76"));
+    eqHighMid->addControl(createEqCombo("Q", "77"));
+    eqHighMid->addControl(createEqBar("Gain", "78"));
+    eqBandArea->addBand(eqHighMid);
+
+    EqBandColumn *eqHigh = new EqBandColumn("HIGH");
+    eqHigh->addControl(createEqCombo("High Cut", "7A"));
+    eqHigh->addControl(createEqBar("High Gain", "79"));
+    eqBandArea->addBand(eqHigh);
+    eqControlsLayout->addWidget(eqBandArea);
+
+    EqBandColumn *eqOutput = new EqBandColumn("OUTPUT");
+    eqOutput->addControl(createEqBar("Level", "7B"));
+    QWidget *eqOutputRow = new QWidget;
+    QHBoxLayout *eqOutputLayout = new QHBoxLayout(eqOutputRow);
+    eqOutputLayout->setContentsMargins(0, 0, 0, 0);
+    eqOutputLayout->setSpacing(0);
+    eqOutputLayout->addStretch(1);
+    eqOutputLayout->addWidget(eqOutput, 4);
+    eqOutputLayout->addStretch(1);
+    eqControlsLayout->addWidget(eqOutputRow);
+
+    QScrollArea *eqControlsScroll = new QScrollArea;
+    eqControlsScroll->setObjectName("EffectParameterScroll");
+    eqControlsScroll->setWidgetResizable(true);
+    eqControlsScroll->setFrameShape(QFrame::NoFrame);
+    eqControlsScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    eqControlsScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    eqControlsScroll->setWidget(eqControlsContent);
+    eqLayout->addWidget(eqControlsScroll, 1);
+    effectEditorStack->addWidget(eqEditor);
 
     effectEditorStack->addWidget(createPreampEditor(PreampChannel::A));
     effectEditorStack->addWidget(createPreampEditor(PreampChannel::B));
@@ -1355,6 +1561,45 @@ QWidget *modernFloorBoard::createDelayBar(const QString &label,
     return bar;
 }
 
+QWidget *modernFloorBoard::createEqCombo(const QString &label,
+                                         const QString &address)
+{
+    ParameterCombo *container = new ParameterCombo(label);
+    QComboBox *combo = container->comboBox();
+    combo->setProperty("address", address);
+
+    const Midi parameter = MidiTable::Instance()->getMidiMap(
+        "Structure", "01", "00", address);
+    for (const Midi &item : parameter.level) {
+        const QString text = item.desc.isEmpty() ? item.name : item.desc;
+        combo->addItem(text);
+    }
+
+    connect(combo, SIGNAL(currentIndexChanged(int)),
+            this, SLOT(eqComboChanged(int)));
+    eqCombos.append(combo);
+    return container;
+}
+
+QWidget *modernFloorBoard::createEqBar(const QString &label,
+                                       const QString &address)
+{
+    ParameterBar *bar = new ParameterBar(label);
+    bar->setAccentColor(QColor(
+        ModernTheme::activeEffectAccent("EQ")));
+    bar->setProperty("address", address);
+    MidiTable *midiTable = MidiTable::Instance();
+    bar->setRange(midiTable->getRangeMinimum(
+                      "Structure", "01", "00", address),
+                  midiTable->getRange(
+                      "Structure", "01", "00", address));
+    bar->setCenterValue(0x14);
+    connect(bar, &QAbstractSlider::valueChanged,
+            this, &modernFloorBoard::eqBarChanged);
+    eqBars.append(bar);
+    return bar;
+}
+
 EffectModule *modernFloorBoard::createEffectBlock(const QString &name,
                                                    bool available)
 {
@@ -1428,6 +1673,22 @@ bool modernFloorBoard::hasValidDelayBuffer() const
         && valueIndex < source.hex.at(addressIndex).size();
 }
 
+bool modernFloorBoard::hasValidEqBuffer() const
+{
+    SysxIO *sysxIO = SysxIO::Instance();
+    const SysxData source = sysxIO->getFileSource();
+    const int addressIndex = source.address.indexOf("0100");
+
+    if (!backendIsConnected || !backendHasPatchData
+        || !sysxIO->isConnected() || addressIndex < 0)
+        return false;
+
+    const int valueIndex = sysxDataOffset + 0x7B;
+    return addressIndex < source.hex.size()
+        && valueIndex >= 0
+        && valueIndex < source.hex.at(addressIndex).size();
+}
+
 bool modernFloorBoard::hasValidPreampBuffer() const
 {
     SysxIO *sysxIO = SysxIO::Instance();
@@ -1472,6 +1733,13 @@ void modernFloorBoard::setDelayUnavailable()
     updateDelayParameterControls(false);
 }
 
+void modernFloorBoard::setEqUnavailable()
+{
+    if (eqCard)
+        eqCard->setEffectState(false, false);
+    updateEqParameterControls(false);
+}
+
 void modernFloorBoard::setPreampUnavailable()
 {
     if (preampACard)
@@ -1491,6 +1759,7 @@ void modernFloorBoard::backendConnected()
     setCompUnavailable();
     setOddsUnavailable();
     setDelayUnavailable();
+    setEqUnavailable();
     setPreampUnavailable();
     updateChannelRoutingControls(false);
 }
@@ -1506,6 +1775,7 @@ void modernFloorBoard::backendDisconnected()
     setCompUnavailable();
     setOddsUnavailable();
     setDelayUnavailable();
+    setEqUnavailable();
     setPreampUnavailable();
     updateChannelRoutingControls(false);
     patchNumber->setText(QString::fromUtf8("—"));
@@ -1540,6 +1810,7 @@ void modernFloorBoard::refreshReverbState()
         refreshCompState();
         refreshOddsState();
         refreshDelayState();
+        refreshEq();
         refreshPreamp(PreampChannel::A);
         refreshPreamp(PreampChannel::B);
         refreshPreampGlobalState();
@@ -1557,6 +1828,7 @@ void modernFloorBoard::refreshReverbState()
     refreshCompState();
     refreshOddsState();
     refreshDelayState();
+    refreshEq();
     refreshPreamp(PreampChannel::A);
     refreshPreamp(PreampChannel::B);
     refreshPreampGlobalState();
@@ -1605,6 +1877,20 @@ void modernFloorBoard::refreshDelayState()
     updateDelayParameterControls(true);
 }
 
+void modernFloorBoard::refreshEq()
+{
+    if (!hasValidEqBuffer()) {
+        setEqUnavailable();
+        return;
+    }
+
+    const bool on = SysxIO::Instance()->getSourceValue(
+        "Structure", "01", "00", "70") == 1;
+    if (eqCard)
+        eqCard->setEffectState(true, on);
+    updateEqParameterControls(true);
+}
+
 void modernFloorBoard::refreshSignalChainModel()
 {
     if (!backendIsConnected || !backendHasPatchData) {
@@ -1633,6 +1919,7 @@ SignalChainModule *modernFloorBoard::createSignalChainModule(
     const bool isComp = entry.moduleId == 0x00;
     const bool isOdds = entry.moduleId == 0x01;
     const bool isDelay = entry.moduleId == 0x07;
+    const bool isEq = entry.moduleId == 0x04;
     const bool isPreampA = entry.moduleId == 0x02;
     const bool isPreampB = entry.moduleId == 0x03;
     SignalChainModule *module = new SignalChainModule(
@@ -1640,7 +1927,7 @@ SignalChainModule *modernFloorBoard::createSignalChainModule(
         QColor(ModernTheme::effectFaceColor(fullName)));
     module->setEffectState(false, false);
     module->setNavigable(isComp || isReverb || isOdds || isDelay
-                         || isPreampA || isPreampB);
+                         || isEq || isPreampA || isPreampB);
     module->setProperty("chainPosition", entry.originalPosition);
     module->setProperty("rawValue", entry.rawValue);
     module->setProperty("signalPath", entry.path);
@@ -1666,6 +1953,11 @@ SignalChainModule *modernFloorBoard::createSignalChainModule(
         delayCard->setSelected(selectedEditor == "DELAY");
         connect(module, SIGNAL(clicked()), this, SLOT(showDelayEditor()));
     }
+    if (isEq) {
+        eqCard = module;
+        eqCard->setSelected(selectedEditor == "EQ");
+        connect(module, SIGNAL(clicked()), this, SLOT(showEqEditor()));
+    }
     if (isPreampA) {
         preampACard = module;
         preampACard->setSelected(selectedEditor == "PREAMP A");
@@ -1686,6 +1978,7 @@ void modernFloorBoard::rebuildSignalChainView()
     reverbCard = nullptr;
     compCard = nullptr;
     delayCard = nullptr;
+    eqCard = nullptr;
     preampACard = nullptr;
     preampBCard = nullptr;
     splitJunction = nullptr;
@@ -2021,6 +2314,8 @@ void modernFloorBoard::showCompEditor()
         oddsCard->setSelected(false);
     if (delayCard)
         delayCard->setSelected(false);
+    if (eqCard)
+        eqCard->setSelected(false);
     if (preampACard)
         preampACard->setSelected(false);
     if (preampBCard)
@@ -2042,6 +2337,8 @@ void modernFloorBoard::showReverbEditor()
         oddsCard->setSelected(false);
     if (delayCard)
         delayCard->setSelected(false);
+    if (eqCard)
+        eqCard->setSelected(false);
     if (preampACard)
         preampACard->setSelected(false);
     if (preampBCard)
@@ -2063,6 +2360,8 @@ void modernFloorBoard::showOddsEditor()
         reverbCard->setSelected(false);
     if (delayCard)
         delayCard->setSelected(false);
+    if (eqCard)
+        eqCard->setSelected(false);
     if (preampACard)
         preampACard->setSelected(false);
     if (preampBCard)
@@ -2088,6 +2387,31 @@ void modernFloorBoard::showDelayEditor()
         preampACard->setSelected(false);
     if (preampBCard)
         preampBCard->setSelected(false);
+    if (eqCard)
+        eqCard->setSelected(false);
+    if (splitJunction)
+        splitJunction->setSelected(false);
+}
+
+void modernFloorBoard::showEqEditor()
+{
+    selectedEditor = "EQ";
+    if (effectEditorStack && eqEditor)
+        effectEditorStack->setCurrentWidget(eqEditor);
+    if (eqCard)
+        eqCard->setSelected(true);
+    if (compCard)
+        compCard->setSelected(false);
+    if (reverbCard)
+        reverbCard->setSelected(false);
+    if (oddsCard)
+        oddsCard->setSelected(false);
+    if (delayCard)
+        delayCard->setSelected(false);
+    if (preampACard)
+        preampACard->setSelected(false);
+    if (preampBCard)
+        preampBCard->setSelected(false);
     if (splitJunction)
         splitJunction->setSelected(false);
 }
@@ -2109,6 +2433,8 @@ void modernFloorBoard::showPreampAEditor()
         oddsCard->setSelected(false);
     if (delayCard)
         delayCard->setSelected(false);
+    if (eqCard)
+        eqCard->setSelected(false);
     if (splitJunction)
         splitJunction->setSelected(false);
 }
@@ -2130,6 +2456,8 @@ void modernFloorBoard::showPreampBEditor()
         oddsCard->setSelected(false);
     if (delayCard)
         delayCard->setSelected(false);
+    if (eqCard)
+        eqCard->setSelected(false);
     if (splitJunction)
         splitJunction->setSelected(false);
 }
@@ -2154,6 +2482,8 @@ void modernFloorBoard::showChannelRoutingEditor()
         oddsCard->setSelected(false);
     if (delayCard)
         delayCard->setSelected(false);
+    if (eqCard)
+        eqCard->setSelected(false);
 }
 
 void modernFloorBoard::updateChannelRoutingPage(int mode)
@@ -3025,6 +3355,180 @@ void modernFloorBoard::delayBarChanged(int value)
         peer->setValue(value);
         peer->setDisplayText(display);
     }
+}
+
+void modernFloorBoard::updateEqParameterControls(bool available)
+{
+    for (QComboBox *combo : eqCombos) {
+        if (combo)
+            combo->setEnabled(available);
+    }
+    if (eqOnOff) {
+        eqOnOff->setEnabled(available);
+        eqOnOff->setVisible(available);
+        if (!available) {
+            const QSignalBlocker blocker(eqOnOff);
+            eqOnOff->setChecked(false);
+        }
+    }
+    for (ParameterBar *bar : eqBars) {
+        if (!bar)
+            continue;
+        bar->setEnabled(available);
+        if (!available)
+            bar->setDisplayText(QString::fromUtf8("—"));
+    }
+
+    if (!available) {
+        for (QComboBox *combo : eqCombos) {
+            if (!combo)
+                continue;
+            const QSignalBlocker blocker(combo);
+            combo->setCurrentIndex(-1);
+        }
+        updateEqGraph();
+        return;
+    }
+
+    SysxIO *sysxIO = SysxIO::Instance();
+    MidiTable *midiTable = MidiTable::Instance();
+    if (eqOnOff) {
+        const QSignalBlocker blocker(eqOnOff);
+        eqOnOff->setChecked(sysxIO->getSourceValue(
+            "Structure", "01", "00", "70") == 1);
+    }
+    for (QComboBox *combo : eqCombos) {
+        if (!combo)
+            continue;
+        const QString address = combo->property("address").toString();
+        const QSignalBlocker blocker(combo);
+        combo->setCurrentIndex(sysxIO->getSourceValue(
+            "Structure", "01", "00", address));
+    }
+    for (ParameterBar *bar : eqBars) {
+        if (!bar)
+            continue;
+        const QString address = bar->property("address").toString();
+        const int value = sysxIO->getSourceValue(
+            "Structure", "01", "00", address);
+        const QSignalBlocker blocker(bar);
+        bar->setValue(value);
+        bar->setDisplayText(formatEqDisplay(
+            midiTable->getValue(
+                "Structure", "01", "00", address,
+                QString::number(value, 16).toUpper()),
+            address, value));
+    }
+    updateEqGraph();
+}
+
+void modernFloorBoard::updateEqGraph()
+{
+    if (!eqGraph)
+        return;
+
+    auto comboForAddress = [this](const QString &address) -> QComboBox * {
+        for (QComboBox *combo : eqCombos) {
+            if (combo && combo->property("address").toString() == address)
+                return combo;
+        }
+        return nullptr;
+    };
+    auto barForAddress = [this](const QString &address) -> ParameterBar * {
+        for (ParameterBar *bar : eqBars) {
+            if (bar && bar->property("address").toString() == address)
+                return bar;
+        }
+        return nullptr;
+    };
+    auto gainForAddress = [&barForAddress](const QString &address) -> qreal {
+        ParameterBar *bar = barForAddress(address);
+        bool valid = false;
+        const qreal displayed = bar
+            ? numericPresentationValue(bar->displayText(), &valid) : 0.0;
+        return valid ? displayed : 0.0;
+    };
+    auto comboNumber = [&comboForAddress](const QString &address,
+                                          qreal fallback) -> qreal {
+        QComboBox *combo = comboForAddress(address);
+        bool valid = false;
+        const qreal value = combo
+            ? numericPresentationValue(combo->currentText(), &valid) : 0.0;
+        return valid ? value : fallback;
+    };
+    auto comboFrequency = [&comboForAddress](const QString &address,
+                                             qreal fallback) -> qreal {
+        QComboBox *combo = comboForAddress(address);
+        bool valid = false;
+        const qreal value = combo
+            ? frequencyPresentationValue(combo->currentText(), &valid) : 0.0;
+        return valid ? value : fallback;
+    };
+
+    eqGraph->setEqActive(eqOnOff && eqOnOff->isEnabled()
+                         && eqOnOff->isChecked());
+    eqGraph->setLowGain(gainForAddress("72"));
+    eqGraph->setLowMid(comboFrequency("73", 500.0),
+                       gainForAddress("75"),
+                       comboNumber("74", 1.0));
+    eqGraph->setHighMid(comboFrequency("76", 2000.0),
+                        gainForAddress("78"),
+                        comboNumber("77", 1.0));
+    eqGraph->setHighGain(gainForAddress("79"));
+
+    QComboBox *lowCut = comboForAddress("71");
+    QComboBox *highCut = comboForAddress("7A");
+    const bool lowCutEnabled = lowCut && lowCut->currentIndex() >= 0
+        && lowCut->currentText().compare("FLAT", Qt::CaseInsensitive) != 0;
+    const bool highCutEnabled = highCut && highCut->currentIndex() >= 0
+        && highCut->currentText().compare("FLAT", Qt::CaseInsensitive) != 0;
+    eqGraph->setLowCut(lowCutEnabled,
+                       comboFrequency("71", 20.0));
+    eqGraph->setHighCut(highCutEnabled,
+                        comboFrequency("7A", 20000.0));
+}
+
+void modernFloorBoard::setEqValue(const QString &address, int value)
+{
+    if (!hasValidEqBuffer())
+        return;
+    SysxIO::Instance()->setFileSource(
+        "Structure", "01", "00", address,
+        QString("%1").arg(value, 2, 16, QChar('0')).toUpper());
+}
+
+void modernFloorBoard::eqComboChanged(int value)
+{
+    QComboBox *combo = qobject_cast<QComboBox *>(sender());
+    if (!combo || value < 0)
+        return;
+    setEqValue(combo->property("address").toString(), value);
+    updateEqGraph();
+}
+
+void modernFloorBoard::eqBarChanged(int value)
+{
+    ParameterBar *bar = qobject_cast<ParameterBar *>(sender());
+    if (!bar)
+        return;
+    const QString address = bar->property("address").toString();
+    setEqValue(address, value);
+    bar->setDisplayText(formatEqDisplay(
+        MidiTable::Instance()->getValue(
+            "Structure", "01", "00", address,
+            QString::number(value, 16).toUpper()),
+        address, value));
+    updateEqGraph();
+}
+
+void modernFloorBoard::toggleEq()
+{
+    if (!hasValidEqBuffer())
+        return;
+    const bool newState = SysxIO::Instance()->getSourceValue(
+        "Structure", "01", "00", "70") != 1;
+    setEqValue("70", newState ? 1 : 0);
+    refreshEq();
 }
 
 void modernFloorBoard::delayToggleChanged()

@@ -43,10 +43,14 @@ public:
     void setArtworkWidget(QWidget *widget);
     void setArtworkControlWidget(QWidget *widget);
     void setModelBrowserWidget(QWidget *widget);
+    void setRightPanelTitle(const QString &title);
+    void setRightPanelWidget(QWidget *widget);
     QSize minimumSizeHint() const override;
 private:
     QLabel *currentType;
+    QLabel *modelTitle;
     QLabel *modelState;
+    QWidget *rightPanelWidget;
     QWidget *parameters;
     QWidget *artwork;
     QVBoxLayout *artworkLayout;

@@ -28,6 +28,7 @@ class EffectModelBrowser;
 class ParameterBar;
 class AudioGearSwitch;
 class ModernToggleSwitch;
+class ModernEqGraph;
 class StatusBadge;
 class PatchSidebar;
 
@@ -57,6 +58,7 @@ private slots:
     void showReverbEditor();
     void showOddsEditor();
     void showDelayEditor();
+    void showEqEditor();
     void showPreampAEditor();
     void showPreampBEditor();
     void showChannelRoutingEditor();
@@ -72,6 +74,9 @@ private slots:
     void delayModelSelected(int index);
     void delayBarChanged(int value);
     void delayToggleChanged();
+    void eqComboChanged(int value);
+    void eqBarChanged(int value);
+    void toggleEq();
     void preampComboChanged(int value);
     void preampModelSelected(int index);
     void preampBarChanged(int value);
@@ -116,6 +121,14 @@ private:
     void updateDelayParameterControls(bool available);
     void updateDelayPageForType(int type);
     void refreshDelayState();
+    bool hasValidEqBuffer() const;
+    void setEqUnavailable();
+    QWidget *createEqCombo(const QString &label, const QString &address);
+    QWidget *createEqBar(const QString &label, const QString &address);
+    void setEqValue(const QString &address, int value);
+    void updateEqParameterControls(bool available);
+    void updateEqGraph();
+    void refreshEq();
     enum class PreampChannel { A, B };
     struct PreampEditorState {
         EffectEditorPanel *editor = nullptr;
@@ -184,6 +197,7 @@ private:
     SignalChainModule *compCard = nullptr;
     SignalChainModule *oddsCard = nullptr;
     SignalChainModule *delayCard = nullptr;
+    SignalChainModule *eqCard = nullptr;
     SignalChainModule *preampACard = nullptr;
     SignalChainModule *preampBCard = nullptr;
     SignalJunction *splitJunction = nullptr;
@@ -192,6 +206,7 @@ private:
     EffectEditorPanel *compEditor = nullptr;
     EffectEditorPanel *oddsEditor = nullptr;
     EffectEditorPanel *delayEditor = nullptr;
+    QWidget *eqEditor = nullptr;
     PreampEditorState preampA;
     PreampEditorState preampB;
     QWidget *channelRoutingEditor = nullptr;
@@ -235,6 +250,10 @@ private:
     QStackedWidget *delayExtraStack = nullptr;
     QList<QComboBox *> delayCombos;
     QList<ParameterBar *> delayBars;
+    ModernToggleSwitch *eqOnOff = nullptr;
+    ModernEqGraph *eqGraph = nullptr;
+    QList<QComboBox *> eqCombos;
+    QList<ParameterBar *> eqBars;
     bool backendIsConnected = false;
     bool backendHasPatchData = false;
     modernSignalChainModel signalChainModel;

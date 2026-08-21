@@ -30,7 +30,7 @@ void drawScrew(QPainter &p, const QPointF &c)
 }
 
 EffectEditorPanel::EffectEditorPanel(const QString &effectName, QWidget *parent)
-    : QFrame(parent)
+    : QFrame(parent), rightPanelWidget(nullptr)
 {
     setObjectName("EffectEditorPanel");
     QHBoxLayout *root = new QHBoxLayout(this);
@@ -89,7 +89,7 @@ EffectEditorPanel::EffectEditorPanel(const QString &effectName, QWidget *parent)
     modelLayout->setSpacing(8);
     const QString modelHeading = effectName == "OD/DS"
         ? "OD/DS MODELS" : effectName + " TYPES";
-    QLabel *modelTitle = new QLabel(modelHeading);
+    modelTitle = new QLabel(modelHeading);
     modelTitle->setObjectName("WorkspaceColumnTitle");
     modelLayout->addWidget(modelTitle);
     QFrame *modelRule = new QFrame;
@@ -101,6 +101,7 @@ EffectEditorPanel::EffectEditorPanel(const QString &effectName, QWidget *parent)
     modelState->setAlignment(Qt::AlignCenter);
     modelState->setWordWrap(true);
     modelLayout->addWidget(modelState, 1);
+    rightPanelWidget = modelState;
 
     root->addWidget(artworkPane, 25);
     root->addWidget(parameterPane, 56);
@@ -130,12 +131,27 @@ void EffectEditorPanel::setArtworkControlWidget(QWidget *widget)
 
 void EffectEditorPanel::setModelBrowserWidget(QWidget *widget)
 {
-    if (!widget || !modelLayout || !modelState)
+    setRightPanelWidget(widget);
+}
+
+void EffectEditorPanel::setRightPanelTitle(const QString &title)
+{
+    if (modelTitle)
+        modelTitle->setText(title);
+}
+
+void EffectEditorPanel::setRightPanelWidget(QWidget *widget)
+{
+    if (!widget || !modelLayout || widget == rightPanelWidget)
         return;
-    modelLayout->removeWidget(modelState);
-    modelState->hide();
-    modelState->deleteLater();
-    modelState = nullptr;
+    if (rightPanelWidget) {
+        modelLayout->removeWidget(rightPanelWidget);
+        rightPanelWidget->hide();
+        rightPanelWidget->deleteLater();
+    }
+    if (rightPanelWidget == modelState)
+        modelState = nullptr;
+    rightPanelWidget = widget;
     modelLayout->addWidget(widget, 1);
 }
 
