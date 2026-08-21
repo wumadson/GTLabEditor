@@ -9,12 +9,14 @@
 #include "patchSidebar.h"
 
 #include <QComboBox>
+#include <QButtonGroup>
 #include <QDial>
 #include <QFrame>
 #include <QGridLayout>
 #include <QHash>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QPainter>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QResizeEvent>
@@ -183,6 +185,83 @@ QString preampDisplayText(const QString &value, int offset)
     value.trimmed().toInt(&numeric);
     return numeric ? value.trimmed() + " cm" : value;
 }
+
+class ChannelRoutingDiagram : public QWidget
+{
+public:
+    explicit ChannelRoutingDiagram(QWidget *parent = nullptr)
+        : QWidget(parent)
+    {
+        setMinimumSize(250, 190);
+        setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        setProperty("routingMode", 0);
+        setProperty("routingChannel", 0);
+    }
+
+protected:
+    void paintEvent(QPaintEvent *) override
+    {
+        QPainter painter(this);
+        painter.setRenderHint(QPainter::Antialiasing, true);
+        const int mode = property("routingMode").toInt();
+        const int channel = property("routingChannel").toInt();
+        const bool valid = mode >= 0 && mode <= 3;
+        const QRectF area = rect().adjusted(20, 20, -20, -34);
+        const qreal nodeX = area.left() + area.width() * 0.38;
+        const qreal endX = area.right() - 18;
+        const qreal centerY = area.center().y();
+        const qreal pathAY = centerY - 45;
+        const qreal pathBY = centerY + 45;
+        const QColor active(ModernTheme::color(ModernTheme::AccentCyan));
+        QColor inactive(ModernTheme::color(ModernTheme::Border));
+        inactive.setAlpha(135);
+        const bool aActive = valid && (mode != 0 || channel == 0);
+        const bool bActive = valid && (mode != 0 || channel == 1);
+
+        auto drawCable = [&painter](const QLineF &line,
+                                    const QColor &color) {
+            painter.setPen(QPen(QColor(0, 0, 0, 175), 7,
+                                Qt::SolidLine, Qt::RoundCap));
+            painter.drawLine(line.translated(0, 3));
+            painter.setPen(QPen(color, 2.5, Qt::SolidLine,
+                                Qt::RoundCap, Qt::RoundJoin));
+            painter.drawLine(line);
+        };
+
+        drawCable(QLineF(area.left(), centerY, nodeX, centerY), active);
+        drawCable(QLineF(nodeX, pathAY, nodeX, pathBY), active);
+        drawCable(QLineF(nodeX, pathAY, endX, pathAY),
+                  aActive ? active : inactive);
+        drawCable(QLineF(nodeX, pathBY, endX, pathBY),
+                  bActive ? active : inactive);
+
+        painter.setPen(QPen(active, 2));
+        painter.setBrush(QColor(ModernTheme::color(
+            ModernTheme::ControlBackground)));
+        painter.drawEllipse(QPointF(nodeX, centerY), 7, 7);
+
+        QFont labelFont("Helvetica Neue", 12, QFont::DemiBold);
+        painter.setFont(labelFont);
+        painter.setPen(aActive ? active : inactive);
+        painter.drawText(QRectF(endX - 8, pathAY - 24, 34, 20),
+                         Qt::AlignCenter, "A");
+        painter.setPen(bActive ? active : inactive);
+        painter.drawText(QRectF(endX - 8, pathBY + 5, 34, 20),
+                         Qt::AlignCenter, "B");
+
+        painter.setPen(QColor(ModernTheme::color(
+            ModernTheme::SecondaryText)));
+        painter.setFont(QFont("Helvetica Neue", 9, QFont::DemiBold));
+        painter.drawText(QRectF(area.left(), area.bottom() + 10,
+                                area.width(), 18),
+                         Qt::AlignCenter,
+                         !valid ? "NO PATCH DATA"
+                         : mode == 0 ? "SINGLE"
+                         : mode == 1 ? "DUAL MONO"
+                         : mode == 2 ? "DUAL L/R"
+                                     : "DYNAMIC");
+    }
+};
 }
 
 modernFloorBoard::modernFloorBoard(QWidget *parent)
@@ -643,6 +722,8 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
 
     effectEditorStack->addWidget(createPreampEditor(PreampChannel::A));
     effectEditorStack->addWidget(createPreampEditor(PreampChannel::B));
+    channelRoutingEditor = createChannelRoutingEditor();
+    effectEditorStack->addWidget(channelRoutingEditor);
 
     mainLayout->addWidget(effectEditorStack, 1);
 
@@ -902,6 +983,160 @@ QWidget *modernFloorBoard::createPreampToggle(
     if (target)
         *target = toggle;
     return control;
+}
+
+QWidget *modernFloorBoard::createChannelRoutingEditor()
+{
+    QFrame *editor = new QFrame;
+    editor->setObjectName("EffectEditorPanel");
+    QHBoxLayout *root = new QHBoxLayout(editor);
+    root->setContentsMargins(0, 0, 0, 0);
+    root->setSpacing(0);
+
+    QFrame *diagramPane = new QFrame;
+    diagramPane->setObjectName("EffectArtworkPane");
+    diagramPane->setMinimumWidth(280);
+    QVBoxLayout *diagramLayout = new QVBoxLayout(diagramPane);
+    diagramLayout->setContentsMargins(12, 12, 12, 12);
+    diagramLayout->setSpacing(5);
+    QLabel *title = new QLabel("CHANNEL ROUTING");
+    title->setObjectName("EditorTitle");
+    title->setStyleSheet(QString("color:%1;").arg(
+        ModernTheme::color(ModernTheme::AccentCyan)));
+    QLabel *subtitle = new QLabel("PREAMP A/B");
+    subtitle->setObjectName("EffectTypeDisplay");
+    diagramLayout->addWidget(title);
+    diagramLayout->addWidget(subtitle);
+    channelRoutingDiagram = new ChannelRoutingDiagram;
+    diagramLayout->addWidget(channelRoutingDiagram, 1);
+
+    QFrame *parameterPane = new QFrame;
+    parameterPane->setObjectName("EffectParameterPane");
+    parameterPane->setMinimumWidth(520);
+    QVBoxLayout *parameterPaneLayout = new QVBoxLayout(parameterPane);
+    parameterPaneLayout->setContentsMargins(10, 10, 10, 10);
+    parameterPaneLayout->setSpacing(6);
+    QLabel *parameterTitle = new QLabel("CHANNEL ROUTING");
+    parameterTitle->setObjectName("WorkspaceColumnTitle");
+    parameterPaneLayout->addWidget(parameterTitle);
+
+    QWidget *parameters = new QWidget;
+    parameters->setObjectName("EffectParameterArea");
+    QVBoxLayout *layout = new QVBoxLayout(parameters);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(9);
+    QScrollArea *scroll = new QScrollArea;
+    scroll->setObjectName("EffectParameterScroll");
+    scroll->setWidgetResizable(true);
+    scroll->setFrameShape(QFrame::NoFrame);
+    scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    scroll->setWidget(parameters);
+    parameterPaneLayout->addWidget(scroll, 1);
+
+    ParameterCombo *modeControl = new ParameterCombo("Mode");
+    channelMode = modeControl->comboBox();
+    const Midi modeParameter = MidiTable::Instance()->getMidiMap(
+        "Structure", "01", "00", "01");
+    for (int index = 0; index < qMin(4, modeParameter.level.size()); ++index) {
+        const Midi &item = modeParameter.level.at(index);
+        channelMode->addItem(item.desc.isEmpty() ? item.name : item.desc);
+    }
+    connect(channelMode, SIGNAL(currentIndexChanged(int)),
+            this, SLOT(channelModeChanged(int)));
+    layout->addWidget(modeControl);
+
+    channelRoutingStack = new QStackedWidget;
+
+    QWidget *singlePage = new QWidget;
+    QVBoxLayout *singleLayout = new QVBoxLayout(singlePage);
+    singleLayout->setContentsMargins(0, 0, 0, 0);
+    singleLayout->setSpacing(9);
+    QLabel *singleTitle = new QLabel("SINGLE");
+    singleTitle->setObjectName("ParameterSectionTitle");
+    singleLayout->addWidget(singleTitle);
+    QLabel *channelLabel = new QLabel("CHANNEL");
+    channelLabel->setObjectName("ParameterLabel");
+    singleLayout->addWidget(channelLabel);
+    QWidget *selector = new QWidget;
+    QHBoxLayout *selectorLayout = new QHBoxLayout(selector);
+    selectorLayout->setContentsMargins(0, 0, 0, 0);
+    selectorLayout->setSpacing(4);
+    channelAButton = new QPushButton("A");
+    channelBButton = new QPushButton("B");
+    channelAButton->setCheckable(true);
+    channelBButton->setCheckable(true);
+    channelAButton->setFixedSize(72, 32);
+    channelBButton->setFixedSize(72, 32);
+    const QString selectorStyle = QString(
+        "QPushButton{background:%1;color:%2;border:1px solid %3;"
+        "border-radius:4px;font-weight:700;}"
+        "QPushButton:hover{border-color:%4;}"
+        "QPushButton:checked{background:%5;color:%6;border-color:%4;}")
+        .arg(ModernTheme::color(ModernTheme::ControlBackground),
+             ModernTheme::color(ModernTheme::SecondaryText),
+             ModernTheme::color(ModernTheme::BorderSubtle),
+             ModernTheme::color(ModernTheme::AccentCyan),
+             ModernTheme::color(ModernTheme::ElevatedPanel),
+             ModernTheme::color(ModernTheme::PrimaryText));
+    channelAButton->setStyleSheet(selectorStyle);
+    channelBButton->setStyleSheet(selectorStyle);
+    QButtonGroup *channelGroup = new QButtonGroup(selector);
+    channelGroup->setExclusive(true);
+    channelGroup->addButton(channelAButton, 0);
+    channelGroup->addButton(channelBButton, 1);
+    connect(channelAButton, &QPushButton::clicked,
+            this, [this]() { setChannelSelect(0); });
+    connect(channelBButton, &QPushButton::clicked,
+            this, [this]() { setChannelSelect(1); });
+    selectorLayout->addWidget(channelAButton);
+    selectorLayout->addWidget(channelBButton);
+    selectorLayout->addStretch(1);
+    singleLayout->addWidget(selector);
+    singleLayout->addStretch(1);
+    channelRoutingStack->addWidget(singlePage);
+
+    QWidget *dualPage = new QWidget;
+    QVBoxLayout *dualLayout = new QVBoxLayout(dualPage);
+    dualLayout->setContentsMargins(0, 0, 0, 0);
+    dualLayout->setSpacing(9);
+    QLabel *dualTitle = new QLabel("DUAL");
+    dualTitle->setObjectName("ParameterSectionTitle");
+    dualLayout->addWidget(dualTitle);
+    channelDelay = new ParameterBar("Channel Delay");
+    channelDelay->setRange(0, 100);
+    channelDelay->setProperty("channelRoutingAddress", "03");
+    channelDelay->setAccentColor(QColor(
+        ModernTheme::color(ModernTheme::AccentCyan)));
+    connect(channelDelay, &QAbstractSlider::valueChanged,
+            this, &modernFloorBoard::channelRoutingBarChanged);
+    dualLayout->addWidget(channelDelay);
+    dualLayout->addStretch(1);
+    channelRoutingStack->addWidget(dualPage);
+
+    QWidget *dynamicPage = new QWidget;
+    QVBoxLayout *dynamicLayout = new QVBoxLayout(dynamicPage);
+    dynamicLayout->setContentsMargins(0, 0, 0, 0);
+    dynamicLayout->setSpacing(9);
+    QLabel *dynamicTitle = new QLabel("DYNAMIC");
+    dynamicTitle->setObjectName("ParameterSectionTitle");
+    dynamicLayout->addWidget(dynamicTitle);
+    dynamicSense = new ParameterBar("Sensitivity");
+    dynamicSense->setRange(0, 100);
+    dynamicSense->setProperty("channelRoutingAddress", "04");
+    dynamicSense->setAccentColor(QColor(
+        ModernTheme::color(ModernTheme::AccentCyan)));
+    connect(dynamicSense, &QAbstractSlider::valueChanged,
+            this, &modernFloorBoard::channelRoutingBarChanged);
+    dynamicLayout->addWidget(dynamicSense);
+    dynamicLayout->addStretch(1);
+    channelRoutingStack->addWidget(dynamicPage);
+
+    layout->addWidget(channelRoutingStack, 1);
+    layout->addStretch(1);
+    root->addWidget(diagramPane, 34);
+    root->addWidget(parameterPane, 66);
+    return editor;
 }
 
 QWidget *modernFloorBoard::createReverbCombo(const QString &label,
@@ -1257,6 +1492,7 @@ void modernFloorBoard::backendConnected()
     setOddsUnavailable();
     setDelayUnavailable();
     setPreampUnavailable();
+    updateChannelRoutingControls(false);
 }
 
 void modernFloorBoard::backendDisconnected()
@@ -1271,6 +1507,7 @@ void modernFloorBoard::backendDisconnected()
     setOddsUnavailable();
     setDelayUnavailable();
     setPreampUnavailable();
+    updateChannelRoutingControls(false);
     patchNumber->setText(QString::fromUtf8("—"));
     patchName->setText("NO PATCH DATA");
     patchListModel.setCurrentPatch(0, 0, QString());
@@ -1306,6 +1543,7 @@ void modernFloorBoard::refreshReverbState()
         refreshPreamp(PreampChannel::A);
         refreshPreamp(PreampChannel::B);
         refreshPreampGlobalState();
+        refreshChannelRouting();
         return;
     }
 
@@ -1322,6 +1560,7 @@ void modernFloorBoard::refreshReverbState()
     refreshPreamp(PreampChannel::A);
     refreshPreamp(PreampChannel::B);
     refreshPreampGlobalState();
+    refreshChannelRouting();
 }
 
 void modernFloorBoard::refreshCompState()
@@ -1449,6 +1688,7 @@ void modernFloorBoard::rebuildSignalChainView()
     delayCard = nullptr;
     preampACard = nullptr;
     preampBCard = nullptr;
+    splitJunction = nullptr;
     signalChainModules.clear();
     signalChainJunctions.clear();
     signalChainConnectors.clear();
@@ -1484,9 +1724,12 @@ void modernFloorBoard::rebuildSignalChainView()
     for (const modernSignalChainModel::Entry &entry : signalChainModel.commonPrefix())
         signalFlowLayout->addWidget(createSignalChainModule(entry));
 
-    SignalJunction *split = new SignalJunction(SignalJunction::Split);
-    signalChainJunctions.append(split);
-    signalFlowLayout->addWidget(split);
+    splitJunction = new SignalJunction(SignalJunction::Split);
+    splitJunction->setSelected(selectedEditor == "CHANNEL ROUTING");
+    connect(splitJunction, SIGNAL(clicked()),
+            this, SLOT(showChannelRoutingEditor()));
+    signalChainJunctions.append(splitJunction);
+    signalFlowLayout->addWidget(splitJunction);
 
     QWidget *parallelPaths = new QWidget;
     parallelPaths->setObjectName("ParallelPaths");
@@ -1782,6 +2025,8 @@ void modernFloorBoard::showCompEditor()
         preampACard->setSelected(false);
     if (preampBCard)
         preampBCard->setSelected(false);
+    if (splitJunction)
+        splitJunction->setSelected(false);
 }
 
 void modernFloorBoard::showReverbEditor()
@@ -1801,6 +2046,8 @@ void modernFloorBoard::showReverbEditor()
         preampACard->setSelected(false);
     if (preampBCard)
         preampBCard->setSelected(false);
+    if (splitJunction)
+        splitJunction->setSelected(false);
 }
 
 void modernFloorBoard::showOddsEditor()
@@ -1820,6 +2067,8 @@ void modernFloorBoard::showOddsEditor()
         preampACard->setSelected(false);
     if (preampBCard)
         preampBCard->setSelected(false);
+    if (splitJunction)
+        splitJunction->setSelected(false);
 }
 
 void modernFloorBoard::showDelayEditor()
@@ -1839,6 +2088,8 @@ void modernFloorBoard::showDelayEditor()
         preampACard->setSelected(false);
     if (preampBCard)
         preampBCard->setSelected(false);
+    if (splitJunction)
+        splitJunction->setSelected(false);
 }
 
 void modernFloorBoard::showPreampAEditor()
@@ -1858,6 +2109,8 @@ void modernFloorBoard::showPreampAEditor()
         oddsCard->setSelected(false);
     if (delayCard)
         delayCard->setSelected(false);
+    if (splitJunction)
+        splitJunction->setSelected(false);
 }
 
 void modernFloorBoard::showPreampBEditor()
@@ -1877,6 +2130,204 @@ void modernFloorBoard::showPreampBEditor()
         oddsCard->setSelected(false);
     if (delayCard)
         delayCard->setSelected(false);
+    if (splitJunction)
+        splitJunction->setSelected(false);
+}
+
+void modernFloorBoard::showChannelRoutingEditor()
+{
+    refreshChannelRouting();
+    selectedEditor = "CHANNEL ROUTING";
+    if (effectEditorStack && channelRoutingEditor)
+        effectEditorStack->setCurrentWidget(channelRoutingEditor);
+    if (splitJunction)
+        splitJunction->setSelected(true);
+    if (preampACard)
+        preampACard->setSelected(false);
+    if (preampBCard)
+        preampBCard->setSelected(false);
+    if (compCard)
+        compCard->setSelected(false);
+    if (reverbCard)
+        reverbCard->setSelected(false);
+    if (oddsCard)
+        oddsCard->setSelected(false);
+    if (delayCard)
+        delayCard->setSelected(false);
+}
+
+void modernFloorBoard::updateChannelRoutingPage(int mode)
+{
+    if (channelRoutingStack) {
+        const int page = mode == 0 ? 0
+            : (mode == 1 || mode == 2) ? 1 : 2;
+        channelRoutingStack->setCurrentIndex(page);
+    }
+    if (channelRoutingDiagram) {
+        channelRoutingDiagram->setProperty("routingMode", mode);
+        const int channel = channelBButton && channelBButton->isChecked()
+            ? 1 : 0;
+        channelRoutingDiagram->setProperty("routingChannel", channel);
+        channelRoutingDiagram->update();
+    }
+}
+
+void modernFloorBoard::updateChannelRoutingControls(bool available)
+{
+    if (channelMode)
+        channelMode->setEnabled(available);
+    if (channelAButton)
+        channelAButton->setEnabled(available);
+    if (channelBButton)
+        channelBButton->setEnabled(available);
+    if (channelDelay)
+        channelDelay->setEnabled(available);
+    if (dynamicSense)
+        dynamicSense->setEnabled(available);
+
+    if (available)
+        return;
+    if (channelMode) {
+        const QSignalBlocker blocker(channelMode);
+        channelMode->setCurrentIndex(-1);
+    }
+    if (channelAButton) {
+        const QSignalBlocker blocker(channelAButton);
+        channelAButton->setChecked(false);
+    }
+    if (channelBButton) {
+        const QSignalBlocker blocker(channelBButton);
+        channelBButton->setChecked(false);
+    }
+    if (channelDelay)
+        channelDelay->setDisplayText(QString::fromUtf8("—"));
+    if (dynamicSense)
+        dynamicSense->setDisplayText(QString::fromUtf8("—"));
+    if (channelRoutingDiagram) {
+        channelRoutingDiagram->setProperty("routingMode", -1);
+        channelRoutingDiagram->setProperty("routingChannel", -1);
+        channelRoutingDiagram->update();
+    }
+}
+
+void modernFloorBoard::refreshChannelRouting()
+{
+    if (!hasValidPreampBuffer()) {
+        updateChannelRoutingControls(false);
+        return;
+    }
+
+    updateChannelRoutingControls(true);
+    SysxIO *sysxIO = SysxIO::Instance();
+    MidiTable *midiTable = MidiTable::Instance();
+    const int mode = sysxIO->getSourceValue(
+        "Structure", "01", "00", "01");
+    const int channel = sysxIO->getSourceValue(
+        "Structure", "01", "00", "02");
+    const int delay = sysxIO->getSourceValue(
+        "Structure", "01", "00", "03");
+    const int sense = sysxIO->getSourceValue(
+        "Structure", "01", "00", "04");
+
+    if (channelMode) {
+        const QSignalBlocker blocker(channelMode);
+        channelMode->setCurrentIndex(mode);
+    }
+    if (channelAButton) {
+        const QSignalBlocker blocker(channelAButton);
+        channelAButton->setChecked(channel == 0);
+    }
+    if (channelBButton) {
+        const QSignalBlocker blocker(channelBButton);
+        channelBButton->setChecked(channel == 1);
+    }
+    if (channelDelay) {
+        const QSignalBlocker blocker(channelDelay);
+        channelDelay->setValue(delay);
+        channelDelay->setDisplayText(midiTable->getValue(
+            "Structure", "01", "00", "03",
+            QString::number(delay, 16).toUpper()));
+    }
+    if (dynamicSense) {
+        const QSignalBlocker blocker(dynamicSense);
+        dynamicSense->setValue(sense);
+        dynamicSense->setDisplayText(midiTable->getValue(
+            "Structure", "01", "00", "04",
+            QString::number(sense, 16).toUpper()));
+    }
+    updateChannelRoutingPage(mode);
+}
+
+void modernFloorBoard::setChannelRoutingValue(const QString &address,
+                                               int value)
+{
+    if (!hasValidPreampBuffer())
+        return;
+    SysxIO::Instance()->setFileSource(
+        "Structure", "01", "00", address,
+        QString("%1").arg(value, 2, 16, QChar('0')).toUpper());
+}
+
+void modernFloorBoard::setChannelMode(int index)
+{
+    if (!channelMode || index < 0 || index > 3
+        || !hasValidPreampBuffer())
+        return;
+    {
+        const QSignalBlocker blocker(channelMode);
+        channelMode->setCurrentIndex(index);
+    }
+    // The GT-10 raw value is the UI index. midi.xml contains duplicated
+    // value attributes for these labels, so Midi.value is intentionally
+    // not used here.
+    setChannelRoutingValue("01", index);
+    updateChannelRoutingPage(index);
+}
+
+void modernFloorBoard::setChannelSelect(int index)
+{
+    if (index < 0 || index > 1 || !hasValidPreampBuffer())
+        return;
+    setChannelRoutingValue("02", index);
+    if (channelAButton)
+        channelAButton->setChecked(index == 0);
+    if (channelBButton)
+        channelBButton->setChecked(index == 1);
+    if (channelRoutingDiagram) {
+        channelRoutingDiagram->setProperty("routingChannel", index);
+        channelRoutingDiagram->update();
+    }
+}
+
+void modernFloorBoard::setChannelDelay(int value)
+{
+    setChannelRoutingValue("03", value);
+}
+
+void modernFloorBoard::setDynamicSense(int value)
+{
+    setChannelRoutingValue("04", value);
+}
+
+void modernFloorBoard::channelModeChanged(int index)
+{
+    setChannelMode(index);
+}
+
+void modernFloorBoard::channelRoutingBarChanged(int value)
+{
+    ParameterBar *bar = qobject_cast<ParameterBar *>(sender());
+    if (!bar)
+        return;
+    const QString address = bar->property(
+        "channelRoutingAddress").toString();
+    if (address == "03")
+        setChannelDelay(value);
+    else if (address == "04")
+        setDynamicSense(value);
+    bar->setDisplayText(MidiTable::Instance()->getValue(
+        "Structure", "01", "00", address,
+        QString::number(value, 16).toUpper()));
 }
 
 void modernFloorBoard::updatePreampConditionalSections(

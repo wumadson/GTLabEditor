@@ -653,11 +653,31 @@ void SignalChainPanel::paintEvent(QPaintEvent *event)
 }
 
 SignalJunction::SignalJunction(Kind kind, QWidget *parent)
-    : QWidget(parent), junctionKind(kind)
+    : QPushButton(parent), junctionKind(kind), junctionSelected(false)
 {
     setFixedSize(54, 176);
+    setCursor(Qt::PointingHandCursor);
+    setFocusPolicy(Qt::NoFocus);
+    setStyleSheet("background:transparent;border:none;");
 }
 void SignalJunction::setCompactWidth(int w){setFixedSize(w,176);update();}
+void SignalJunction::setSelected(bool selected)
+{
+    junctionSelected = selected;
+    update();
+}
+
+void SignalJunction::enterEvent(QEvent *event)
+{
+    QPushButton::enterEvent(event);
+    update();
+}
+
+void SignalJunction::leaveEvent(QEvent *event)
+{
+    QPushButton::leaveEvent(event);
+    update();
+}
 
 void SignalJunction::paintEvent(QPaintEvent *)
 {
@@ -684,13 +704,18 @@ void SignalJunction::paintEvent(QPaintEvent *)
     p.drawLine(QPointF(branchStart, pathAY), QPointF(branchEnd, pathAY));
     p.drawLine(QPointF(branchStart, pathBY), QPointF(branchEnd, pathBY));
 
-    p.setPen(QPen(QColor("#17C7E8"), 1.5));
-    p.setBrush(QColor("#101820"));
-    p.drawEllipse(QPointF(x, centerY), 6, 6);
-    p.setFont(QFont("Helvetica Neue", 8, QFont::DemiBold));
-    p.setPen(QColor("#8D98A5"));
-    p.drawText(QRectF(0, centerY - 24, width(), 14), Qt::AlignCenter,
-               junctionKind == Split ? "SPLIT" : "MERGE");
+    QColor nodeOutline("#17C7E8");
+    nodeOutline.setAlpha(junctionSelected ? 245
+        : isDown() ? 235 : underMouse() ? 205 : 150);
+    QColor nodeFill("#101820");
+    if (underMouse())
+        nodeFill = nodeFill.lighter(isDown() ? 132 : 118);
+    p.setPen(QPen(nodeOutline,
+                  junctionSelected || isDown() ? 2.0 : 1.5));
+    p.setBrush(nodeFill);
+    p.drawEllipse(QPointF(x, centerY),
+                  junctionSelected || underMouse() ? 6.5 : 6.0,
+                  junctionSelected || underMouse() ? 6.5 : 6.0);
 
 }
 

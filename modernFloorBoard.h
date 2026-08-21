@@ -59,6 +59,7 @@ private slots:
     void showDelayEditor();
     void showPreampAEditor();
     void showPreampBEditor();
+    void showChannelRoutingEditor();
     void compTypeChanged(int value);
     void compModelSelected(int index);
     void compBarChanged(int value);
@@ -75,6 +76,8 @@ private slots:
     void preampModelSelected(int index);
     void preampBarChanged(int value);
     void preampToggleChanged();
+    void channelModeChanged(int index);
+    void channelRoutingBarChanged(int value);
 
 private:
     EffectModule *createEffectBlock(const QString &name, bool available);
@@ -152,6 +155,15 @@ private:
                                        bool available);
     void refreshPreamp(PreampChannel channel);
     void refreshPreampGlobalState();
+    QWidget *createChannelRoutingEditor();
+    void updateChannelRoutingPage(int mode);
+    void updateChannelRoutingControls(bool available);
+    void refreshChannelRouting();
+    void setChannelRoutingValue(const QString &address, int value);
+    void setChannelMode(int index);
+    void setChannelSelect(int index);
+    void setChannelDelay(int value);
+    void setDynamicSense(int value);
     void refreshSignalChainModel();
     void rebuildSignalChainView();
     void applyResponsiveSignalChainLayout();
@@ -174,6 +186,7 @@ private:
     SignalChainModule *delayCard = nullptr;
     SignalChainModule *preampACard = nullptr;
     SignalChainModule *preampBCard = nullptr;
+    SignalJunction *splitJunction = nullptr;
     QStackedWidget *effectEditorStack = nullptr;
     EffectEditorPanel *reverbEditor = nullptr;
     EffectEditorPanel *compEditor = nullptr;
@@ -181,6 +194,14 @@ private:
     EffectEditorPanel *delayEditor = nullptr;
     PreampEditorState preampA;
     PreampEditorState preampB;
+    QWidget *channelRoutingEditor = nullptr;
+    QWidget *channelRoutingDiagram = nullptr;
+    QComboBox *channelMode = nullptr;
+    QPushButton *channelAButton = nullptr;
+    QPushButton *channelBButton = nullptr;
+    QStackedWidget *channelRoutingStack = nullptr;
+    ParameterBar *channelDelay = nullptr;
+    ParameterBar *dynamicSense = nullptr;
     EffectArtworkWidget *reverbArtwork = nullptr;
     EffectModelBrowser *reverbModelBrowser = nullptr;
     EffectArtworkWidget *oddsArtwork = nullptr;

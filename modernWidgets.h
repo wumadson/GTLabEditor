@@ -217,16 +217,20 @@ protected:
     void paintEvent(QPaintEvent *event) override;
 };
 
-class SignalJunction : public QWidget
+class SignalJunction : public QPushButton
 {
 public:
     enum Kind { Split, Merge };
     explicit SignalJunction(Kind kind, QWidget *parent = nullptr);
     void setCompactWidth(int width);
+    void setSelected(bool selected);
 protected:
     void paintEvent(QPaintEvent *event) override;
+    void enterEvent(QEvent *event) override;
+    void leaveEvent(QEvent *event) override;
 private:
     Kind junctionKind;
+    bool junctionSelected;
 };
 
 class SignalChainModule : public QPushButton
