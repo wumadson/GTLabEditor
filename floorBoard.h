@@ -30,6 +30,8 @@
 #include "menuPage.h"
 #include "editWindow.h"
 
+class bankTreeList;
+
 class floorBoard : public QWidget
 {
     Q_OBJECT
@@ -55,6 +57,8 @@ public slots:
 	void updateStompBoxes();
 	void setEditDialog(editWindow* editDialog);
 	void menuButtonSignal();
+	void requestPatchNamesForBank(int bank);
+	void selectModernPatch(int bank, int patch, QString name);
 	//void stompbox_button(bool value);
 
 signals:
@@ -68,6 +72,9 @@ signals:
 	void showDragBar(QPoint newpos);
 	void hideDragBar();
 	void updateSignal();
+	void connectedSignal();
+	void notConnectedSignal();
+	void patchNameResolved(int bank, int patch, QString name);
 	void pathUpdateSignal();
 	void ch_mode_buttonSignal(bool value);
 	void preamp1_buttonSignal(bool value);
@@ -132,6 +139,7 @@ private:
 	QList<QString> stompNames;
 	editWindow* editDialog;
 	editWindow* oldDialog;
+	bankTreeList *bankList;
 };
 
 #endif // FLOORBOARD_H

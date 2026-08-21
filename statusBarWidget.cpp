@@ -23,36 +23,40 @@
 
 #include <QtGui>
 #include "statusBarWidget.h"
+#include "modernTheme.h"
 
 statusBarWidget::statusBarWidget(QWidget *parent)
     : QWidget(parent)
 {
+	setObjectName("ModernStatusWidget");
 	this->progressBar = new QProgressBar(this);
+	this->progressBar->setObjectName("StatusProgress");
 	this->progressBar->setTextVisible(false);
-	this->progressBar->setFixedSize(80, 13);
+	this->progressBar->setFixedSize(72, 4);
 	this->progressBar->setRange(0, 100);
 	this->progressBar->setValue(0);
+	this->progressBar->hide();
 
-	this->symbol = new statusBarSymbol(this);
-	this->symbol->setValue(0);
+	this->symbol = new QLabel(QString::fromUtf8("●"), this);
+	this->symbol->setObjectName("StatusSymbol");
+	this->symbol->setProperty("state", "idle");
 
 	this->label = new QLabel(this);
-  this->label->setFixedWidth(150);
+	this->label->setObjectName("StatusMessage");
+	this->label->setMinimumWidth(100);
 	this->label->setText("");
 
-	this->dBuglabel = new QStatusBar(this);
-  this->dBuglabel->setFixedWidth(750);
-	this->dBuglabel->showMessage(tr(""));
+	this->dBuglabel = new QLabel(this);
+	this->dBuglabel->setObjectName("StatusDebug");
+	this->dBuglabel->setText("");
 
 	QHBoxLayout *widgetLayout = new QHBoxLayout;
-	widgetLayout->setMargin(0);
-	widgetLayout->addWidget(this->progressBar, Qt::AlignCenter);
+	widgetLayout->setContentsMargins(10, 0, 10, 0);
+	widgetLayout->setSpacing(7);
 	widgetLayout->addWidget(this->symbol, Qt::AlignCenter);
 	widgetLayout->addWidget(this->label, Qt::AlignCenter);
-	widgetLayout->addWidget(this->dBuglabel, Qt::AlignCenter);
-	
-	
-	widgetLayout->addStretch(0);
+	widgetLayout->addWidget(this->progressBar, Qt::AlignCenter);
+	widgetLayout->addWidget(this->dBuglabel, 1, Qt::AlignCenter);
 
 	this->setLayout(widgetLayout);
 };
@@ -64,17 +68,22 @@ void statusBarWidget::setStatusMessage(QString message)
 
 void statusBarWidget::setStatusdBugMessage(QString dBug)
 {
-	this->dBuglabel->showMessage(dBug, 3000);
+	this->dBuglabel->setText(dBug);
 };
 
 void statusBarWidget::setStatusProgress(int value)
 {
 	this->progressBar->setValue(value);
+	this->progressBar->setVisible(value > 0 && value < 100);
 };
 
 void statusBarWidget::setStatusSymbol(int value)
 {
-	this->symbol->setValue(value);
+	const char *state = value == 1 ? "ready" : value == 2 ? "busy" : "idle";
+	this->symbol->setProperty("state", state);
+	this->symbol->style()->unpolish(this->symbol);
+	this->symbol->style()->polish(this->symbol);
+	this->symbol->update();
 };
 
 

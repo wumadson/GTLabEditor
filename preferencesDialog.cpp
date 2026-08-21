@@ -77,7 +77,7 @@ preferencesDialog::preferencesDialog()
 	mainLayout->addLayout(buttonsLayout);
 	setLayout(mainLayout);
 
-	setWindowTitle(tr("GT-10 Fx FloorBoard - Preferences"));
+	setWindowTitle(tr("GT LAB Editor - Preferences"));
 };
 
 void preferencesDialog::createIcons()

@@ -31,6 +31,8 @@
 #include <QtPrintSupport/QPrintDialog>
 #include <QPrinter>
 
+class modernFloorBoard;
+
 //class mainWindow : public QWidget
 class mainWindow : public QMainWindow
 {
@@ -107,7 +109,8 @@ private:
         QAction *aboutQtAct;
 
         sysxWriter file;
-        floorBoard *fxsBoard;
+        floorBoard *legacyFloorBoard;
+        modernFloorBoard *modernFloorBoardWidget;
 };
 
 #endif // MAINWINDOW_H

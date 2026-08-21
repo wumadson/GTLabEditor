@@ -33,6 +33,7 @@
 int main(int argc, char **argv)
 {
 	QApplication app(argc, argv);
+	app.setApplicationDisplayName("GT LAB Editor");
 
 	 Preferences *preferences = Preferences::Instance(); // Load the preferences.
   QString lang = preferences->getPreferences("Language", "Locale", "select");

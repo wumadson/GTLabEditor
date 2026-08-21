@@ -1,8 +1,22 @@
+# macOS
+.DS_Store
 
-# Local qmake / macOS ARM64 build artifacts
-.qmake.stash
-Makefile
-generatedfiles/
-release/
-qrc_GT-10FxFloorBoard.cpp
-packager/GT-10FxFloorBoard.app/
+# Build
+build/
+build-*/
+*.o
+*.obj
+
+# Qt generated
+moc_*
+qrc_*
+ui_*
+*.pro.user
+*.pro.user.*
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log

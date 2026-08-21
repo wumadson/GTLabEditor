@@ -89,5 +89,9 @@
         <file>system.syx</file>
         <file>images/EQ_graph.png</file>
         <file>images/meshWindow.png</file>
+        <file>assets/effects/comp.png</file>
+        <file>assets/effects/reverb.png</file>
+        <file>assets/effects/od_ds.png</file>
+        <file>assets/effects/delay.png</file>
     </qresource>
 </RCC>

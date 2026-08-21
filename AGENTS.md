@@ -192,7 +192,22 @@ New UI:
 ```text
 modernFloorBoard.cpp
 modernFloorBoard.h
+modernTheme.cpp / modernTheme.h
+modernWidgets.cpp / modernWidgets.h
 ```
+
+The Modern UI now has a small presentation layer:
+
+- `ModernTheme` owns the shared palette and application stylesheet;
+- `AudioGearPanel` owns the QPainter faceplate, material depth and hardware detailing used by modules;
+- `AudioGearKnob`, `AudioGearLed` and `AudioGearSwitch` provide reusable painted audio-control components while retaining normal Qt interaction semantics;
+- `EffectModule` composes the painted faceplate and audio controls and owns unavailable, ON/OFF and selected visual states;
+- `SignalConnector` and `SignalChainPanel` paint the physical signal path behind the modules;
+- `StatusBadge` owns connected/disconnected presentation;
+- `modernFloorBoard` remains responsible for layout and binding those visual components to the existing legacy backend;
+- the bottom `statusBarWidget` still consumes the original `SysxIO` status signals, but its presentation is compact and no longer nests a second `QStatusBar`.
+
+Keep MIDI addresses, buffer validation and `SysxIO` calls out of the reusable visual components.
 
 ## Qt4 -> Qt5 compatibility work already done
 
@@ -306,6 +321,19 @@ Do not spend significant time cosmetically repairing the old UI unless required 
 - large effect-editor area.
 
 It is still primarily a visual shell and is not yet a complete replacement for the old editor.
+
+The Modern UI workstation layout now uses one continuous composition:
+
+```text
+Patch Library | Signal Chain
+              | Artwork | Parameters | Model Browser shell
+              | Expression | Control Assign | Pedalboard | Tuner
+```
+
+The structural Model Browser and bottom control regions intentionally contain
+no fabricated GT-10 data. Their backend bindings are deferred until separately
+validated. Existing effect controls remain connected through `modernFloorBoard`
+to the proven `SysxIO` and `MidiTable` paths.
 
 The connection label must reflect `SysxIO::isConnected()`. Do not hardcode a fake connected state.
 
@@ -469,9 +497,12 @@ static QString preferencesFilePath()
 
 Relative `preferences.xml` accesses were changed to use this helper.
 
-This change compiles successfully.
+This change compiles successfully and was validated with physical GT-10 hardware:
 
-IMPORTANT: this preference-path fix has **not yet been validated with physical GT-10 hardware** after the latest change.
+- MIDI IN / OUT selections were saved under `AppDataLocation`;
+- after restarting the application, the hidden legacy backend started autoconnect;
+- the GT-10 identity reply was received through GT-10 USB Bridge;
+- the Modern UI changed from `NOT CONNECTED` only after the legacy backend confirmed the connection.
 
 ## Reverb mapping already discovered
 
@@ -549,11 +580,11 @@ sysxIO->setFileSource(
 );
 ```
 
-This must still be tested on physical hardware.
+This path was validated on physical hardware: the Modern UI read the Reverb ON/OFF state and successfully toggled the real GT-10 Reverb through the existing `SysxIO::setFileSource(...)` engine path.
 
 ## First Modern UI hardware milestone
 
-Next end-to-end hardware test:
+Validated end-to-end with a physical BOSS GT-10:
 
 1. connect GT-10;
 2. start/confirm GT-10 USB Bridge;
@@ -567,11 +598,25 @@ Next end-to-end hardware test:
 10. current Reverb state is read from engine;
 11. Modern Reverb ON/OFF changes the real GT-10 Reverb state.
 
-Do not expand to all effects until this path works.
+This milestone passed. The Modern UI now implements the Reverb parameters already defined by the legacy editor and `midi.xml`:
 
-## Hardware currently unavailable
+- Type;
+- Reverb Time;
+- Pre Delay;
+- Low Cut;
+- High Cut;
+- Density;
+- Effect Level;
+- Direct Level;
+- Spring Sensitivity, enabled only for the Spring type.
 
-At migration time, the physical BOSS GT-10 is **not connected and not available**.
+These internal Reverb controls were validated with a physical GT-10: changes made in the Modern UI reached the device, and all displayed parameter values matched the current GT-10 patch after readback.
+
+Initial hardware testing showed that parameter writes reached the GT-10, but the Modern UI initially displayed values from the bundled `default.syx` instead of the GT-10's current patch. The legacy `bankTreeList::connectedSignal()` had its `requestPatch()` calls commented out. The connection flow now requests the current temporary patch buffer after a valid identity reply, and Modern Reverb controls remain unavailable until that device patch has been received and propagated through the legacy `updateSignal()` flow. This correction was validated with the physical GT-10: Type, Reverb Time and the remaining implemented Reverb parameters loaded with the device's actual values.
+
+## Hardware validation status
+
+The physical BOSS GT-10 was available for the first Modern UI milestone and validated connection, current-patch readback, Reverb ON/OFF and all implemented internal Reverb controls. Hardware availability may still vary between development sessions.
 
 Therefore:
 
@@ -579,7 +624,7 @@ Therefore:
 - UI work can continue;
 - compile tests can continue;
 - static or automated tests can be added;
-- MIDI/SysEx hardware behavior must not be declared working until physical validation.
+- MIDI/SysEx hardware behavior beyond the explicitly validated connection, current-patch readback and complete Modern Reverb editor path must not be declared working until physical validation.
 
 Mark hardware-dependent changes as untested.
 

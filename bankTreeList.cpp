@@ -318,6 +318,7 @@ QTreeWidget* bankTreeList::newTreeList()
                                 {
                         QTreeWidgetItem* bank = new QTreeWidgetItem(bankRange);
                         bank->setText(0, QString("Bank ").append(QString::number(b, 10)));
+                        patchBankItems.insert(b, bank);
                         bank->setWhatsThis(0, tr("User Bank.<br>expand the Bank to view the Patches"));
                         //bank->setIcon(...);
 
@@ -349,6 +350,7 @@ QTreeWidget* bankTreeList::newTreeList()
                 {
                         QTreeWidgetItem* bank = new QTreeWidgetItem(bankRange);
                         bank->setText(0, QString("Bank ").append(QString::number(b-50, 10)));
+                        patchBankItems.insert(b, bank);
                         bank->setWhatsThis(0, tr("Preset Bank.<br>expand the Bank to view the Patches"));
 
                         for (int c=1; c<=4; c++)
@@ -455,12 +457,7 @@ void bankTreeList::setItemClicked(QTreeWidgetItem *item, int column)
       //emit patchSelectSignal(bank, patch);
     };
 
-                        if (item->text(0) != "Temp" && !item->text(0).contains("QFX"))
-                        { sysxIO->requestPatchChange(bank, patch); }; // extra to try patch change
-                        sysxIO->setRequestName(item->text(0));	// Set the name of the patch we have sellected in case we load it.
-                        //sysxIO->setBank(bank);
-                        //sysxIO->setPatch(patch);
-                        emit patchSelectSignal(bank, patch);
+                        selectPatch(bank, patch, item->text(0));
                 };
 
         };
@@ -738,8 +735,13 @@ void bankTreeList::updatePatch(QString replyMsg)
 *********************************************************************************/
 void bankTreeList::connectedSignal()
 {
-  //requestPatch(); //load the current temp buffer
         SysxIO *sysxIO = SysxIO::Instance();
+        if(sysxIO->deviceReady() && sysxIO->isConnected())
+        {
+                sysxIO->setDeviceReady(false);
+                requestPatch(); // Load the GT-10's current temporary patch buffer.
+        };
+
         if(this->openPatchTreeItems.size() != 0 && sysxIO->deviceReady() && sysxIO->isConnected())
         {
                  sysxIO->setDeviceReady(false);
@@ -757,8 +759,27 @@ void bankTreeList::connectedSignal()
                 qSort(this->currentPatchTreeItems);
                 this->updatePatchNames("");
         };
-  //requestPatch();
 };
+
+void bankTreeList::selectPatch(int bank, int patch, const QString &name)
+{
+        SysxIO *sysxIO = SysxIO::Instance();
+        if (!sysxIO->isConnected() || !sysxIO->deviceReady()
+            || bank < 1 || bank > bankTotalAll
+            || patch < 1 || patch > patchPerBank)
+                return;
+
+        sysxIO->requestPatchChange(bank, patch);
+        sysxIO->setRequestName(name);
+        emit patchSelectSignal(bank, patch);
+}
+
+void bankTreeList::requestPatchNamesForBank(int bank)
+{
+        QTreeWidgetItem *item = patchBankItems.value(bank, 0);
+        if (item)
+                item->setExpanded(true);
+}
 
 /********************************** updateTree() ********************************
 * This handles whether we add the newly expanded item to the current job or
@@ -799,7 +820,13 @@ void bankTreeList::updatePatchNames(QString name)
 {		SysxIO *sysxIO = SysxIO::Instance();
                 if(!name.isEmpty() && sysxIO->isConnected()) //  If not empty we can assume that we did receive a patch name.
                 {
-                        this->currentPatchTreeItems.at(listIndex)->child(itemIndex)->setText(0, name); // Set the patch name of the item in the tree list.
+                        QTreeWidgetItem *bankItem = this->currentPatchTreeItems.at(listIndex);
+                        bool ok;
+                        int resolvedBank = bankItem->text(0).section(" ", 1, 1).trimmed().toInt(&ok, 10);
+                        if (bankItem->parent()->text(0).contains("P")) resolvedBank += 50;
+                        const int resolvedPatch = itemIndex + 1;
+                        bankItem->child(itemIndex)->setText(0, name); // Set the patch name of the item in the tree list.
+                        emit patchNameResolved(resolvedBank, resolvedPatch, name);
                         if(itemIndex >= patchPerBank - 1) // If we reach the last patch in this bank we need to increment the bank and restart at patch 1.
                         {
                                 this->listIndex++;

@@ -25,6 +25,7 @@
 #define BANKTREELIST_H
 
 #include <QWidget>
+#include <QMap>
 #include <QList>
 #include <QTreeWidget>
 
@@ -44,6 +45,8 @@ public slots:
 	void connectedSignal();
 	void requestPatch();
 	void requestPatch(int bank, int patch);
+	void requestPatchNamesForBank(int bank);
+	void selectPatch(int bank, int patch, const QString &name);
 	void setItemClicked(QTreeWidgetItem *item, int column);
 	void setItemDoubleClicked(QTreeWidgetItem *item, int column);
 
@@ -54,6 +57,7 @@ signals:
 	void itemDoubleClicked(QTreeWidgetItem *item, int column);
 	void patchSelectSignal(int bank, int patch);
 	void patchLoadSignal(int bank, int patch);
+	void patchNameResolved(int bank, int patch, QString name);
 	void updateSignal();
 
 	void setStatusSymbol(int value);
@@ -70,6 +74,7 @@ private:
 	QList<QTreeWidgetItem*> openPatchTreeItems;
 	QList<QTreeWidgetItem*> currentPatchTreeItems;
 	QTreeWidget* treeList;
+	QMap<int, QTreeWidgetItem*> patchBankItems;
 	int itemIndex;
 	int listIndex;
 };

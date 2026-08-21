@@ -25,6 +25,7 @@
 #include <QWhatsThis>
 #include "mainWindow.h"
 #include "modernFloorBoard.h"
+#include "modernTheme.h"
 #include "Preferences.h"
 #include "preferencesDialog.h"
 #include "statusBarWidget.h"
@@ -39,15 +40,29 @@
 
 mainWindow::mainWindow()
     {
-         createActions();
-     createMenus();
-        // Backend original mantido oculto.
-// Ele preserva autoconnect, patch engine, stompboxes e toda a logica MIDI/SysEx.
-floorBoard *legacyBackend = new floorBoard(this);
-legacyBackend->hide();
+        createActions();
+        createMenus();
 
-// Nova interface visivel.
-modernFloorBoard *fxsBoard = new modernFloorBoard(this);
+        // The complete legacy floorBoard remains alive as the transitional backend.
+        legacyFloorBoard = new floorBoard(this);
+        legacyFloorBoard->hide();
+
+        modernFloorBoardWidget = new modernFloorBoard(this);
+
+        QObject::connect(legacyFloorBoard, SIGNAL(connectedSignal()),
+                         modernFloorBoardWidget, SLOT(backendConnected()));
+        QObject::connect(legacyFloorBoard, SIGNAL(notConnectedSignal()),
+                         modernFloorBoardWidget, SLOT(backendDisconnected()));
+        QObject::connect(legacyFloorBoard, SIGNAL(updateSignal()),
+                         modernFloorBoardWidget, SLOT(refreshReverbState()));
+        QObject::connect(this, SIGNAL(updateSignal()),
+                         modernFloorBoardWidget, SLOT(refreshReverbState()));
+        QObject::connect(legacyFloorBoard, SIGNAL(patchNameResolved(int,int,QString)),
+                         modernFloorBoardWidget, SLOT(patchNameResolved(int,int,QString)));
+        QObject::connect(modernFloorBoardWidget, SIGNAL(requestPatchNames(int)),
+                         legacyFloorBoard, SLOT(requestPatchNamesForBank(int)));
+        QObject::connect(modernFloorBoardWidget, SIGNAL(selectPatchRequested(int,int,QString)),
+                         legacyFloorBoard, SLOT(selectModernPatch(int,int,QString)));
 
 
 
@@ -55,40 +70,40 @@ modernFloorBoard *fxsBoard = new modernFloorBoard(this);
 #ifdef Q_OS_WIN
         /* This set the floorboard default style to the "plastique" style,
            as it comes the nearest what the stylesheet uses. */
-        //fxsBoard->setStyle(QStyleFactory::create("plastique"));
+        //modernFloorBoardWidget->setStyle(QStyleFactory::create("plastique"));
                 if(QFile(":qss/windows.qss").exists())
                 {
                         QFile file(":qss/windows.qss");
                         file.open(QFile::ReadOnly);
                         QString styleSheet = QLatin1String(file.readAll());
-                        fxsBoard->setStyleSheet(styleSheet);
+                        modernFloorBoardWidget->setStyleSheet(styleSheet);
                 };
 #endif
 
 #ifdef Q_WS_X11
-        fxsBoard->setStyle(QStyleFactory::create("plastique"));
+        modernFloorBoardWidget->setStyle(QStyleFactory::create("plastique"));
                 if(QFile(":qss/linux.qss").exists())
                 {
                         QFile file(":qss/linux.qss");
                         file.open(QFile::ReadOnly);
                         QString styleSheet = QLatin1String(file.readAll());
-                        fxsBoard->setStyleSheet(styleSheet);
+                        modernFloorBoardWidget->setStyleSheet(styleSheet);
                 };
 #endif
 
 #ifdef Q_WS_MAC
-        fxsBoard->setStyle(QStyleFactory::create("plastique"));
+        modernFloorBoardWidget->setStyle(QStyleFactory::create("plastique"));
                 if(QFile(":qss/macosx.qss").exists())
                 {
                         QFile file(":qss/macosx.qss");
                         file.open(QFile::ReadOnly);
                         QString styleSheet = QLatin1String(file.readAll());
-                        fxsBoard->setStyleSheet(styleSheet);
+                        modernFloorBoardWidget->setStyleSheet(styleSheet);
                 };
 #endif
 
 
-        setWindowTitle(deviceType + tr(" Fx FloorBoard"));
+        setWindowTitle(tr("GT LAB Editor"));
 
 
 
@@ -103,7 +118,7 @@ modernFloorBoard *fxsBoard = new modernFloorBoard(this);
         //mainLayout->setMargin(0);
         //mainLayout->setSpacing(0);
         //setLayout(mainLayout);
-        setCentralWidget(fxsBoard);
+        setCentralWidget(modernFloorBoardWidget);
         statusBar()->setWhatsThis("StatusBar<br>midi activity is displayed here<br>and some status messages are displayed.");
  
         // Modern UI utiliza layout responsivo; nao usa sizeChanged() do floorBoard legado.
@@ -224,7 +239,7 @@ void mainWindow::createActions()
         summaryPatchListAct->setWhatsThis(tr("Display the GT-10 patch listing names<br>in a readable text format, which<br>can be printed or saved to file."));
         connect(summaryPatchListAct, SIGNAL(triggered()), this, SLOT(summaryPatchList()));
 
-        helpAct = new QAction(QIcon(":/images/help.png"), tr("GT-10 Fx FloorBoard &Help"), this);
+        helpAct = new QAction(QIcon(":/images/help.png"), tr("GT LAB Editor &Help"), this);
         helpAct->setShortcut(tr("Ctrl+F1"));
         helpAct->setWhatsThis(tr("Help page to assist with FxFloorBoard functions."));
         connect(helpAct, SIGNAL(triggered()), this, SLOT(help()));
@@ -234,7 +249,7 @@ void mainWindow::createActions()
         whatsThisAct->setWhatsThis(tr("ha..ha..ha..!!"));
         connect(whatsThisAct, SIGNAL(triggered()), this, SLOT(whatsThis()));
 
-        homepageAct = new QAction(QIcon(":/images/GT-10FxFloorBoard.png"), tr("GT-10 Fx FloorBoard &Webpage"), this);
+        homepageAct = new QAction(QIcon(":/images/GT-10FxFloorBoard.png"), tr("Legacy FxFloorBoard &Webpage"), this);
         homepageAct->setWhatsThis(tr("download Webpage for FxFloorBoard<br>find if the latest version is available."));
         connect(homepageAct, SIGNAL(triggered()), this, SLOT(homepage()));
 
@@ -250,7 +265,7 @@ void mainWindow::createActions()
         licenseAct->setWhatsThis(tr("licence agreement which you<br>have accepted by installing this software."));
         connect(licenseAct, SIGNAL(triggered()), this, SLOT(license()));
 
-        aboutAct = new QAction(QIcon(":/images/GT-10FxFloorBoard.png"), tr("&About FxFloorBoard"), this);
+        aboutAct = new QAction(QIcon(":/images/GT-10FxFloorBoard.png"), tr("&About GT LAB Editor"), this);
         aboutAct->setWhatsThis(tr("Show the application's About box"));
         connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
 
@@ -324,6 +339,7 @@ void mainWindow::createStatusBar()
        //statusBar = new QStatusBar;
         statusBar()->addWidget(statusInfo);
         statusBar()->setSizeGripEnabled(false);
+        statusBar()->setStyleSheet(ModernTheme::applicationStyleSheet());
 };
 
 /* FILE MENU */
@@ -818,8 +834,8 @@ void mainWindow::about()
         QFile file(":about");
         if(file.open(QIODevice::ReadOnly))
         {
-                QMessageBox::about(this, deviceType + tr(" Fx FloorBoard - About"),
-                        deviceType + tr(" Fx FloorBoard - ") + tr("version") + " " + version + "<br>" + file.readAll());
+                QMessageBox::about(this, tr("GT LAB Editor - About"),
+                        tr("GT LAB Editor - ") + tr("version") + " " + version + "<br>" + file.readAll());
         };
 };
 

@@ -93,7 +93,7 @@ floorBoard::floorBoard(QWidget *parent,
         this->borderWidth = borderWidth;
         this->pos = pos;
 
-        bankTreeList *bankList = new bankTreeList(this);
+        bankList = new bankTreeList(this);
 
         setFloorBoard();
 
@@ -118,6 +118,8 @@ floorBoard::floorBoard(QWidget *parent,
 
         QObject::connect(this, SIGNAL( resizeSignal(QRect) ), bankList, SLOT( updateSize(QRect) ) );
         QObject::connect(display, SIGNAL(connectedSignal()), bankList, SLOT(connectedSignal()));
+        QObject::connect(display, SIGNAL(connectedSignal()), this, SIGNAL(connectedSignal()));
+        QObject::connect(display, SIGNAL(notConnectedSignal()), this, SIGNAL(notConnectedSignal()));
         QObject::connect(this, SIGNAL(valueChanged(QString, QString, QString)), display, SLOT(setValueDisplay(QString, QString, QString)));
         QObject::connect(panelBar, SIGNAL(resizeSignal(int)), this, SLOT(setWidth(int)));
         QObject::connect(panelBar, SIGNAL(collapseSignal()), this, SLOT(setCollapse()));
@@ -128,6 +130,8 @@ floorBoard::floorBoard(QWidget *parent,
         QObject::connect(this, SIGNAL(updateSignal()), this, SLOT(updateStompBoxes()));
         QObject::connect(bankList, SIGNAL(patchSelectSignal(int, int)), display, SLOT(patchSelectSignal(int, int)));
         QObject::connect(bankList, SIGNAL(patchLoadSignal(int, int)), display, SLOT(patchLoadSignal(int, int)));
+        QObject::connect(bankList, SIGNAL(patchNameResolved(int,int,QString)),
+                         this, SIGNAL(patchNameResolved(int,int,QString)));
 
         QObject::connect(panelBar, SIGNAL(showDragBar(QPoint)), this, SIGNAL(showDragBar(QPoint)));
         QObject::connect(panelBar, SIGNAL(hideDragBar()), this, SIGNAL(hideDragBar()));
@@ -182,6 +186,16 @@ floorBoard::~floorBoard()
         preferences->setPreferences("Window", "Collapsed", "bool", QString(this->colapseState?"true":"false"));
         preferences->savePreferences();
 };
+
+void floorBoard::requestPatchNamesForBank(int bank)
+{
+        bankList->requestPatchNamesForBank(bank);
+}
+
+void floorBoard::selectModernPatch(int bank, int patch, QString name)
+{
+        bankList->selectPatch(bank, patch, name);
+}
 
 void floorBoard::paintEvent(QPaintEvent *)
 {

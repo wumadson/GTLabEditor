@@ -212,7 +212,6 @@ floorBoardDisplay::floorBoardDisplay(QWidget *parent, QPoint pos)
         QObject::connect(this, SIGNAL(setStatusMessage(QString)), sysxIO, SIGNAL(setStatusMessage(QString)));
 
         QObject::connect(sysxIO, SIGNAL(notConnectedSignal()), this, SLOT(notConnected()));
-        QObject::connect(this, SIGNAL(notConnectedSignal()), this, SLOT(notConnected()));
 
         QObject::connect(this->parent(), SIGNAL(updateSignal()), this, SLOT(updateDisplay()));
         QObject::connect(this, SIGNAL(updateSignal()), this->parent(), SIGNAL(updateSignal()));
@@ -1371,6 +1370,7 @@ void floorBoardDisplay::notConnected()
         emit setStatusSymbol(0);
         emit setStatusProgress(0);
         emit setStatusMessage(tr("Not connected"));
+	emit notConnectedSignal();
 }
 
 void floorBoardDisplay::valueChanged(bool value, QString hex1, QString hex2, QString hex3)

@@ -112,5 +112,9 @@ HEADERS += qt4compat.h
 QMAKE_CXXFLAGS += -include $$PWD/qt4compat.h
 
 # GT-10 FxFloorBoard Modern UI
-SOURCES += modernFloorBoard.cpp
-HEADERS += modernFloorBoard.h
+SOURCES += modernFloorBoard.cpp modernTheme.cpp modernWidgets.cpp modernSignalChainModel.cpp \
+           effectArtworkWidget.cpp effectModelBrowser.cpp parameterBar.cpp \
+           modernPatchListModel.cpp patchSidebar.cpp
+HEADERS += modernFloorBoard.h modernTheme.h modernWidgets.h modernSignalChainModel.h \
+           effectArtworkWidget.h effectModelBrowser.h parameterBar.h \
+           modernPatchListModel.h patchSidebar.h
