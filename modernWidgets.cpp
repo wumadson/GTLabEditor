@@ -697,6 +697,15 @@ void SignalChainContent::setDragFeedback(const QRect &regionRect,
     update();
 }
 
+void SignalChainContent::setParallelCableGeometry(
+    const QRect &parallelRect, qreal pathAY, qreal pathBY)
+{
+    parallelCableRect = parallelRect;
+    parallelPathAY = pathAY;
+    parallelPathBY = pathBY;
+    update();
+}
+
 void SignalChainContent::clearDragFeedback()
 {
     dragFeedbackActive = false;
@@ -706,18 +715,56 @@ void SignalChainContent::clearDragFeedback()
 
 void SignalChainContent::paintEvent(QPaintEvent *)
 {
-    QPainter p(this);p.setRenderHint(QPainter::Antialiasing);const qreal y=height()/2.0;
-    p.setPen(QPen(QColor(0,0,0,175),7,Qt::SolidLine,Qt::RoundCap));p.drawLine(QPointF(24,y+3),QPointF(width()-24,y+3));
-    QLinearGradient cable(18,y,width()-18,y);cable.setColorAt(0,QColor("#394550"));cable.setColorAt(.5,QColor("#9AA5AE"));cable.setColorAt(1,QColor("#394550"));p.setPen(QPen(QBrush(cable),3,Qt::SolidLine,Qt::RoundCap));p.drawLine(QPointF(24,y),QPointF(width()-24,y));
-    if (!dragFeedbackActive)
-        return;
-    QColor regionColor(ModernTheme::color(ModernTheme::AccentCyan));
-    regionColor.setAlpha(dragFeedbackValid ? 22 : 8);
-    p.setPen(QPen(QColor(regionColor.red(), regionColor.green(),
-                         regionColor.blue(), dragFeedbackValid ? 80 : 35), 1));
-    p.setBrush(regionColor);
-    p.drawRoundedRect(dragRegionRect.adjusted(1, 1, -1, -1), 5, 5);
-    if (dragFeedbackValid) {
+    QPainter p(this);
+    p.setRenderHint(QPainter::Antialiasing);
+    const qreal y = height() / 2.0;
+
+    // Region feedback stays behind the topology and is deliberately subtle.
+    if (dragFeedbackActive) {
+        QColor outline(ModernTheme::color(ModernTheme::AccentCyan));
+        outline.setAlpha(dragFeedbackValid ? 54 : 22);
+        QColor fill = outline;
+        fill.setAlpha(dragFeedbackValid ? 4 : 1);
+        p.setPen(QPen(outline, 1.0));
+        p.setBrush(fill);
+        p.drawRoundedRect(dragRegionRect.adjusted(1, 1, -1, -1), 5, 5);
+    }
+
+    const auto drawCable = [&p](const QPointF &from, const QPointF &to,
+                                const QBrush &brush) {
+        p.setPen(QPen(QColor(0, 0, 0, 175), 7, Qt::SolidLine,
+                      Qt::RoundCap));
+        p.drawLine(from + QPointF(0, 3), to + QPointF(0, 3));
+        p.setPen(QPen(brush, 3, Qt::SolidLine, Qt::RoundCap));
+        p.drawLine(from, to);
+    };
+    QLinearGradient commonCable(18, y, width() - 18, y);
+    commonCable.setColorAt(0, QColor("#394550"));
+    commonCable.setColorAt(.5, QColor("#9AA5AE"));
+    commonCable.setColorAt(1, QColor("#394550"));
+    if (parallelCableRect.isValid()) {
+        drawCable(QPointF(24, y), QPointF(parallelCableRect.left(), y),
+                  QBrush(commonCable));
+        drawCable(QPointF(parallelCableRect.right(), y),
+                  QPointF(width() - 24, y), QBrush(commonCable));
+        QLinearGradient pathCable(parallelCableRect.left(), 0,
+                                  parallelCableRect.right(), 0);
+        pathCable.setColorAt(0, QColor("#56636E"));
+        pathCable.setColorAt(.5, QColor("#AAB3BA"));
+        pathCable.setColorAt(1, QColor("#56636E"));
+        drawCable(QPointF(parallelCableRect.left(), parallelPathAY),
+                  QPointF(parallelCableRect.right(), parallelPathAY),
+                  QBrush(pathCable));
+        drawCable(QPointF(parallelCableRect.left(), parallelPathBY),
+                  QPointF(parallelCableRect.right(), parallelPathBY),
+                  QBrush(pathCable));
+    } else {
+        drawCable(QPointF(24, y), QPointF(width() - 24, y),
+                  QBrush(commonCable));
+    }
+
+    // The insertion marker is the primary destination feedback.
+    if (dragFeedbackActive && dragFeedbackValid) {
         QColor insertion(ModernTheme::color(ModernTheme::AccentCyan));
         insertion.setAlpha(235);
         p.setPen(QPen(insertion, 2.0, Qt::SolidLine, Qt::RoundCap));

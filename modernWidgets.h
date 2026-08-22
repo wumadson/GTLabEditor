@@ -241,6 +241,8 @@ public:
     void setDragLeaveHandler(const DragLeaveHandler &handler);
     void setDragFeedback(const QRect &regionRect, const QLineF &insertionLine,
                          bool valid);
+    void setParallelCableGeometry(const QRect &parallelRect,
+                                  qreal pathAY, qreal pathBY);
     void clearDragFeedback();
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -255,6 +257,9 @@ private:
     QLineF dragInsertionLine;
     bool dragFeedbackActive = false;
     bool dragFeedbackValid = false;
+    QRect parallelCableRect;
+    qreal parallelPathAY = -1.0;
+    qreal parallelPathBY = -1.0;
 };
 
 class SignalJunction : public QPushButton

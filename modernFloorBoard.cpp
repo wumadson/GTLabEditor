@@ -2757,11 +2757,11 @@ void modernFloorBoard::rebuildSignalChainView()
     QWidget *parallelPaths = new QWidget;
     signalParallelPaths = parallelPaths;
     parallelPaths->setObjectName("ParallelPaths");
-    parallelPaths->setStyleSheet(QString(
-        "QWidget#ParallelPaths{background:%1;border:1px solid %2;"
-        "border-radius:4px;}")
-        .arg(ModernTheme::color(ModernTheme::ControlBackground),
-             ModernTheme::color(ModernTheme::Border)));
+    // The parallel container is layout-only. A decorative frame here merges
+    // visually with the two signal cables and reads as a third rectangular
+    // route, so topology is expressed exclusively by SPLIT/Path A/Path B/MERGE.
+    parallelPaths->setStyleSheet(
+        "QWidget#ParallelPaths{background:transparent;border:none;}");
     signalPathsLayout = new QGridLayout(parallelPaths);
     signalPathsLayout->setContentsMargins(5, 5, 5, 5);
     signalPathsLayout->setHorizontalSpacing(5);
@@ -3181,8 +3181,21 @@ void modernFloorBoard::applyResponsiveSignalChainLayout()
     if (signalPathsLayout && signalParallelPaths) {
         const QRect rowA = signalPathsLayout->cellRect(0, 0);
         const QRect rowB = signalPathsLayout->cellRect(1, 0);
-        if (rowA.isValid() && rowB.isValid())
+        if (rowA.isValid() && rowB.isValid()) {
             pathOffset = qAbs(rowB.center().y() - rowA.center().y()) / 2.0;
+            if (signalChainContent) {
+                const QPoint panelOrigin = signalParallelPaths->mapTo(
+                    signalChainContent, QPoint(0, 0));
+                const int bridgeGap = signalFlowLayout
+                    ? signalFlowLayout->spacing() : 0;
+                const QRect panelRect = QRect(
+                    panelOrigin, signalParallelPaths->size())
+                        .adjusted(-bridgeGap, 0, bridgeGap, 0);
+                signalChainContent->setParallelCableGeometry(
+                    panelRect, panelOrigin.y() + rowA.center().y(),
+                    panelOrigin.y() + rowB.center().y());
+            }
+        }
     }
     for (SignalJunction *junction : signalChainJunctions)
         junction->setChainGeometry(viewportHeight, pathOffset);
