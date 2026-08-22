@@ -30,8 +30,10 @@ class AudioGearSwitch;
 class ModernToggleSwitch;
 class ModernEqGraph;
 enum class FxSlot;
+enum class NoiseSuppressorSlot;
 class ModernFxEditor;
 class ModernPedalFxEditor;
+class ModernNoiseSuppressorEditor;
 class StatusBadge;
 class PatchSidebar;
 
@@ -69,6 +71,8 @@ private slots:
     void showFx2Editor();
     void showPedalFxEditor();
     void showFootVolumeEditor();
+    void showNs1Editor();
+    void showNs2Editor();
     void showChannelRoutingEditor();
     void compTypeChanged(int value);
     void compModelSelected(int index);
@@ -200,6 +204,9 @@ private:
     void pedalFxActivityChanged(bool available, bool pedalFxActive,
                                 bool footVolumeActive);
     void clearPedalSelection();
+    void showNoiseSuppressorEditor(NoiseSuppressorSlot slot);
+    void refreshNoiseSuppressors();
+    void clearNoiseSuppressorSelection();
     QWidget *createChannelRoutingEditor();
     void updateChannelRoutingPage(int mode);
     void updateChannelRoutingControls(bool available);
@@ -237,6 +244,8 @@ private:
     SignalChainModule *fx2Card = nullptr;
     SignalChainModule *pedalFxCard = nullptr;
     SignalChainModule *footVolumeCard = nullptr;
+    SignalChainModule *ns1Card = nullptr;
+    SignalChainModule *ns2Card = nullptr;
     SignalJunction *splitJunction = nullptr;
     QStackedWidget *effectEditorStack = nullptr;
     EffectEditorPanel *reverbEditor = nullptr;
@@ -250,6 +259,8 @@ private:
     ModernFxEditor *fx1Editor = nullptr;
     ModernFxEditor *fx2Editor = nullptr;
     ModernPedalFxEditor *pedalFxEditor = nullptr;
+    ModernNoiseSuppressorEditor *ns1Editor = nullptr;
+    ModernNoiseSuppressorEditor *ns2Editor = nullptr;
     QWidget *channelRoutingEditor = nullptr;
     QWidget *channelRoutingDiagram = nullptr;
     QComboBox *channelMode = nullptr;

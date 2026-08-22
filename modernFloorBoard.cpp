@@ -8,6 +8,7 @@
 #include "modernEqGraph.h"
 #include "modernFxEditor.h"
 #include "modernPedalFxEditor.h"
+#include "modernNoiseSuppressorEditor.h"
 #include "parameterBar.h"
 #include "patchSidebar.h"
 
@@ -1009,6 +1010,22 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     effectEditorStack->addWidget(pedalFxEditor->widget());
     connect(pedalFxEditor, &ModernPedalFxEditor::activityChanged,
             this, &modernFloorBoard::pedalFxActivityChanged);
+    ns1Editor = new ModernNoiseSuppressorEditor(
+        NoiseSuppressorSlot::NS1, this);
+    effectEditorStack->addWidget(ns1Editor->widget());
+    connect(ns1Editor, &ModernNoiseSuppressorEditor::stateChanged,
+            this, [this](bool available, bool on) {
+        if (ns1Card)
+            ns1Card->setEffectState(available, on);
+    });
+    ns2Editor = new ModernNoiseSuppressorEditor(
+        NoiseSuppressorSlot::NS2, this);
+    effectEditorStack->addWidget(ns2Editor->widget());
+    connect(ns2Editor, &ModernNoiseSuppressorEditor::stateChanged,
+            this, [this](bool available, bool on) {
+        if (ns2Card)
+            ns2Card->setEffectState(available, on);
+    });
 
     mainLayout->addWidget(effectEditorStack, 1);
 
@@ -1942,6 +1959,7 @@ void modernFloorBoard::backendConnected()
     refreshFx(FxSlot::FX1);
     refreshFx(FxSlot::FX2);
     refreshPedalFx();
+    refreshNoiseSuppressors();
 }
 
 void modernFloorBoard::backendDisconnected()
@@ -1962,6 +1980,7 @@ void modernFloorBoard::backendDisconnected()
     refreshFx(FxSlot::FX1);
     refreshFx(FxSlot::FX2);
     refreshPedalFx();
+    refreshNoiseSuppressors();
     patchNumber->setText(QString::fromUtf8("—"));
     patchName->setText("NO PATCH DATA");
     patchListModel.setCurrentPatch(0, 0, QString());
@@ -2003,6 +2022,7 @@ void modernFloorBoard::refreshReverbState()
         refreshFx(FxSlot::FX1);
         refreshFx(FxSlot::FX2);
         refreshPedalFx();
+        refreshNoiseSuppressors();
         return;
     }
 
@@ -2025,6 +2045,7 @@ void modernFloorBoard::refreshReverbState()
     refreshFx(FxSlot::FX1);
     refreshFx(FxSlot::FX2);
     refreshPedalFx();
+    refreshNoiseSuppressors();
 }
 
 void modernFloorBoard::refreshCompState()
@@ -2133,6 +2154,8 @@ SignalChainModule *modernFloorBoard::createSignalChainModule(
     const bool isPreampB = entry.moduleId == 0x03;
     const bool isPedalFx = entry.moduleId == 0x0A;
     const bool isFootVolume = entry.moduleId == 0x0B;
+    const bool isNs1 = entry.moduleId == 0x0C;
+    const bool isNs2 = entry.moduleId == 0x0D;
     SignalChainModule *module = new SignalChainModule(
         name, QColor(ModernTheme::effectColor(fullName)),
         QColor(ModernTheme::effectFaceColor(fullName)));
@@ -2140,7 +2163,8 @@ SignalChainModule *modernFloorBoard::createSignalChainModule(
     module->setNavigable(isComp || isReverb || isOdds || isDelay || isChorus
                          || isEq || isFx1 || isFx2
                          || isPreampA || isPreampB
-                         || isPedalFx || isFootVolume);
+                         || isPedalFx || isFootVolume
+                         || isNs1 || isNs2);
     module->setProperty("chainPosition", entry.originalPosition);
     module->setProperty("rawValue", entry.rawValue);
     module->setProperty("signalPath", entry.path);
@@ -2210,6 +2234,16 @@ SignalChainModule *modernFloorBoard::createSignalChainModule(
         connect(module, SIGNAL(clicked()),
                 this, SLOT(showFootVolumeEditor()));
     }
+    if (isNs1) {
+        ns1Card = module;
+        ns1Card->setSelected(selectedEditor == "NS-1");
+        connect(module, SIGNAL(clicked()), this, SLOT(showNs1Editor()));
+    }
+    if (isNs2) {
+        ns2Card = module;
+        ns2Card->setSelected(selectedEditor == "NS-2");
+        connect(module, SIGNAL(clicked()), this, SLOT(showNs2Editor()));
+    }
     return module;
 }
 
@@ -2226,6 +2260,8 @@ void modernFloorBoard::rebuildSignalChainView()
     preampBCard = nullptr;
     pedalFxCard = nullptr;
     footVolumeCard = nullptr;
+    ns1Card = nullptr;
+    ns2Card = nullptr;
     splitJunction = nullptr;
     signalChainModules.clear();
     signalChainJunctions.clear();
@@ -2574,6 +2610,7 @@ void modernFloorBoard::showCompEditor()
     if (splitJunction)
         splitJunction->setSelected(false);
     clearPedalSelection();
+    clearNoiseSuppressorSelection();
 }
 
 void modernFloorBoard::showReverbEditor()
@@ -2604,6 +2641,7 @@ void modernFloorBoard::showReverbEditor()
     if (splitJunction)
         splitJunction->setSelected(false);
     clearPedalSelection();
+    clearNoiseSuppressorSelection();
 }
 
 void modernFloorBoard::showOddsEditor()
@@ -2634,6 +2672,7 @@ void modernFloorBoard::showOddsEditor()
     if (splitJunction)
         splitJunction->setSelected(false);
     clearPedalSelection();
+    clearNoiseSuppressorSelection();
 }
 
 void modernFloorBoard::showDelayEditor()
@@ -2664,6 +2703,7 @@ void modernFloorBoard::showDelayEditor()
     if (splitJunction)
         splitJunction->setSelected(false);
     clearPedalSelection();
+    clearNoiseSuppressorSelection();
 }
 
 void modernFloorBoard::showChorusEditor()
@@ -2695,6 +2735,7 @@ void modernFloorBoard::showChorusEditor()
     if (splitJunction)
         splitJunction->setSelected(false);
     clearPedalSelection();
+    clearNoiseSuppressorSelection();
 }
 
 void modernFloorBoard::showEqEditor()
@@ -2725,6 +2766,7 @@ void modernFloorBoard::showEqEditor()
     if (splitJunction)
         splitJunction->setSelected(false);
     clearPedalSelection();
+    clearNoiseSuppressorSelection();
 }
 
 void modernFloorBoard::showPreampAEditor()
@@ -2755,6 +2797,7 @@ void modernFloorBoard::showPreampAEditor()
     if (splitJunction)
         splitJunction->setSelected(false);
     clearPedalSelection();
+    clearNoiseSuppressorSelection();
 }
 
 void modernFloorBoard::showPreampBEditor()
@@ -2785,6 +2828,7 @@ void modernFloorBoard::showPreampBEditor()
     if (splitJunction)
         splitJunction->setSelected(false);
     clearPedalSelection();
+    clearNoiseSuppressorSelection();
 }
 
 void modernFloorBoard::showFx1Editor()
@@ -2832,6 +2876,7 @@ void modernFloorBoard::showFxEditor(FxSlot slot)
     if (splitJunction)
         splitJunction->setSelected(false);
     clearPedalSelection();
+    clearNoiseSuppressorSelection();
 }
 
 void modernFloorBoard::refreshFx(FxSlot slot)
@@ -2904,6 +2949,7 @@ void modernFloorBoard::showPedalEditor(bool footVolumeContext)
         fx2Card->setSelected(false);
     if (splitJunction)
         splitJunction->setSelected(false);
+    clearNoiseSuppressorSelection();
 }
 
 void modernFloorBoard::refreshPedalFx()
@@ -2928,6 +2974,76 @@ void modernFloorBoard::clearPedalSelection()
         pedalFxCard->setSelected(false);
     if (footVolumeCard)
         footVolumeCard->setSelected(false);
+}
+
+void modernFloorBoard::showNs1Editor()
+{
+    showNoiseSuppressorEditor(NoiseSuppressorSlot::NS1);
+}
+
+void modernFloorBoard::showNs2Editor()
+{
+    showNoiseSuppressorEditor(NoiseSuppressorSlot::NS2);
+}
+
+void modernFloorBoard::showNoiseSuppressorEditor(NoiseSuppressorSlot slot)
+{
+    ModernNoiseSuppressorEditor *targetEditor =
+        slot == NoiseSuppressorSlot::NS1 ? ns1Editor : ns2Editor;
+    if (!targetEditor)
+        return;
+
+    selectedEditor = slot == NoiseSuppressorSlot::NS1 ? "NS-1" : "NS-2";
+    targetEditor->refreshNoiseSuppressor(backendIsConnected,
+                                         backendHasPatchData);
+    if (effectEditorStack)
+        effectEditorStack->setCurrentWidget(targetEditor->widget());
+
+    if (ns1Card)
+        ns1Card->setSelected(slot == NoiseSuppressorSlot::NS1);
+    if (ns2Card)
+        ns2Card->setSelected(slot == NoiseSuppressorSlot::NS2);
+    if (compCard)
+        compCard->setSelected(false);
+    if (reverbCard)
+        reverbCard->setSelected(false);
+    if (oddsCard)
+        oddsCard->setSelected(false);
+    if (delayCard)
+        delayCard->setSelected(false);
+    if (chorusCard)
+        chorusCard->setSelected(false);
+    if (eqCard)
+        eqCard->setSelected(false);
+    if (preampACard)
+        preampACard->setSelected(false);
+    if (preampBCard)
+        preampBCard->setSelected(false);
+    if (fx1Card)
+        fx1Card->setSelected(false);
+    if (fx2Card)
+        fx2Card->setSelected(false);
+    if (splitJunction)
+        splitJunction->setSelected(false);
+    clearPedalSelection();
+}
+
+void modernFloorBoard::refreshNoiseSuppressors()
+{
+    if (ns1Editor)
+        ns1Editor->refreshNoiseSuppressor(backendIsConnected,
+                                           backendHasPatchData);
+    if (ns2Editor)
+        ns2Editor->refreshNoiseSuppressor(backendIsConnected,
+                                           backendHasPatchData);
+}
+
+void modernFloorBoard::clearNoiseSuppressorSelection()
+{
+    if (ns1Card)
+        ns1Card->setSelected(false);
+    if (ns2Card)
+        ns2Card->setSelected(false);
 }
 
 void modernFloorBoard::showChannelRoutingEditor()
@@ -2959,6 +3075,7 @@ void modernFloorBoard::showChannelRoutingEditor()
     if (fx2Card)
         fx2Card->setSelected(false);
     clearPedalSelection();
+    clearNoiseSuppressorSelection();
 }
 
 void modernFloorBoard::updateChannelRoutingPage(int mode)
