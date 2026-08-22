@@ -7,6 +7,7 @@
 #include <QVector>
 
 class QAbstractButton;
+class EffectArtworkWidget;
 class EffectEditorPanel;
 class EffectModelBrowser;
 class ModernToggleSwitch;
@@ -148,7 +149,7 @@ private:
     ModernToggleSwitch *stateToggle = nullptr;
     QComboBox *hiddenType = nullptr;
     QStackedWidget *algorithmStack = nullptr;
-    QWidget *identityWidget = nullptr;
+    EffectArtworkWidget *artwork = nullptr;
     QVector<TypeEntry> types;
     QVector<int> browserRawValues;
     QVector<int> pageRawValues;

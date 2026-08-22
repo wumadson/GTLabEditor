@@ -2,6 +2,7 @@
 
 #include "MidiTable.h"
 #include "SysxIO.h"
+#include "effectArtworkWidget.h"
 #include "effectModelBrowser.h"
 #include "globalVariables.h"
 #include "modernTheme.h"
@@ -14,8 +15,6 @@
 #include <QHash>
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QLinearGradient>
-#include <QPainter>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QSet>
@@ -29,71 +28,6 @@
 
 namespace {
 const char kStructure[] = "Structure";
-
-class FxIdentityWidget : public QWidget
-{
-public:
-    explicit FxIdentityWidget(FxSlot slot, QWidget *parent = nullptr)
-        : QWidget(parent), fxSlot(slot)
-    {
-        setObjectName("FxIdentityWidget");
-        setMinimumSize(200, 220);
-        setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-        setProperty("algorithmName", QString::fromUtf8("—"));
-    }
-
-protected:
-    void paintEvent(QPaintEvent *) override
-    {
-        QPainter painter(this);
-        painter.setRenderHint(QPainter::Antialiasing, true);
-
-        const QRectF body = rect().adjusted(12, 12, -12, -12);
-        QLinearGradient face(body.topLeft(), body.bottomRight());
-        face.setColorAt(0, QColor("#20192A"));
-        face.setColorAt(0.55, QColor("#121018"));
-        face.setColorAt(1, QColor("#090A0D"));
-        painter.setPen(QPen(QColor(ModernTheme::color(
-            ModernTheme::Border)), 1));
-        painter.setBrush(face);
-        painter.drawRoundedRect(body, 10, 10);
-
-        QColor accent(ModernTheme::activeEffectAccent(
-            fxSlot == FxSlot::FX1 ? "FX-1" : "FX-2"));
-        accent.setAlpha(210);
-        painter.setPen(Qt::NoPen);
-        painter.setBrush(accent);
-        painter.drawRoundedRect(
-            QRectF(body.left() + 18, body.top() + 18,
-                   body.width() - 36, 3), 1.5, 1.5);
-
-        QFont slotFont = font();
-        slotFont.setPointSizeF(25.0);
-        slotFont.setWeight(QFont::Bold);
-        slotFont.setLetterSpacing(QFont::AbsoluteSpacing, 1.2);
-        painter.setFont(slotFont);
-        painter.setPen(QColor(ModernTheme::color(
-            ModernTheme::PrimaryText)));
-        painter.drawText(
-            body.adjusted(20, 45, -20, -body.height() * 0.52),
-            Qt::AlignCenter,
-            fxSlot == FxSlot::FX1 ? "FX-1" : "FX-2");
-
-        QFont typeFont = font();
-        typeFont.setPointSizeF(13.0);
-        typeFont.setWeight(QFont::DemiBold);
-        typeFont.setLetterSpacing(QFont::AbsoluteSpacing, 0.8);
-        painter.setFont(typeFont);
-        painter.setPen(accent.lighter(118));
-        painter.drawText(
-            body.adjusted(24, body.height() * 0.50, -24, -28),
-            Qt::AlignHCenter | Qt::AlignTop | Qt::TextWordWrap,
-            property("algorithmName").toString().trimmed().toUpper());
-    }
-
-private:
-    FxSlot fxSlot;
-};
 
 FxParameterSpec parameter(int bank, const QString &offset,
                           FxControlKind kind, const QString &section,
@@ -315,8 +249,18 @@ void ModernFxEditor::buildEditor()
     editor->typeLabel()->hide();
     editor->setRightPanelTitle(slotName + " TYPES");
 
-    identityWidget = new FxIdentityWidget(fxSlot);
-    editor->setArtworkWidget(identityWidget);
+    artwork = new EffectArtworkWidget;
+    artwork->setArtwork(fxSlot == FxSlot::FX1
+        ? ":/assets/effects/fx1.png"
+        : ":/assets/effects/fx2.png");
+    QFont displayFont;
+    displayFont.setFamily("Menlo");
+    displayFont.setBold(true);
+    displayFont.setStretch(QFont::Condensed);
+    artwork->setTextOverlay(
+        "type", QRectF(0.29, 0.229, 0.42, 0.057), QString(),
+        displayFont, accent.lighter(118), Qt::AlignCenter, 0.50);
+    editor->setArtworkWidget(artwork);
 
     browser = new EffectModelBrowser;
     browser->setAccentColor(accent);
@@ -1334,10 +1278,8 @@ void ModernFxEditor::setFxType(int raw, bool writeBackend)
     const QString typeName = typeNameForRaw(raw);
     if (editor && editor->typeLabel())
         editor->typeLabel()->setText(typeName);
-    if (identityWidget) {
-        identityWidget->setProperty("algorithmName", typeName);
-        identityWidget->update();
-    }
+    if (artwork)
+        artwork->setTextOverlayText("type", typeName.toUpper());
     if (available)
         refreshControlsForType(raw);
     applyConditionalRules();
@@ -1370,11 +1312,8 @@ void ModernFxEditor::updateControls(bool controlsAvailable)
         }
         if (browser)
             browser->setCurrentIndex(-1);
-        if (identityWidget) {
-            identityWidget->setProperty("algorithmName",
-                                        QString::fromUtf8("—"));
-            identityWidget->update();
-        }
+        if (artwork)
+            artwork->setTextOverlayText("type", QString::fromUtf8("—"));
     }
 
     for (ControlBinding &binding : controls) {
