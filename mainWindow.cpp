@@ -327,7 +327,7 @@ void mainWindow::createStatusBar()
 {
         SysxIO *sysxIO = SysxIO::Instance();
 
-        statusBarWidget *statusInfo = new statusBarWidget(this);
+        statusInfo = new statusBarWidget(this);
         statusInfo->setStatusSymbol(0);
         statusInfo->setStatusMessage(tr("Not connected"));
 
@@ -335,9 +335,11 @@ void mainWindow::createStatusBar()
         QObject::connect(sysxIO, SIGNAL(setStatusProgress(int)), statusInfo, SLOT(setStatusProgress(int)));
         QObject::connect(sysxIO, SIGNAL(setStatusMessage(QString)), statusInfo, SLOT(setStatusMessage(QString)));
         QObject::connect(sysxIO, SIGNAL(setStatusdBugMessage(QString)), statusInfo, SLOT(setStatusdBugMessage(QString)));
+        QObject::connect(modernFloorBoardWidget, SIGNAL(connectionStateChanged(bool)),
+                         statusInfo, SLOT(setConnectionState(bool)));
 
        //statusBar = new QStatusBar;
-        statusBar()->addWidget(statusInfo);
+        statusBar()->addWidget(statusInfo, 1);
         statusBar()->setSizeGripEnabled(false);
         statusBar()->setStyleSheet(ModernTheme::applicationStyleSheet());
 };

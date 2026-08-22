@@ -40,12 +40,15 @@ public slots:
 	void setStatusdBugMessage(QString dBug);
 	void setStatusProgress(int value);
 	void setStatusSymbol(int value);
+	void setConnectionState(bool connected);
 
 private:
 	QProgressBar *progressBar;
 	QLabel *symbol;
 	QLabel *label;
 	QLabel *dBuglabel;
+	QLabel *connectionDot;
+	QLabel *connectionLabel;
 };
 
 #endif // STATUSBARWIDGET_H

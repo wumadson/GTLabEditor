@@ -35,7 +35,6 @@ class ModernFxEditor;
 class ModernPedalFxEditor;
 class ModernNoiseSuppressorEditor;
 class ModernSendReturnEditor;
-class StatusBadge;
 class PatchSidebar;
 
 class modernFloorBoard : public QWidget
@@ -54,6 +53,7 @@ public slots:
 signals:
     void requestPatchNames(int bank);
     void selectPatchRequested(int bank, int patch, QString name);
+    void connectionStateChanged(bool connected);
 
 private slots:
     void toggleReverb();
@@ -101,6 +101,7 @@ private slots:
     void preampToggleChanged();
     void channelModeChanged(int index);
     void channelRoutingBarChanged(int value);
+    void outputSelectChanged(int index);
 
 private:
     EffectModule *createEffectBlock(const QString &name, bool available);
@@ -221,6 +222,13 @@ private:
     void setChannelDelay(int value);
     void setDynamicSense(int value);
     void refreshSignalChainModel();
+    void refreshOutputSelectHeader();
+    void requestOutputSystemData();
+    void pollOutputSystemData();
+    bool hasSourceValue(const QString &area,
+                        const QString &hex1,
+                        const QString &hex2,
+                        const QString &hex3) const;
     void rebuildSignalChainView();
     void applyResponsiveSignalChainLayout();
     SignalChainModule *createSignalChainModule(const modernSignalChainModel::Entry &entry);
@@ -233,7 +241,9 @@ private:
 
     QLabel *patchNumber;
     QLabel *patchName;
-    StatusBadge *connectionStatus;
+    QComboBox *outputSelectCombo = nullptr;
+    bool outputSystemDataRequested = false;
+    bool outputSystemDataReady = false;
     PatchSidebar *patchSidebar = nullptr;
 
     SignalChainModule *reverbCard = nullptr;

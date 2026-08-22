@@ -20,12 +20,16 @@
 #include <QGridLayout>
 #include <QHash>
 #include <QHBoxLayout>
+#include <QIconEngine>
 #include <QLabel>
 #include <QPainter>
+#include <QPainterPath>
+#include <QPaintEvent>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QResizeEvent>
 #include <QEvent>
+#include <QStandardItemModel>
 #include <QTimer>
 #include <QSignalBlocker>
 #include <QSet>
@@ -36,6 +40,211 @@
 #include <algorithm>
 
 namespace {
+class OutputSelectIconEngine final : public QIconEngine
+{
+public:
+    explicit OutputSelectIconEngine(int rawValue)
+        : raw(rawValue)
+    {
+    }
+
+    QIconEngine *clone() const override
+    {
+        return new OutputSelectIconEngine(raw);
+    }
+
+    QPixmap pixmap(const QSize &size, QIcon::Mode mode,
+                   QIcon::State state) override
+    {
+        return renderPixmap(size, mode, state, 1.0);
+    }
+
+    void virtual_hook(int id, void *data) override
+    {
+        if (id == QIconEngine::ScaledPixmapHook) {
+            auto *argument = static_cast<QIconEngine::ScaledPixmapArgument *>(data);
+            argument->pixmap = renderPixmap(argument->size,
+                                            argument->mode,
+                                            argument->state,
+                                            argument->scale);
+            return;
+        }
+        QIconEngine::virtual_hook(id, data);
+    }
+
+private:
+    QPixmap renderPixmap(const QSize &size, QIcon::Mode mode,
+                         QIcon::State state, qreal scale)
+    {
+        const QSize pixelSize(qMax(1, qRound(size.width() * scale)),
+                              qMax(1, qRound(size.height() * scale)));
+        QPixmap result(pixelSize);
+        result.setDevicePixelRatio(scale);
+        result.fill(Qt::transparent);
+        QPainter painter(&result);
+        paint(&painter, QRect(QPoint(0, 0), size), mode, state);
+        return result;
+    }
+
+public:
+
+    void paint(QPainter *painter, const QRect &rect,
+               QIcon::Mode mode, QIcon::State) override
+    {
+        painter->save();
+        painter->setRenderHint(QPainter::Antialiasing, true);
+
+        const qreal side = qMin(rect.width(), rect.height());
+        const QRectF target(rect.center().x() - side / 2.0,
+                            rect.center().y() - side / 2.0,
+                            side, side);
+        painter->translate(target.topLeft());
+        painter->scale(target.width() / 18.0, target.height() / 18.0);
+
+        const QColor color = mode == QIcon::Disabled
+            ? QColor("#59636e")
+            : mode == QIcon::Selected
+                ? QColor("#eef5fb")
+                : QColor("#aab6c1");
+        QPen pen(color, 1.35, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+        painter->setPen(pen);
+        painter->setBrush(Qt::NoBrush);
+
+        if (raw == 7) {
+            QPainterPath headphones;
+            headphones.moveTo(3.0, 10.0);
+            headphones.cubicTo(3.0, 2.8, 15.0, 2.8, 15.0, 10.0);
+            painter->drawPath(headphones);
+            painter->drawRoundedRect(QRectF(2.1, 9.2, 3.0, 5.4), 1.0, 1.0);
+            painter->drawRoundedRect(QRectF(12.9, 9.2, 3.0, 5.4), 1.0, 1.0);
+            return painter->restore();
+        }
+
+        const bool isReturn = raw >= 4 && raw <= 6;
+        const bool isStack = raw == 3 || raw == 6;
+        const bool isSmall = raw == 1;
+        const bool isTwinCombo = raw == 0 || raw == 4;
+        const qreal left = isReturn ? 5.0 : (isSmall ? 4.0 : 2.0);
+        const qreal width = isReturn ? 11.0 : (isSmall ? 10.0 : 14.0);
+
+        if (isStack) {
+            painter->drawRoundedRect(QRectF(left, 2.4, width, 4.0), 0.8, 0.8);
+            painter->drawRoundedRect(QRectF(left, 7.5, width, 8.2), 1.0, 1.0);
+            painter->drawEllipse(QPointF(left + width * 0.32, 11.6), 1.9, 1.9);
+            painter->drawEllipse(QPointF(left + width * 0.68, 11.6), 1.9, 1.9);
+            painter->drawPoint(QPointF(left + width - 2.0, 4.4));
+        } else {
+            const qreal top = isSmall ? 5.0 : 3.2;
+            const qreal height = isSmall ? 10.0 : 12.5;
+            painter->drawRoundedRect(QRectF(left, top, width, height), 1.3, 1.3);
+            painter->drawLine(QPointF(left + 1.2, top + 3.0),
+                              QPointF(left + width - 1.2, top + 3.0));
+            if (isTwinCombo) {
+                painter->drawEllipse(QPointF(left + width * 0.34, top + 8.2),
+                                     1.8, 1.8);
+                painter->drawEllipse(QPointF(left + width * 0.68, top + 8.2),
+                                     1.8, 1.8);
+            } else {
+                painter->drawEllipse(QPointF(left + width / 2.0, top + 8.0),
+                                     isSmall ? 2.2 : 2.8,
+                                     isSmall ? 2.2 : 2.8);
+            }
+            painter->drawPoint(QPointF(left + width - 2.0, top + 1.5));
+        }
+
+        if (isReturn) {
+            painter->drawLine(QPointF(0.8, 9.0), QPointF(5.1, 9.0));
+            painter->drawLine(QPointF(3.1, 7.1), QPointF(5.1, 9.0));
+            painter->drawLine(QPointF(3.1, 10.9), QPointF(5.1, 9.0));
+        }
+
+        painter->restore();
+    }
+
+private:
+    int raw;
+};
+
+QIcon outputSelectIcon(int raw)
+{
+    return QIcon(new OutputSelectIconEngine(raw));
+}
+
+class OutputSelectComboBox final : public QComboBox
+{
+public:
+    explicit OutputSelectComboBox(QWidget *parent = nullptr)
+        : QComboBox(parent)
+    {
+        setFrame(false);
+        setAttribute(Qt::WA_MacShowFocusRect, false);
+        setAttribute(Qt::WA_TranslucentBackground, true);
+    }
+
+protected:
+    void enterEvent(QEvent *event) override
+    {
+        QComboBox::enterEvent(event);
+        update();
+    }
+
+    void leaveEvent(QEvent *event) override
+    {
+        QComboBox::leaveEvent(event);
+        update();
+    }
+
+    void paintEvent(QPaintEvent *) override
+    {
+        QPainter painter(this);
+        painter.setRenderHint(QPainter::Antialiasing, true);
+        painter.setRenderHint(QPainter::TextAntialiasing, true);
+
+        const bool active = isEnabled();
+        const QColor textColor(active ? "#d8e1ea" : "#59636e");
+        const QColor borderColor(!active ? "#27313a"
+                                       : underMouse() ? "#4d92bd"
+                                                      : "#33404d");
+
+        const qreal borderY = height() - 1.0;
+        painter.setPen(QPen(borderColor, 1.0));
+        painter.drawLine(QPointF(0.5, borderY),
+                         QPointF(width() - 0.5, borderY));
+
+        const int iconSide = 18;
+        const QRect iconRect(1, (height() - iconSide) / 2,
+                             iconSide, iconSide);
+        const QIcon icon = itemIcon(currentIndex());
+        if (!icon.isNull())
+            icon.paint(&painter, iconRect, Qt::AlignCenter,
+                       active ? QIcon::Normal : QIcon::Disabled);
+
+        QFont valueFont = font();
+        valueFont.setPointSizeF(11.0);
+        valueFont.setWeight(QFont::DemiBold);
+        painter.setFont(valueFont);
+        painter.setPen(textColor);
+        const int textLeft = icon.isNull() ? 1 : 25;
+        const QRect textRect(textLeft, 0,
+                             qMax(0, width() - textLeft - 22), height() - 2);
+        painter.drawText(textRect,
+                         Qt::AlignVCenter | Qt::AlignLeft,
+                         currentText());
+
+        const qreal arrowX = width() - 10.0;
+        const qreal arrowY = height() / 2.0 + 0.5;
+        painter.setPen(QPen(active ? QColor("#919da9")
+                                   : QColor("#59636e"),
+                            1.45, Qt::SolidLine,
+                            Qt::RoundCap, Qt::RoundJoin));
+        QPainterPath chevron;
+        chevron.moveTo(arrowX - 3.5, arrowY - 1.8);
+        chevron.lineTo(arrowX, arrowY + 1.8);
+        chevron.lineTo(arrowX + 3.5, arrowY - 1.8);
+        painter.drawPath(chevron);
+    }
+};
+
 QString oddsArtworkType(QString type)
 {
     if (type.startsWith('(')) {
@@ -426,13 +635,61 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     patchName = new QLabel("NO PATCH DATA");
     patchName->setObjectName("PatchName");
 
-    connectionStatus = new StatusBadge;
+    QWidget *outputSelectHeader = new QWidget;
+    outputSelectHeader->setObjectName("OutputSelectHeader");
+    QVBoxLayout *outputSelectLayout = new QVBoxLayout(outputSelectHeader);
+    outputSelectLayout->setContentsMargins(0, 0, 0, 0);
+    outputSelectLayout->setSpacing(1);
+
+    QLabel *outputSelectCaption = new QLabel("OUTPUT SELECT");
+    outputSelectCaption->setObjectName("OutputSelectCaption");
+    outputSelectCombo = new OutputSelectComboBox;
+    outputSelectCombo->setObjectName("OutputSelectCombo");
+    outputSelectCombo->setFixedWidth(168);
+    outputSelectCombo->setMinimumHeight(27);
+    outputSelectCombo->setIconSize(QSize(18, 18));
+
+    outputSelectCombo->addItem(QString::fromUtf8("—"), -1);
+    if (QStandardItemModel *model =
+            qobject_cast<QStandardItemModel *>(outputSelectCombo->model())) {
+        if (QStandardItem *placeholder = model->item(0))
+            placeholder->setFlags(placeholder->flags() & ~Qt::ItemIsEnabled);
+    }
+
+    const Midi outputMap = MidiTable::Instance()->getMidiMap(
+        "Structure", "00", "00", "11");
+    for (const Midi &item : outputMap.level) {
+        if (item.value == "range")
+            continue;
+        bool rawOk = false;
+        const int raw = item.value.toInt(&rawOk, 16);
+        if (!rawOk)
+            continue;
+        outputSelectCombo->addItem(outputSelectIcon(raw),
+                                   item.name.trimmed().toUpper(), raw);
+    }
+    outputSelectCombo->setCurrentIndex(0);
+    outputSelectCombo->setEnabled(false);
+    outputSelectHeader->setStyleSheet(
+        "QLabel#OutputSelectCaption { color: #78828e; font-size: 9px; "
+        "font-weight: 700; letter-spacing: 1px; }"
+        "QComboBox#OutputSelectCombo QAbstractItemView { color: #d8e1ea; "
+        "background: #11171d; border: 1px solid #35414d; selection-background-color: #244b66; "
+        "selection-color: #ffffff; outline: 0; padding: 4px; }"
+        "QComboBox#OutputSelectCombo QAbstractItemView::item { "
+        "min-height: 26px; padding: 2px 6px; border: 0; }"
+    );
+    outputSelectLayout->addWidget(outputSelectCaption);
+    outputSelectLayout->addWidget(outputSelectCombo);
+    connect(outputSelectCombo,
+            QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &modernFloorBoard::outputSelectChanged);
 
     headerLayout->addLayout(patchNumberLayout);
     headerLayout->addSpacing(14);
     headerLayout->addWidget(patchName);
     headerLayout->addSpacing(24);
-    headerLayout->addWidget(connectionStatus);
+    headerLayout->addWidget(outputSelectHeader);
 
     root->addWidget(header);
 
@@ -1951,11 +2208,137 @@ void modernFloorBoard::setPreampUnavailable()
     updatePreampParameterControls(PreampChannel::B, false);
 }
 
+bool modernFloorBoard::hasSourceValue(const QString &area,
+                                      const QString &hex1,
+                                      const QString &hex2,
+                                      const QString &hex3) const
+{
+    bool offsetOk = false;
+    const int offset = hex3.toInt(&offsetOk, 16);
+    if (!offsetOk)
+        return false;
+
+    SysxIO *sysxIO = SysxIO::Instance();
+    const SysxData source = area == "System"
+        ? sysxIO->getSystemSource()
+        : sysxIO->getFileSource();
+    const int blockIndex = source.address.indexOf(hex1 + hex2);
+    if (blockIndex < 0 || blockIndex >= source.hex.size())
+        return false;
+
+    return source.hex.at(blockIndex).size() > sysxDataOffset + offset;
+}
+
+void modernFloorBoard::refreshOutputSelectHeader()
+{
+    if (!outputSelectCombo)
+        return;
+
+    const QSignalBlocker blocker(outputSelectCombo);
+    outputSelectCombo->setEnabled(false);
+    outputSelectCombo->setCurrentIndex(0);
+
+    SysxIO *sysxIO = SysxIO::Instance();
+    if (!backendIsConnected || !sysxIO->isConnected()
+            || !outputSystemDataReady
+            || !hasSourceValue("System", "00", "00", "4E"))
+        return;
+
+    const int outputMode = sysxIO->getSourceValue(
+        "System", "00", "00", "4E");
+    const bool patchScope = outputMode == 0;
+    const bool systemScope = outputMode == 1;
+    if (!patchScope && !systemScope)
+        return;
+
+    const QString area = patchScope ? "Structure" : "System";
+    const QString address = patchScope ? "11" : "4F";
+    if (!hasSourceValue(area, "00", "00", address))
+        return;
+
+    const int raw = sysxIO->getSourceValue(area, "00", "00", address);
+    const int comboIndex = outputSelectCombo->findData(raw);
+    if (comboIndex < 1)
+        return;
+
+    outputSelectCombo->setCurrentIndex(comboIndex);
+    outputSelectCombo->setToolTip(
+        patchScope ? "Patch Output Select" : "System Output Select");
+    outputSelectCombo->setEnabled(true);
+}
+
+void modernFloorBoard::outputSelectChanged(int index)
+{
+    if (!outputSelectCombo || index < 1 || !outputSelectCombo->isEnabled())
+        return;
+
+    bool rawOk = false;
+    const int raw = outputSelectCombo->itemData(index).toInt(&rawOk);
+    SysxIO *sysxIO = SysxIO::Instance();
+    if (!rawOk || !backendIsConnected || !sysxIO->isConnected()
+            || !hasSourceValue("System", "00", "00", "4E"))
+        return;
+
+    const int outputMode = sysxIO->getSourceValue(
+        "System", "00", "00", "4E");
+    const QString rawHex = QString("%1").arg(raw, 2, 16, QChar('0')).toUpper();
+    if (outputMode == 0
+            && hasSourceValue("Structure", "00", "00", "11")) {
+        sysxIO->setFileSource("Structure", "00", "00", "11", rawHex);
+    } else if (outputMode == 1
+               && hasSourceValue("System", "00", "00", "4F")) {
+        sysxIO->setFileSource("System", "00", "00", "4F", rawHex);
+    } else {
+        refreshOutputSelectHeader();
+    }
+}
+
+void modernFloorBoard::requestOutputSystemData()
+{
+    SysxIO *sysxIO = SysxIO::Instance();
+    if (outputSystemDataRequested || !backendIsConnected
+            || !sysxIO->isConnected())
+        return;
+
+    if (!backendHasPatchData || !sysxIO->deviceReady()) {
+        QTimer::singleShot(200, this,
+                           &modernFloorBoard::requestOutputSystemData);
+        return;
+    }
+
+    outputSystemDataRequested = true;
+    outputSystemDataReady = false;
+    sysxIO->systemDataRequest();
+    QTimer::singleShot(200, this, &modernFloorBoard::pollOutputSystemData);
+}
+
+void modernFloorBoard::pollOutputSystemData()
+{
+    SysxIO *sysxIO = SysxIO::Instance();
+    if (!backendIsConnected || !sysxIO->isConnected())
+        return;
+
+    if (sysxIO->deviceReady()) {
+        if (hasSourceValue("System", "00", "00", "4E")
+                && hasSourceValue("System", "00", "00", "4F")) {
+            outputSystemDataReady = true;
+            refreshOutputSelectHeader();
+        }
+        return;
+    }
+
+    QTimer::singleShot(200, this, &modernFloorBoard::pollOutputSystemData);
+}
+
 void modernFloorBoard::backendConnected()
 {
     backendIsConnected = true;
     backendHasPatchData = false;
-    connectionStatus->setConnected(true);
+    outputSystemDataRequested = false;
+    outputSystemDataReady = false;
+    emit connectionStateChanged(true);
+    refreshOutputSelectHeader();
+    requestOutputSystemData();
     setReverbUnavailable();
     setCompUnavailable();
     setOddsUnavailable();
@@ -1975,7 +2358,10 @@ void modernFloorBoard::backendDisconnected()
 {
     backendIsConnected = false;
     backendHasPatchData = false;
-    connectionStatus->setConnected(false);
+    outputSystemDataRequested = false;
+    outputSystemDataReady = false;
+    emit connectionStateChanged(false);
+    refreshOutputSelectHeader();
     signalChainModel.clear();
     rebuildSignalChainView();
     setReverbUnavailable();
@@ -2015,6 +2401,9 @@ void modernFloorBoard::refreshReverbState()
         patchName->setText(name.isEmpty() ? QString::fromUtf8("—") : name);
         patchListModel.setCurrentPatch(bank, patch, name);
     }
+
+    requestOutputSystemData();
+    refreshOutputSelectHeader();
 
     refreshSignalChainModel();
 

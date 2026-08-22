@@ -32,6 +32,7 @@
 #include <QPrinter>
 
 class modernFloorBoard;
+class statusBarWidget;
 
 //class mainWindow : public QWidget
 class mainWindow : public QMainWindow
@@ -111,6 +112,7 @@ private:
         sysxWriter file;
         floorBoard *legacyFloorBoard;
         modernFloorBoard *modernFloorBoardWidget;
+        statusBarWidget *statusInfo;
 };
 
 #endif // MAINWINDOW_H

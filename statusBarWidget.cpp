@@ -50,6 +50,12 @@ statusBarWidget::statusBarWidget(QWidget *parent)
 	this->dBuglabel->setObjectName("StatusDebug");
 	this->dBuglabel->setText("");
 
+	this->connectionDot = new QLabel(QString::fromUtf8("●"), this);
+	this->connectionDot->setObjectName("ConnectionDot");
+	this->connectionLabel = new QLabel(this);
+	this->connectionLabel->setObjectName("ConnectionLabel");
+	setConnectionState(false);
+
 	QHBoxLayout *widgetLayout = new QHBoxLayout;
 	widgetLayout->setContentsMargins(10, 0, 10, 0);
 	widgetLayout->setSpacing(7);
@@ -57,6 +63,8 @@ statusBarWidget::statusBarWidget(QWidget *parent)
 	widgetLayout->addWidget(this->label, Qt::AlignCenter);
 	widgetLayout->addWidget(this->progressBar, Qt::AlignCenter);
 	widgetLayout->addWidget(this->dBuglabel, 1, Qt::AlignCenter);
+	widgetLayout->addWidget(this->connectionDot, 0, Qt::AlignCenter);
+	widgetLayout->addWidget(this->connectionLabel, 0, Qt::AlignCenter);
 
 	this->setLayout(widgetLayout);
 };
@@ -84,6 +92,18 @@ void statusBarWidget::setStatusSymbol(int value)
 	this->symbol->style()->unpolish(this->symbol);
 	this->symbol->style()->polish(this->symbol);
 	this->symbol->update();
+};
+
+void statusBarWidget::setConnectionState(bool connected)
+{
+	this->connectionLabel->setText(connected ? "GT-10 CONNECTED"
+	                                         : "GT-10 DISCONNECTED");
+	this->connectionDot->setStyleSheet(
+		connected ? "color: #39c66d; font-size: 9px;"
+		          : "color: #56606b; font-size: 9px;");
+	this->connectionLabel->setStyleSheet(
+		connected ? "color: #8d99a5; font-size: 9px; font-weight: 600;"
+		          : "color: #59636e; font-size: 9px; font-weight: 600;");
 };
 
 
