@@ -10,11 +10,15 @@
 #include "modernPedalFxEditor.h"
 #include "modernNoiseSuppressorEditor.h"
 #include "modernSendReturnEditor.h"
+#include "modernSignalChainMutationController.h"
+#include "modernSignalChainSerializer.h"
 #include "parameterBar.h"
 #include "patchSidebar.h"
+#include "signalChainHardwareValidation.h"
 
 #include <QComboBox>
 #include <QButtonGroup>
+#include <QDebug>
 #include <QDial>
 #include <QFrame>
 #include <QGridLayout>
@@ -735,6 +739,14 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
         .arg(ModernTheme::color(ModernTheme::ControlBackground),
              ModernTheme::color(ModernTheme::Border)));
     signalChainScroll->viewport()->installEventFilter(this);
+    signalChainAutoScrollTimer = new QTimer(this);
+    signalChainAutoScrollTimer->setInterval(40);
+    connect(signalChainAutoScrollTimer, &QTimer::timeout, this, [this]() {
+        if (!signalChainScroll || signalChainAutoScrollDirection == 0)
+            return;
+        QScrollBar *bar = signalChainScroll->horizontalScrollBar();
+        bar->setValue(bar->value() + signalChainAutoScrollDirection * 12);
+    });
     QVBoxLayout *chainPanelLayout = new QVBoxLayout(signalChainPanel);
     chainPanelLayout->setContentsMargins(6, 6, 6, 6);
     chainPanelLayout->addWidget(signalChainScroll);
@@ -2527,6 +2539,8 @@ void modernFloorBoard::refreshEq()
 
 void modernFloorBoard::refreshSignalChainModel()
 {
+    if (signalChainTransactionActive)
+        return;
     if (!backendIsConnected || !backendHasPatchData) {
         signalChainModel.clear();
         rebuildSignalChainView();
@@ -2575,9 +2589,14 @@ SignalChainModule *modernFloorBoard::createSignalChainModule(
                          || isPreampA || isPreampB
                          || isPedalFx || isFootVolume
                          || isNs1 || isNs2 || isSendReturn);
+    module->setMovable(entry.movable && !signalChainTransactionActive,
+                       entry.moduleId);
+    module->setPending(entry.moduleId == pendingSignalChainModuleId);
     module->setProperty("chainPosition", entry.originalPosition);
     module->setProperty("rawValue", entry.rawValue);
     module->setProperty("signalPath", entry.path);
+    module->setProperty("moduleId", entry.moduleId);
+    module->setProperty("chainRegion", int(entry.region));
     signalChainModules.append(module);
 
     if (isReverb) {
@@ -2688,8 +2707,17 @@ void modernFloorBoard::rebuildSignalChainView()
     signalParallelPaths = nullptr;
     signalPathALabel = nullptr;
     signalPathBLabel = nullptr;
+    signalChainContent = nullptr;
 
-    QWidget *content = new SignalChainContent;
+    SignalChainContent *content = new SignalChainContent;
+    signalChainContent = content;
+    content->setDragHandler([this](int moduleId, const QPoint &position,
+                                   bool commit) {
+        return handleSignalChainDrag(moduleId, position, commit);
+    });
+    content->setDragLeaveHandler([this]() {
+        clearSignalChainDragFeedback();
+    });
     content->setStyleSheet("QWidget#SignalChainContent{background:transparent;}");
     signalFlowLayout = new QHBoxLayout(content);
     signalFlowLayout->setContentsMargins(4, 0, 4, 0);
@@ -2712,9 +2740,12 @@ void modernFloorBoard::rebuildSignalChainView()
         return;
     }
 
-    for (const modernSignalChainModel::Entry &entry : signalChainModel.commonPrefix())
-        signalFlowLayout->addWidget(createSignalChainModule(entry),
-                                    0, Qt::AlignVCenter);
+    int regionIndex = 0;
+    for (const modernSignalChainModel::Entry &entry : signalChainModel.commonPrefix()) {
+        SignalChainModule *module = createSignalChainModule(entry);
+        module->setProperty("regionIndex", regionIndex++);
+        signalFlowLayout->addWidget(module, 0, Qt::AlignVCenter);
+    }
 
     splitJunction = new SignalJunction(SignalJunction::Split);
     splitJunction->setSelected(selectedEditor == "CHANNEL ROUTING");
@@ -2748,9 +2779,12 @@ void modernFloorBoard::rebuildSignalChainView()
     signalPathsLayout->addWidget(signalPathBLabel, 1, 0);
 
     int column = 1;
-    for (const modernSignalChainModel::Entry &entry : signalChainModel.pathA())
-        signalPathsLayout->addWidget(createSignalChainModule(entry), 0, column++,
-                                     Qt::AlignCenter);
+    regionIndex = 0;
+    for (const modernSignalChainModel::Entry &entry : signalChainModel.pathA()) {
+        SignalChainModule *module = createSignalChainModule(entry);
+        module->setProperty("regionIndex", regionIndex++);
+        signalPathsLayout->addWidget(module, 0, column++, Qt::AlignCenter);
+    }
     if (column == 1) {
         QLabel *empty = new QLabel("EMPTY PATH");
         empty->setStyleSheet(QString(
@@ -2760,9 +2794,12 @@ void modernFloorBoard::rebuildSignalChainView()
     }
 
     column = 1;
-    for (const modernSignalChainModel::Entry &entry : signalChainModel.pathB())
-        signalPathsLayout->addWidget(createSignalChainModule(entry), 1, column++,
-                                     Qt::AlignCenter);
+    regionIndex = 0;
+    for (const modernSignalChainModel::Entry &entry : signalChainModel.pathB()) {
+        SignalChainModule *module = createSignalChainModule(entry);
+        module->setProperty("regionIndex", regionIndex++);
+        signalPathsLayout->addWidget(module, 1, column++, Qt::AlignCenter);
+    }
     if (column == 1) {
         QLabel *empty = new QLabel("EMPTY PATH");
         empty->setStyleSheet(QString(
@@ -2775,15 +2812,310 @@ void modernFloorBoard::rebuildSignalChainView()
     signalChainJunctions.append(merge);
     signalFlowLayout->addWidget(merge, 0, Qt::AlignVCenter);
 
-    for (const modernSignalChainModel::Entry &entry : signalChainModel.commonSuffix())
-        signalFlowLayout->addWidget(createSignalChainModule(entry),
-                                    0, Qt::AlignVCenter);
+    regionIndex = 0;
+    for (const modernSignalChainModel::Entry &entry : signalChainModel.commonSuffix()) {
+        SignalChainModule *module = createSignalChainModule(entry);
+        module->setProperty("regionIndex", regionIndex++);
+        signalFlowLayout->addWidget(module, 0, Qt::AlignVCenter);
+    }
     SignalConnector *outputConnector = new SignalConnector(SignalConnector::Output);
     signalChainConnectors.append(outputConnector);
     signalFlowLayout->addWidget(outputConnector, 0, Qt::AlignVCenter);
 
     signalChainScroll->setWidget(content);
     QTimer::singleShot(0, this, [this]() { applyResponsiveSignalChainLayout(); });
+}
+
+modernSignalChainModel::ChainDestination
+modernFloorBoard::resolveSignalChainDestination(
+    const QPoint &contentPosition) const
+{
+    using Model = modernSignalChainModel;
+    Model::ChainDestination destination;
+    if (!signalChainContent || !signalChainModel.isValid()
+        || !signalChainContent->rect().contains(contentPosition))
+        return destination;
+
+    for (SignalChainModule *module : signalChainModules) {
+        const QRect moduleRect(module->mapTo(signalChainContent, QPoint(0, 0)),
+                               module->size());
+        if (!moduleRect.contains(contentPosition))
+            continue;
+        destination.region = static_cast<Model::ChainRegion>(
+            module->property("chainRegion").toInt());
+        destination.index = module->property("regionIndex").toInt()
+            + (contentPosition.x() >= moduleRect.center().x() ? 1 : 0);
+        destination.valid = true;
+        return destination;
+    }
+
+    const int splitX = signalChainJunctions.isEmpty() ? 0
+        : signalChainJunctions.first()->mapTo(
+              signalChainContent, signalChainJunctions.first()->rect().center()).x();
+    const int mergeX = signalChainJunctions.size() < 2 ? signalChainContent->width()
+        : signalChainJunctions.at(1)->mapTo(
+              signalChainContent, signalChainJunctions.at(1)->rect().center()).x();
+
+    if (contentPosition.x() < splitX) {
+        destination.region = Model::ChainRegion::CommonPrefix;
+    } else if (contentPosition.x() > mergeX) {
+        destination.region = Model::ChainRegion::CommonSuffix;
+    } else {
+        int centerY = signalChainContent->height() / 2;
+        if (signalParallelPaths) {
+            const QRect paths(signalParallelPaths->mapTo(signalChainContent,
+                                                           QPoint(0, 0)),
+                              signalParallelPaths->size());
+            centerY = paths.center().y();
+        }
+        destination.region = contentPosition.y() < centerY
+            ? Model::ChainRegion::PathA : Model::ChainRegion::PathB;
+    }
+
+    QList<SignalChainModule *> regionModules;
+    for (SignalChainModule *module : signalChainModules) {
+        if (module->property("chainRegion").toInt() == int(destination.region))
+            regionModules.append(module);
+    }
+    std::sort(regionModules.begin(), regionModules.end(),
+              [this](SignalChainModule *left, SignalChainModule *right) {
+        return left->mapTo(signalChainContent, left->rect().center()).x()
+            < right->mapTo(signalChainContent, right->rect().center()).x();
+    });
+    destination.index = 0;
+    for (SignalChainModule *module : regionModules) {
+        const int centerX = module->mapTo(
+            signalChainContent, module->rect().center()).x();
+        if (contentPosition.x() >= centerX)
+            ++destination.index;
+    }
+    destination.valid = true;
+    return destination;
+}
+
+bool modernFloorBoard::handleSignalChainDrag(
+    int moduleId, const QPoint &contentPosition, bool commit)
+{
+    using Model = modernSignalChainModel;
+    if (signalChainTransactionActive || !Model::isMovableModule(moduleId)
+        || !signalChainContent)
+        return false;
+
+    const Model::ChainDestination destination =
+        resolveSignalChainDestination(contentPosition);
+    if (!destination.valid)
+        return false;
+
+    Model previewModel;
+    QString previewError;
+    if (!previewModel.replaceSnapshot(signalChainModel.snapshot(), &previewError))
+        return false;
+    modernSignalChainMutationController previewController(&previewModel);
+    const ChainMoveResult preview = previewController.moveModule(
+        moduleId, destination.region, destination.index);
+    QList<QString> beforeBytes;
+    modernSignalChainSerializer::serialize(preview.before, &beforeBytes, nullptr);
+    const bool accepted = preview.accepted
+        && preview.serializedBytes != beforeBytes;
+
+    QRect regionRect;
+    if (destination.region == Model::ChainRegion::PathA
+        || destination.region == Model::ChainRegion::PathB) {
+        regionRect = signalParallelPaths
+            ? QRect(signalParallelPaths->mapTo(signalChainContent, QPoint(0, 0)),
+                    signalParallelPaths->size()) : signalChainContent->rect();
+        if (destination.region == Model::ChainRegion::PathA)
+            regionRect.setBottom(regionRect.center().y());
+        else
+            regionRect.setTop(regionRect.center().y() + 1);
+    } else {
+        const int splitX = signalChainJunctions.isEmpty() ? 0
+            : signalChainJunctions.first()->mapTo(
+                  signalChainContent,
+                  signalChainJunctions.first()->rect().center()).x();
+        const int mergeX = signalChainJunctions.size() < 2
+            ? signalChainContent->width()
+            : signalChainJunctions.at(1)->mapTo(
+                  signalChainContent,
+                  signalChainJunctions.at(1)->rect().center()).x();
+        regionRect = destination.region == Model::ChainRegion::CommonPrefix
+            ? QRect(0, 0, splitX, signalChainContent->height())
+            : QRect(mergeX, 0, signalChainContent->width() - mergeX,
+                    signalChainContent->height());
+    }
+
+    QList<SignalChainModule *> regionModules;
+    for (SignalChainModule *module : signalChainModules) {
+        if (module->property("chainRegion").toInt() == int(destination.region))
+            regionModules.append(module);
+    }
+    std::sort(regionModules.begin(), regionModules.end(),
+              [this](SignalChainModule *left, SignalChainModule *right) {
+        return left->mapTo(signalChainContent, left->rect().center()).x()
+            < right->mapTo(signalChainContent, right->rect().center()).x();
+    });
+    int lineX = regionRect.center().x();
+    if (!regionModules.isEmpty()) {
+        if (destination.index <= 0) {
+            lineX = regionModules.first()->mapTo(signalChainContent,
+                                                  QPoint(0, 0)).x() - 3;
+        } else if (destination.index >= regionModules.size()) {
+            SignalChainModule *last = regionModules.last();
+            lineX = last->mapTo(signalChainContent,
+                                QPoint(last->width(), 0)).x() + 3;
+        } else {
+            SignalChainModule *left = regionModules.at(destination.index - 1);
+            SignalChainModule *right = regionModules.at(destination.index);
+            const int leftEdge = left->mapTo(signalChainContent,
+                                              QPoint(left->width(), 0)).x();
+            const int rightEdge = right->mapTo(signalChainContent,
+                                                QPoint(0, 0)).x();
+            lineX = (leftEdge + rightEdge) / 2;
+        }
+    }
+    const int lineHalfHeight = destination.region == Model::ChainRegion::PathA
+        || destination.region == Model::ChainRegion::PathB ? 33 : 39;
+    const int lineCenterY = regionRect.center().y();
+    signalChainContent->setDragFeedback(
+        regionRect, QLineF(lineX, lineCenterY - lineHalfHeight,
+                           lineX, lineCenterY + lineHalfHeight), accepted);
+
+    const QPoint viewportPosition = signalChainContent->mapTo(
+        signalChainScroll->viewport(), contentPosition);
+    signalChainAutoScrollDirection = viewportPosition.x() < 36 ? -1
+        : viewportPosition.x() > signalChainScroll->viewport()->width() - 36
+            ? 1 : 0;
+    if (signalChainAutoScrollDirection != 0)
+        signalChainAutoScrollTimer->start();
+    else
+        signalChainAutoScrollTimer->stop();
+
+    if (!commit || !accepted)
+        return accepted;
+
+    // Defer mutation/rebuild until QDropEvent has returned. Rebuilding here
+    // would delete the SignalChainContent that is still dispatching the drop.
+    QTimer::singleShot(0, this, [this, moduleId, destination]() {
+        if (signalChainTransactionActive || !signalChainModel.isValid())
+            return;
+        modernSignalChainMutationController controller(&signalChainModel);
+        const ChainMoveResult move = controller.moveModule(
+            moduleId, destination.region, destination.index);
+        if (!move.accepted)
+            return;
+        QList<QString> actualBefore;
+        modernSignalChainSerializer::serialize(move.before, &actualBefore,
+                                               nullptr);
+        if (move.serializedBytes == actualBefore) {
+            signalChainModel.replaceSnapshot(move.before, nullptr);
+            return;
+        }
+        signalChainTransactionActive = true;
+        pendingSignalChainModuleId = moduleId;
+        rebuildSignalChainView();
+        QTimer::singleShot(0, this, [this, moduleId, move]() {
+            performSignalChainTransaction(moduleId, move.before, move.after,
+                                          move.serializedBytes);
+        });
+    });
+    return true;
+}
+
+void modernFloorBoard::clearSignalChainDragFeedback()
+{
+    signalChainAutoScrollDirection = 0;
+    if (signalChainAutoScrollTimer)
+        signalChainAutoScrollTimer->stop();
+    if (signalChainContent)
+        signalChainContent->clearDragFeedback();
+}
+
+void modernFloorBoard::syncSignalChainCache(const QList<QString> &bytes)
+{
+    if (bytes.size() != 18)
+        return;
+    SysxIO *io = SysxIO::Instance();
+    SysxData source = io->getFileSource();
+    const int addressIndex = source.address.indexOf("0B00");
+    if (addressIndex < 0 || addressIndex >= source.hex.size())
+        return;
+    QList<QString> block = source.hex.at(addressIndex);
+    if (block.size() < sysxDataOffset + bytes.size())
+        return;
+    for (int i = 0; i < bytes.size(); ++i)
+        block[sysxDataOffset + i] = bytes.at(i);
+    source.hex[addressIndex] = block;
+    io->setFileSource("Structure", source);
+}
+
+void modernFloorBoard::performSignalChainTransaction(
+    int moduleId, const modernSignalChainModel::ChainSnapshot &before,
+    const modernSignalChainModel::ChainSnapshot &after,
+    const QList<QString> &serializedBytes)
+{
+    QList<QString> beforeBytes;
+    modernSignalChainSerializer::serialize(before, &beforeBytes, nullptr);
+    const QString currentPatchIdentity = QString("%1:%2")
+        .arg(SysxIO::Instance()->getLoadedBank())
+        .arg(SysxIO::Instance()->getLoadedPatch());
+    if (before.patchIdentity.contains(':')
+        && currentPatchIdentity != before.patchIdentity) {
+        signalChainTransactionActive = false;
+        pendingSignalChainModuleId = -1;
+        qWarning().noquote()
+            << "Signal Chain move cancelled before write: patch changed from"
+            << before.patchIdentity << "to" << currentPatchIdentity;
+        refreshSignalChainModel();
+        return;
+    }
+    SignalChainHardwareValidation hardware;
+    ChainLiveTransactionResult result;
+    QString error;
+    const bool confirmed = hardware.executeLiveTransaction(
+        beforeBytes, serializedBytes, &result, &error);
+
+    qInfo().noquote() << "SIGNAL CHAIN TRANSACTION module=" << moduleId;
+    qInfo().noquote() << "BEFORE=" << beforeBytes.join(" ");
+    qInfo().noquote() << "REQUESTED=" << serializedBytes.join(" ");
+    qInfo().noquote() << "READBACK=" << result.readback.join(" ");
+    qInfo().noquote() << "MATCH=" << (result.match ? "true" : "false");
+    if (result.rollbackAttempted) {
+        qInfo().noquote() << "ROLLBACK READBACK="
+                          << result.rollbackReadback.join(" ");
+        qInfo().noquote() << "ROLLBACK MATCH="
+                          << (result.rollbackMatch ? "true" : "false");
+    }
+
+    signalChainTransactionActive = false;
+    pendingSignalChainModuleId = -1;
+    if (confirmed) {
+        syncSignalChainCache(serializedBytes);
+        modernSignalChainModel::ChainSnapshot confirmedSnapshot = after;
+        confirmedSnapshot.patchIdentity = before.patchIdentity;
+        signalChainModel.replaceSnapshot(confirmedSnapshot, nullptr);
+    } else if (result.patchChanged) {
+        refreshSignalChainModel();
+    } else if (result.rollbackMatch || result.readback.isEmpty()) {
+        signalChainModel.replaceSnapshot(before, nullptr);
+        if (result.rollbackMatch)
+            syncSignalChainCache(beforeBytes);
+    } else if (result.readback.size() == 18) {
+        modernSignalChainModel::ChainSnapshot physical;
+        if (modernSignalChainModel::parseRawBytes(
+                result.readback, &physical, nullptr, after.revision + 1,
+                result.patchIdentity, before.channelMode,
+                before.channelSelect)) {
+            signalChainModel.replaceSnapshot(physical, nullptr);
+            syncSignalChainCache(result.readback);
+        } else {
+            signalChainModel.replaceSnapshot(before, nullptr);
+        }
+    } else {
+        signalChainModel.replaceSnapshot(before, nullptr);
+    }
+    if (!confirmed)
+        qWarning().noquote() << "Signal Chain move not confirmed:" << error;
+    rebuildSignalChainView();
 }
 
 void modernFloorBoard::applyResponsiveSignalChainLayout()

@@ -113,12 +113,35 @@ QMAKE_CXXFLAGS += -include $$PWD/qt4compat.h
 
 # GT-10 FxFloorBoard Modern UI
 SOURCES += modernFloorBoard.cpp modernTheme.cpp modernWidgets.cpp modernSignalChainModel.cpp \
+           modernSignalChainMutationController.cpp modernSignalChainSerializer.cpp \
+           signalChainHardwareValidation.cpp \
            effectArtworkWidget.cpp effectModelBrowser.cpp parameterBar.cpp \
            modernPatchListModel.cpp patchSidebar.cpp modernEqGraph.cpp modernFxEditor.cpp \
            modernPedalFxEditor.cpp modernNoiseSuppressorEditor.cpp \
            modernSendReturnEditor.cpp
 HEADERS += modernFloorBoard.h modernTheme.h modernWidgets.h modernSignalChainModel.h \
+           modernSignalChainMutationController.h modernSignalChainSerializer.h \
+           signalChainHardwareValidation.h \
            effectArtworkWidget.h effectModelBrowser.h parameterBar.h \
            modernPatchListModel.h patchSidebar.h modernEqGraph.h modernFxEditor.h \
            modernPedalFxEditor.h modernNoiseSuppressorEditor.h \
            modernSendReturnEditor.h
+
+# Explicit local harness. It replaces the application entry point only when
+# qmake is invoked with CONFIG+=signalchain_domain_tests.
+contains(CONFIG, signalchain_domain_tests) {
+    SOURCES -= ./main.cpp
+    SOURCES += signalChainDomainTests.cpp
+    TARGET = signalChainDomainTests
+    DESTDIR = $$OUT_PWD
+}
+
+# Explicit hardware-validation harness. This target is never part of a normal
+# release build and must be requested deliberately with
+# CONFIG+=signalchain_hardware_tests.
+contains(CONFIG, signalchain_hardware_tests) {
+    SOURCES -= ./main.cpp
+    SOURCES += signalChainHardwareTests.cpp
+    TARGET = signalChainHardwareTests
+    DESTDIR = $$OUT_PWD
+}

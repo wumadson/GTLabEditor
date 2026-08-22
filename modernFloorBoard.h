@@ -13,6 +13,7 @@ class QDial;
 class QScrollArea;
 class QStackedWidget;
 class SignalChainPanel;
+class SignalChainContent;
 class SignalChainModule;
 class SignalJunction;
 class SignalConnector;
@@ -21,6 +22,7 @@ class QHBoxLayout;
 class QResizeEvent;
 class QEvent;
 class QObject;
+class QTimer;
 class EffectModule;
 class EffectEditorPanel;
 class EffectArtworkWidget;
@@ -232,6 +234,17 @@ private:
     void rebuildSignalChainView();
     void applyResponsiveSignalChainLayout();
     SignalChainModule *createSignalChainModule(const modernSignalChainModel::Entry &entry);
+    modernSignalChainModel::ChainDestination resolveSignalChainDestination(
+        const QPoint &contentPosition) const;
+    bool handleSignalChainDrag(int moduleId, const QPoint &contentPosition,
+                               bool commit);
+    void clearSignalChainDragFeedback();
+    void performSignalChainTransaction(
+        int moduleId,
+        const modernSignalChainModel::ChainSnapshot &before,
+        const modernSignalChainModel::ChainSnapshot &after,
+        const QList<QString> &serializedBytes);
+    void syncSignalChainCache(const QList<QString> &bytes);
 
 protected:
     void resizeEvent(QResizeEvent *event) override;
@@ -334,6 +347,7 @@ private:
     ModernPatchListModel patchListModel;
     SignalChainPanel *signalChainPanel = nullptr;
     QScrollArea *signalChainScroll = nullptr;
+    SignalChainContent *signalChainContent = nullptr;
     QHBoxLayout *signalFlowLayout = nullptr;
     QGridLayout *signalPathsLayout = nullptr;
     QWidget *signalParallelPaths = nullptr;
@@ -342,6 +356,10 @@ private:
     QList<SignalConnector *> signalChainConnectors;
     QLabel *signalPathALabel = nullptr;
     QLabel *signalPathBLabel = nullptr;
+    QTimer *signalChainAutoScrollTimer = nullptr;
+    int signalChainAutoScrollDirection = 0;
+    bool signalChainTransactionActive = false;
+    int pendingSignalChainModuleId = -1;
 };
 
 #endif

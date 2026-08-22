@@ -3,6 +3,7 @@
 #include "MidiTable.h"
 #include "SysxIO.h"
 #include "globalVariables.h"
+#include "modernSignalChainSerializer.h"
 
 #include <QDebug>
 #include <QStringList>
@@ -55,10 +56,12 @@ void modernSignalChainModel::clear()
     pathAEntries.clear();
     pathBEntries.clear();
     suffixEntries.clear();
+    confirmedSnapshot = ChainSnapshot();
 }
 
 bool modernSignalChainModel::refreshFromLegacyBackend()
 {
+    const quint64 nextRevision = confirmedSnapshot.revision + 1;
     clear();
 
     SysxIO *sysxIO = SysxIO::Instance();
@@ -131,6 +134,7 @@ bool modernSignalChainModel::refreshFromLegacyBackend()
             "Structure", "0B", "00", "00", raw);
         Entry entry;
         entry.rawValue = raw;
+        entry.originalRawValue = raw;
         entry.moduleId = moduleId;
         entry.name = mapping.name;
         entry.originalPosition = position;
@@ -171,22 +175,207 @@ bool modernSignalChainModel::refreshFromLegacyBackend()
         Entry &entry = chainEntries[position];
         if (position < splitPosition) {
             entry.path = Common;
+            entry.region = ChainRegion::CommonPrefix;
             prefixEntries.append(entry);
         } else if (position > splitPosition && position < mergePosition) {
             entry.path = entry.rawValue.toInt(nullptr, 16) >= 0x40 ? PathB : PathA;
-            if (entry.path == PathB) pathBEntries.append(entry);
-            else pathAEntries.append(entry);
+            if (entry.path == PathB) {
+                entry.region = ChainRegion::PathB;
+                pathBEntries.append(entry);
+            } else {
+                entry.region = ChainRegion::PathA;
+                pathAEntries.append(entry);
+            }
         } else if (position > mergePosition) {
             entry.path = Common;
+            entry.region = ChainRegion::CommonSuffix;
             suffixEntries.append(entry);
         } else {
             entry.path = Common;
+            entry.region = entry.isSplit ? ChainRegion::CommonPrefix
+                                         : ChainRegion::CommonSuffix;
         }
     }
 
+    ChainSnapshot parsed;
+    parsed.commonPrefix = prefixEntries;
+    parsed.pathA = pathAEntries;
+    parsed.pathB = pathBEntries;
+    parsed.commonSuffix = suffixEntries;
+    parsed.split = chainEntries.at(splitPosition);
+    parsed.merge = chainEntries.at(mergePosition);
+    parsed.split.region = ChainRegion::CommonPrefix;
+    parsed.merge.region = ChainRegion::CommonSuffix;
+    parsed.revision = nextRevision;
+    parsed.patchIdentity = QString("%1:%2")
+        .arg(sysxIO->getLoadedBank()).arg(sysxIO->getLoadedPatch());
+    parsed.channelMode = mode;
+    parsed.channelSelect = selectedChannel;
+
+    QString validationError;
+    if (!modernSignalChainSerializer::validate(parsed, &validationError)) {
+        error = validationError;
+        chainEntries.clear();
+        prefixEntries.clear();
+        pathAEntries.clear();
+        pathBEntries.clear();
+        suffixEntries.clear();
+        return false;
+    }
+    applySnapshot(parsed);
+    return true;
+}
+
+bool modernSignalChainModel::parseRawBytes(
+    const QList<QString> &rawBytes,
+    ChainSnapshot *result,
+    QString *parseError,
+    quint64 revision,
+    const QString &patchIdentity,
+    ChannelMode parsedMode,
+    int parsedChannelSelect)
+{
+    const auto fail = [parseError](const QString &message) {
+        if (parseError)
+            *parseError = message;
+        return false;
+    };
+    if (!result)
+        return fail("Snapshot output is null");
+    if (rawBytes.size() != chainLength)
+        return fail(QString("Signal chain requires exactly 18 bytes; received %1")
+                    .arg(rawBytes.size()));
+
+    QList<Entry> ordered;
+    int splitPosition = -1;
+    int mergePosition = -1;
+    for (int position = 0; position < rawBytes.size(); ++position) {
+        const QString raw = rawBytes.at(position).trimmed().toUpper();
+        bool ok = false;
+        const int rawByte = raw.toInt(&ok, 16);
+        if (!ok || raw.size() != 2)
+            return fail(QString("Chain byte %1 is invalid: %2")
+                        .arg(position).arg(raw));
+        const int moduleId = rawByte >= 0x40 && rawByte <= 0x4F
+            ? rawByte - 0x40 : rawByte;
+        if (moduleId < 0 || moduleId > 0x11)
+            return fail(QString("Chain byte %1 has unsupported module value %2")
+                        .arg(position).arg(raw));
+
+        Entry entry;
+        entry.rawValue = raw;
+        entry.originalRawValue = raw;
+        entry.moduleId = moduleId;
+        entry.name = ::displayName(moduleId, QString());
+        entry.originalPosition = position;
+        entry.movable = isMovableModule(moduleId);
+        entry.isSplit = moduleId == 0x10;
+        entry.isMerge = moduleId == 0x11;
+        entry.isPreampA = moduleId == 0x02;
+        entry.isPreampB = moduleId == 0x03;
+        if (entry.isSplit) {
+            if (splitPosition >= 0)
+                return fail("Signal chain contains more than one SPLIT");
+            splitPosition = position;
+        }
+        if (entry.isMerge) {
+            if (mergePosition >= 0)
+                return fail("Signal chain contains more than one MERGE");
+            mergePosition = position;
+        }
+        ordered.append(entry);
+    }
+
+    if (splitPosition < 0 || mergePosition < 0)
+        return fail("Signal chain requires exactly one SPLIT and one MERGE");
+    if (splitPosition >= mergePosition)
+        return fail(QString("SPLIT must precede MERGE (split=%1, merge=%2)")
+                    .arg(splitPosition).arg(mergePosition));
+
+    ChainSnapshot candidate;
+    candidate.revision = revision;
+    candidate.patchIdentity = patchIdentity;
+    candidate.channelMode = parsedMode;
+    candidate.channelSelect = parsedChannelSelect;
+    for (int position = 0; position < ordered.size(); ++position) {
+        Entry entry = ordered.at(position);
+        if (position < splitPosition) {
+            entry.path = Common;
+            entry.region = ChainRegion::CommonPrefix;
+            candidate.commonPrefix.append(entry);
+        } else if (position == splitPosition) {
+            entry.path = Common;
+            entry.region = ChainRegion::CommonPrefix;
+            candidate.split = entry;
+        } else if (position < mergePosition) {
+            if (entry.rawValue.toInt(nullptr, 16) >= 0x40) {
+                entry.path = PathB;
+                entry.region = ChainRegion::PathB;
+                candidate.pathB.append(entry);
+            } else {
+                entry.path = PathA;
+                entry.region = ChainRegion::PathA;
+                candidate.pathA.append(entry);
+            }
+        } else if (position == mergePosition) {
+            entry.path = Common;
+            entry.region = ChainRegion::CommonSuffix;
+            candidate.merge = entry;
+        } else {
+            entry.path = Common;
+            entry.region = ChainRegion::CommonSuffix;
+            candidate.commonSuffix.append(entry);
+        }
+    }
+
+    QString validationError;
+    if (!modernSignalChainSerializer::validate(candidate, &validationError))
+        return fail(validationError);
+    *result = candidate;
+    if (parseError)
+        parseError->clear();
+    return true;
+}
+
+bool modernSignalChainModel::replaceSnapshot(const ChainSnapshot &snapshot,
+                                             QString *replaceError)
+{
+    QString validationError;
+    if (!modernSignalChainSerializer::validate(snapshot, &validationError)) {
+        if (replaceError)
+            *replaceError = validationError;
+        return false;
+    }
+    applySnapshot(snapshot);
+    if (replaceError)
+        replaceError->clear();
+    return true;
+}
+
+void modernSignalChainModel::applySnapshot(const ChainSnapshot &snapshot)
+{
+    confirmedSnapshot = snapshot;
+    prefixEntries = snapshot.commonPrefix;
+    pathAEntries = snapshot.pathA;
+    pathBEntries = snapshot.pathB;
+    suffixEntries = snapshot.commonSuffix;
+    mode = snapshot.channelMode;
+    selectedChannel = snapshot.channelSelect;
+    chainEntries = flattenedEntries(snapshot);
     valid = true;
     error.clear();
-    return true;
+}
+
+QList<modernSignalChainModel::Entry> modernSignalChainModel::flattenedEntries(
+    const ChainSnapshot &snapshot)
+{
+    QList<Entry> result = snapshot.commonPrefix;
+    result.append(snapshot.split);
+    result.append(snapshot.pathA);
+    result.append(snapshot.pathB);
+    result.append(snapshot.merge);
+    result.append(snapshot.commonSuffix);
+    return result;
 }
 
 void modernSignalChainModel::logInterpretedChain() const
@@ -223,11 +412,19 @@ bool modernSignalChainModel::isValid() const { return valid; }
 QString modernSignalChainModel::errorString() const { return error; }
 modernSignalChainModel::ChannelMode modernSignalChainModel::channelMode() const { return mode; }
 int modernSignalChainModel::channelSelect() const { return selectedChannel; }
+modernSignalChainModel::ChainSnapshot modernSignalChainModel::snapshot() const
+{ return confirmedSnapshot; }
 QList<modernSignalChainModel::Entry> modernSignalChainModel::entries() const { return chainEntries; }
 QList<modernSignalChainModel::Entry> modernSignalChainModel::commonPrefix() const { return prefixEntries; }
 QList<modernSignalChainModel::Entry> modernSignalChainModel::pathA() const { return pathAEntries; }
 QList<modernSignalChainModel::Entry> modernSignalChainModel::pathB() const { return pathBEntries; }
 QList<modernSignalChainModel::Entry> modernSignalChainModel::commonSuffix() const { return suffixEntries; }
+
+bool modernSignalChainModel::isMovableModule(int moduleId)
+{
+    return moduleId >= 0 && moduleId <= 0x0F
+        && moduleId != 0x02 && moduleId != 0x03;
+}
 
 QString modernSignalChainModel::channelModeName(ChannelMode channelMode)
 {

@@ -1,7 +1,14 @@
 #include "modernWidgets.h"
 #include "modernTheme.h"
 
+#include <QApplication>
+#include <QDrag>
+#include <QDragEnterEvent>
+#include <QDragMoveEvent>
+#include <QDropEvent>
 #include <QHBoxLayout>
+#include <QMimeData>
+#include <QMouseEvent>
 #include <QComboBox>
 #include <QGridLayout>
 #include <QPainter>
@@ -670,6 +677,31 @@ SignalChainContent::SignalChainContent(QWidget *parent)
     : QWidget(parent)
 {
     setObjectName("SignalChainContent");
+    setAcceptDrops(true);
+}
+
+void SignalChainContent::setDragHandler(const DragHandler &handler)
+{ chainDragHandler = handler; }
+
+void SignalChainContent::setDragLeaveHandler(const DragLeaveHandler &handler)
+{ chainDragLeaveHandler = handler; }
+
+void SignalChainContent::setDragFeedback(const QRect &regionRect,
+                                         const QLineF &insertionLine,
+                                         bool valid)
+{
+    dragRegionRect = regionRect;
+    dragInsertionLine = insertionLine;
+    dragFeedbackActive = true;
+    dragFeedbackValid = valid;
+    update();
+}
+
+void SignalChainContent::clearDragFeedback()
+{
+    dragFeedbackActive = false;
+    dragFeedbackValid = false;
+    update();
 }
 
 void SignalChainContent::paintEvent(QPaintEvent *)
@@ -677,6 +709,77 @@ void SignalChainContent::paintEvent(QPaintEvent *)
     QPainter p(this);p.setRenderHint(QPainter::Antialiasing);const qreal y=height()/2.0;
     p.setPen(QPen(QColor(0,0,0,175),7,Qt::SolidLine,Qt::RoundCap));p.drawLine(QPointF(24,y+3),QPointF(width()-24,y+3));
     QLinearGradient cable(18,y,width()-18,y);cable.setColorAt(0,QColor("#394550"));cable.setColorAt(.5,QColor("#9AA5AE"));cable.setColorAt(1,QColor("#394550"));p.setPen(QPen(QBrush(cable),3,Qt::SolidLine,Qt::RoundCap));p.drawLine(QPointF(24,y),QPointF(width()-24,y));
+    if (!dragFeedbackActive)
+        return;
+    QColor regionColor(ModernTheme::color(ModernTheme::AccentCyan));
+    regionColor.setAlpha(dragFeedbackValid ? 22 : 8);
+    p.setPen(QPen(QColor(regionColor.red(), regionColor.green(),
+                         regionColor.blue(), dragFeedbackValid ? 80 : 35), 1));
+    p.setBrush(regionColor);
+    p.drawRoundedRect(dragRegionRect.adjusted(1, 1, -1, -1), 5, 5);
+    if (dragFeedbackValid) {
+        QColor insertion(ModernTheme::color(ModernTheme::AccentCyan));
+        insertion.setAlpha(235);
+        p.setPen(QPen(insertion, 2.0, Qt::SolidLine, Qt::RoundCap));
+        p.drawLine(dragInsertionLine);
+        p.setPen(Qt::NoPen);
+        p.setBrush(insertion);
+        p.drawEllipse(dragInsertionLine.pointAt(.5), 3.2, 3.2);
+    }
+}
+
+namespace {
+const char *chainModuleMime = "application/x-gtlab-signal-chain-module";
+
+int draggedModuleId(const QMimeData *mime)
+{
+    if (!mime || !mime->hasFormat(chainModuleMime))
+        return -1;
+    bool ok = false;
+    const int id = QString::fromLatin1(mime->data(chainModuleMime)).toInt(&ok);
+    return ok ? id : -1;
+}
+}
+
+void SignalChainContent::dragEnterEvent(QDragEnterEvent *event)
+{
+    if (draggedModuleId(event->mimeData()) >= 0)
+        event->acceptProposedAction();
+    else
+        event->ignore();
+}
+
+void SignalChainContent::dragMoveEvent(QDragMoveEvent *event)
+{
+    const int moduleId = draggedModuleId(event->mimeData());
+    const bool accepted = moduleId >= 0 && chainDragHandler
+        && chainDragHandler(moduleId, event->pos(), false);
+    if (accepted)
+        event->acceptProposedAction();
+    else
+        event->ignore();
+}
+
+void SignalChainContent::dragLeaveEvent(QDragLeaveEvent *event)
+{
+    clearDragFeedback();
+    if (chainDragLeaveHandler)
+        chainDragLeaveHandler();
+    event->accept();
+}
+
+void SignalChainContent::dropEvent(QDropEvent *event)
+{
+    const int moduleId = draggedModuleId(event->mimeData());
+    const bool accepted = moduleId >= 0 && chainDragHandler
+        && chainDragHandler(moduleId, event->pos(), true);
+    clearDragFeedback();
+    if (chainDragLeaveHandler)
+        chainDragLeaveHandler();
+    if (accepted)
+        event->acceptProposedAction();
+    else
+        event->ignore();
 }
 
 SignalJunction::SignalJunction(Kind kind, QWidget *parent)
@@ -760,7 +863,8 @@ SignalChainModule::SignalChainModule(const QString &name, const QColor &accent,
       moduleFaceColor(faceColor),
       stateAvailable(false), stateOn(false), structuralModule(false),
       moduleSelected(false),
-      moduleNavigable(false)
+      moduleNavigable(false), moduleMovable(false), modulePending(false),
+      dragStarted(false), stableModuleId(-1)
 {
     setFixedSize(96, 78);
     setCursor(Qt::ArrowCursor);
@@ -790,9 +894,22 @@ void SignalChainModule::setSelected(bool selected)
 void SignalChainModule::setNavigable(bool navigable)
 {
     moduleNavigable = navigable;
-    setEnabled(navigable);
-    setCursor(navigable ? Qt::PointingHandCursor : Qt::ArrowCursor);
+    setEnabled(moduleNavigable || moduleMovable);
+    setCursor(moduleMovable ? Qt::OpenHandCursor
+                            : navigable ? Qt::PointingHandCursor : Qt::ArrowCursor);
 }
+
+void SignalChainModule::setMovable(bool movable, int moduleId)
+{
+    moduleMovable = movable;
+    stableModuleId = moduleId;
+    setEnabled(moduleNavigable || moduleMovable);
+    setCursor(moduleMovable ? Qt::OpenHandCursor
+                            : moduleNavigable ? Qt::PointingHandCursor : Qt::ArrowCursor);
+}
+
+void SignalChainModule::setPending(bool pending)
+{ modulePending = pending; update(); }
 
 void SignalChainModule::setCompactWidth(int w)
 {
@@ -804,6 +921,8 @@ void SignalChainModule::paintEvent(QPaintEvent *)
 {
     QPainter p(this);
     p.setRenderHint(QPainter::Antialiasing);
+    if (modulePending)
+        p.setOpacity(.66);
     const QRectF body = rect().adjusted(2, 2, -2, -3);
 
     if (moduleSelected) {
@@ -883,6 +1002,14 @@ void SignalChainModule::paintEvent(QPaintEvent *)
         p.drawText(QRectF(body.left(), body.bottom() - 13,
                           body.width(), 10),
                    Qt::AlignCenter, "DIGITAL");
+        if (modulePending) {
+            p.setOpacity(1.0);
+            QColor pendingColor(ModernTheme::color(ModernTheme::AccentCyan));
+            pendingColor.setAlpha(220);
+            p.setPen(Qt::NoPen);
+            p.setBrush(pendingColor);
+            p.drawEllipse(QPointF(body.right() - 8, body.top() + 8), 2.5, 2.5);
+        }
         return;
     }
 
@@ -916,6 +1043,66 @@ void SignalChainModule::paintEvent(QPaintEvent *)
                                                : QString::fromUtf8("—");
     p.drawText(QRectF(body.left(), body.bottom() - 14,
                       body.width(), 12), Qt::AlignCenter, stateText);
+
+    if (modulePending) {
+        p.setOpacity(1.0);
+        QColor pendingColor(ModernTheme::color(ModernTheme::AccentCyan));
+        pendingColor.setAlpha(220);
+        p.setPen(Qt::NoPen);
+        p.setBrush(pendingColor);
+        p.drawEllipse(QPointF(body.right() - 8, body.top() + 8), 2.5, 2.5);
+    }
+}
+
+void SignalChainModule::mousePressEvent(QMouseEvent *event)
+{
+    dragStarted = false;
+    dragPressPosition = event->pos();
+    QPushButton::mousePressEvent(event);
+}
+
+void SignalChainModule::mouseMoveEvent(QMouseEvent *event)
+{
+    if (!moduleMovable || !(event->buttons() & Qt::LeftButton)
+        || (event->pos() - dragPressPosition).manhattanLength()
+            < QApplication::startDragDistance()) {
+        QPushButton::mouseMoveEvent(event);
+        return;
+    }
+
+    dragStarted = true;
+    setDown(false);
+    QDrag *drag = new QDrag(this);
+    QMimeData *mime = new QMimeData;
+    mime->setData(chainModuleMime, QByteArray::number(stableModuleId));
+    drag->setMimeData(mime);
+
+    QPixmap ghost(86, 44);
+    ghost.fill(Qt::transparent);
+    QPainter painter(&ghost);
+    painter.setRenderHint(QPainter::Antialiasing);
+    QColor face = moduleFaceColor;
+    face.setAlpha(225);
+    painter.setPen(QPen(moduleAccent, 1.2));
+    painter.setBrush(face);
+    painter.drawRoundedRect(QRectF(1, 1, 83, 40), 6, 6);
+    painter.setPen(QColor(ModernTheme::color(ModernTheme::PrimaryText)));
+    painter.setFont(QFont("Helvetica Neue", 9, QFont::DemiBold));
+    painter.drawText(ghost.rect(), Qt::AlignCenter, moduleName);
+    drag->setPixmap(ghost);
+    drag->setHotSpot(QPoint(ghost.width() / 2, ghost.height() / 2));
+    drag->exec(Qt::MoveAction);
+}
+
+void SignalChainModule::mouseReleaseEvent(QMouseEvent *event)
+{
+    if (dragStarted) {
+        dragStarted = false;
+        setDown(false);
+        event->accept();
+        return;
+    }
+    QPushButton::mouseReleaseEvent(event);
 }
 
 StatusBadge::StatusBadge(QWidget *parent):QLabel(parent)

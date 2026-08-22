@@ -7,13 +7,23 @@
 #include <QFrame>
 #include <QLabel>
 #include <QList>
+#include <QLineF>
+#include <QPoint>
 #include <QPushButton>
+#include <QRect>
+
+#include <functional>
 
 class QPainter;
 class QComboBox;
 class QGridLayout;
 class QVBoxLayout;
 class QResizeEvent;
+class QDragEnterEvent;
+class QDragLeaveEvent;
+class QDragMoveEvent;
+class QDropEvent;
+class QMouseEvent;
 class QVariantAnimation;
 class AudioGearKnob;
 class AudioGearSwitch;
@@ -224,9 +234,27 @@ protected:
 class SignalChainContent : public QWidget
 {
 public:
+    using DragHandler = std::function<bool(int, const QPoint &, bool)>;
+    using DragLeaveHandler = std::function<void()>;
     explicit SignalChainContent(QWidget *parent = nullptr);
+    void setDragHandler(const DragHandler &handler);
+    void setDragLeaveHandler(const DragLeaveHandler &handler);
+    void setDragFeedback(const QRect &regionRect, const QLineF &insertionLine,
+                         bool valid);
+    void clearDragFeedback();
 protected:
     void paintEvent(QPaintEvent *event) override;
+    void dragEnterEvent(QDragEnterEvent *event) override;
+    void dragMoveEvent(QDragMoveEvent *event) override;
+    void dragLeaveEvent(QDragLeaveEvent *event) override;
+    void dropEvent(QDropEvent *event) override;
+private:
+    DragHandler chainDragHandler;
+    DragLeaveHandler chainDragLeaveHandler;
+    QRect dragRegionRect;
+    QLineF dragInsertionLine;
+    bool dragFeedbackActive = false;
+    bool dragFeedbackValid = false;
 };
 
 class SignalJunction : public QPushButton
@@ -257,9 +285,14 @@ public:
     void setStructural(bool structural);
     void setSelected(bool selected);
     void setNavigable(bool navigable);
+    void setMovable(bool movable, int moduleId);
+    void setPending(bool pending);
     void setCompactWidth(int width);
 protected:
     void paintEvent(QPaintEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
 private:
     QString moduleName;
     QColor moduleAccent;
@@ -269,6 +302,11 @@ private:
     bool structuralModule;
     bool moduleSelected;
     bool moduleNavigable;
+    bool moduleMovable;
+    bool modulePending;
+    bool dragStarted;
+    int stableModuleId;
+    QPoint dragPressPosition;
 };
 
 class StatusBadge : public QLabel
