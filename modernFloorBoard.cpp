@@ -1313,6 +1313,14 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     mainLayout->addWidget(effectEditorStack, 1);
 
     BottomControlStrip *bottomControlStrip = new BottomControlStrip;
+    tunerReferenceCombo = bottomControlStrip->tunerReferenceComboBox();
+    tunerOutputCombo = bottomControlStrip->tunerOutputComboBox();
+    connect(tunerReferenceCombo,
+            QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &modernFloorBoard::tunerReferenceChanged);
+    connect(tunerOutputCombo,
+            QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &modernFloorBoard::tunerOutputChanged);
     bottomControlStrip->setFixedHeight(122);
     mainLayout->addWidget(bottomControlStrip);
 
@@ -2311,6 +2319,83 @@ void modernFloorBoard::outputSelectChanged(int index)
     }
 }
 
+void modernFloorBoard::refreshTunerSettings()
+{
+    if (!tunerReferenceCombo || !tunerOutputCombo)
+        return;
+
+    const QSignalBlocker referenceBlocker(tunerReferenceCombo);
+    const QSignalBlocker outputBlocker(tunerOutputCombo);
+    tunerReferenceCombo->setEnabled(false);
+    tunerOutputCombo->setEnabled(false);
+    tunerReferenceCombo->setCurrentIndex(-1);
+    tunerOutputCombo->setCurrentIndex(-1);
+
+    SysxIO *sysxIO = SysxIO::Instance();
+    if (!backendIsConnected || !sysxIO->isConnected()
+            || !tunerSystemDataReady
+            || !hasSourceValue("System", "00", "00", "30")
+            || !hasSourceValue("System", "00", "00", "31"))
+        return;
+
+    const int referenceRaw = sysxIO->getSourceValue(
+        "System", "00", "00", "30");
+    const int outputRaw = sysxIO->getSourceValue(
+        "System", "00", "00", "31");
+    const int referenceIndex = tunerReferenceCombo->findData(referenceRaw);
+    const int outputIndex = tunerOutputCombo->findData(outputRaw);
+    if (referenceIndex < 0 || outputIndex < 0)
+        return;
+
+    tunerReferenceCombo->setCurrentIndex(referenceIndex);
+    tunerOutputCombo->setCurrentIndex(outputIndex);
+    tunerReferenceCombo->setEnabled(true);
+    tunerOutputCombo->setEnabled(true);
+}
+
+void modernFloorBoard::tunerReferenceChanged(int index)
+{
+    if (!tunerReferenceCombo || index < 0
+            || !tunerReferenceCombo->isEnabled())
+        return;
+
+    bool rawOk = false;
+    const int raw = tunerReferenceCombo->itemData(index).toInt(&rawOk);
+    SysxIO *sysxIO = SysxIO::Instance();
+    if (!rawOk || raw < 0x00 || raw > 0x0A
+            || !backendIsConnected || !sysxIO->isConnected()
+            || !tunerSystemDataReady
+            || !hasSourceValue("System", "00", "00", "30")) {
+        refreshTunerSettings();
+        return;
+    }
+
+    const QString rawHex = QString("%1").arg(
+        raw, 2, 16, QChar('0')).toUpper();
+    sysxIO->setFileSource("System", "00", "00", "30", rawHex);
+}
+
+void modernFloorBoard::tunerOutputChanged(int index)
+{
+    if (!tunerOutputCombo || index < 0 || !tunerOutputCombo->isEnabled())
+        return;
+
+    bool rawOk = false;
+    const int raw = tunerOutputCombo->itemData(index).toInt(&rawOk);
+    SysxIO *sysxIO = SysxIO::Instance();
+    if (!rawOk || raw < 0x00 || raw > 0x01
+            || !backendIsConnected || !sysxIO->isConnected()
+            || !tunerSystemDataReady
+            || !hasSourceValue("System", "00", "00", "31")) {
+        refreshTunerSettings();
+        return;
+    }
+
+    const QString rawHex = QString("%1").arg(
+        raw, 2, 16, QChar('0')).toUpper();
+    sysxIO->setFileSource("System", "00", "00", "31", rawHex);
+}
+
 void modernFloorBoard::requestOutputSystemData()
 {
     SysxIO *sysxIO = SysxIO::Instance();
@@ -2326,6 +2411,7 @@ void modernFloorBoard::requestOutputSystemData()
 
     outputSystemDataRequested = true;
     outputSystemDataReady = false;
+    tunerSystemDataReady = false;
     sysxIO->systemDataRequest();
     QTimer::singleShot(200, this, &modernFloorBoard::pollOutputSystemData);
 }
@@ -2337,11 +2423,14 @@ void modernFloorBoard::pollOutputSystemData()
         return;
 
     if (sysxIO->deviceReady()) {
-        if (hasSourceValue("System", "00", "00", "4E")
-                && hasSourceValue("System", "00", "00", "4F")) {
-            outputSystemDataReady = true;
-            refreshOutputSelectHeader();
-        }
+        outputSystemDataReady =
+            hasSourceValue("System", "00", "00", "4E")
+            && hasSourceValue("System", "00", "00", "4F");
+        tunerSystemDataReady =
+            hasSourceValue("System", "00", "00", "30")
+            && hasSourceValue("System", "00", "00", "31");
+        refreshOutputSelectHeader();
+        refreshTunerSettings();
         return;
     }
 
@@ -2354,8 +2443,10 @@ void modernFloorBoard::backendConnected()
     backendHasPatchData = false;
     outputSystemDataRequested = false;
     outputSystemDataReady = false;
+    tunerSystemDataReady = false;
     emit connectionStateChanged(true);
     refreshOutputSelectHeader();
+    refreshTunerSettings();
     requestOutputSystemData();
     setReverbUnavailable();
     setCompUnavailable();
@@ -2378,8 +2469,10 @@ void modernFloorBoard::backendDisconnected()
     backendHasPatchData = false;
     outputSystemDataRequested = false;
     outputSystemDataReady = false;
+    tunerSystemDataReady = false;
     emit connectionStateChanged(false);
     refreshOutputSelectHeader();
+    refreshTunerSettings();
     signalChainModel.clear();
     rebuildSignalChainView();
     setReverbUnavailable();
@@ -2422,6 +2515,7 @@ void modernFloorBoard::refreshReverbState()
 
     requestOutputSystemData();
     refreshOutputSelectHeader();
+    refreshTunerSettings();
 
     refreshSignalChainModel();
 
@@ -2705,8 +2799,6 @@ void modernFloorBoard::rebuildSignalChainView()
     signalFlowLayout = nullptr;
     signalPathsLayout = nullptr;
     signalParallelPaths = nullptr;
-    signalPathALabel = nullptr;
-    signalPathBLabel = nullptr;
     signalChainContent = nullptr;
 
     SignalChainContent *content = new SignalChainContent;
@@ -2766,26 +2858,14 @@ void modernFloorBoard::rebuildSignalChainView()
     signalPathsLayout->setContentsMargins(5, 5, 5, 5);
     signalPathsLayout->setHorizontalSpacing(5);
     signalPathsLayout->setVerticalSpacing(4);
-    signalPathALabel = new QLabel("A");
-    signalPathBLabel = new QLabel("B");
-    const QString pathLabelStyle = QString(
-        "color:%1;font-size:11px;font-weight:700;background:transparent;")
-        .arg(ModernTheme::color(ModernTheme::AccentCyanDim));
-    signalPathALabel->setStyleSheet(pathLabelStyle);
-    signalPathBLabel->setStyleSheet(pathLabelStyle);
-    signalPathALabel->setAlignment(Qt::AlignCenter);
-    signalPathBLabel->setAlignment(Qt::AlignCenter);
-    signalPathsLayout->addWidget(signalPathALabel, 0, 0);
-    signalPathsLayout->addWidget(signalPathBLabel, 1, 0);
-
-    int column = 1;
+    int column = 0;
     regionIndex = 0;
     for (const modernSignalChainModel::Entry &entry : signalChainModel.pathA()) {
         SignalChainModule *module = createSignalChainModule(entry);
         module->setProperty("regionIndex", regionIndex++);
         signalPathsLayout->addWidget(module, 0, column++, Qt::AlignCenter);
     }
-    if (column == 1) {
+    if (column == 0) {
         QLabel *empty = new QLabel("EMPTY PATH");
         empty->setStyleSheet(QString(
             "color:%1;font-size:9px;padding:20px;")
@@ -2793,14 +2873,14 @@ void modernFloorBoard::rebuildSignalChainView()
         signalPathsLayout->addWidget(empty, 0, column);
     }
 
-    column = 1;
+    column = 0;
     regionIndex = 0;
     for (const modernSignalChainModel::Entry &entry : signalChainModel.pathB()) {
         SignalChainModule *module = createSignalChainModule(entry);
         module->setProperty("regionIndex", regionIndex++);
         signalPathsLayout->addWidget(module, 1, column++, Qt::AlignCenter);
     }
-    if (column == 1) {
+    if (column == 0) {
         QLabel *empty = new QLabel("EMPTY PATH");
         empty->setStyleSheet(QString(
             "color:%1;font-size:9px;padding:20px;")
@@ -3143,13 +3223,12 @@ void modernFloorBoard::applyResponsiveSignalChainLayout()
     const int gap = qBound(2, available / 240, 6);
     const int connectorWidth = qBound(24, available / 44, 32);
     const int junctionWidth = qBound(18, available / 55, 28);
-    const int pathLabelWidth = qBound(13, available / 80, 18);
     const int outerItemCount = signalChainModel.commonPrefix().size()
         + signalChainModel.commonSuffix().size() + 5;
     const int totalGapWidth = qMax(0, outerItemCount - 1) * gap
         + qMax(signalChainModel.pathA().size(), signalChainModel.pathB().size()) * gap;
     const int fixedWidth = connectorWidth * 2 + junctionWidth * 2
-        + pathLabelWidth + 16 + totalGapWidth;
+        + 16 + totalGapWidth;
     const int moduleWidth = qBound(52, (available - fixedWidth) / slotCount, 96);
     const int moduleHeight = qBound(58, int(moduleWidth * .78), 78);
 
@@ -3162,8 +3241,6 @@ void modernFloorBoard::applyResponsiveSignalChainLayout()
         signalPathsLayout->setRowMinimumHeight(0, moduleHeight);
         signalPathsLayout->setRowMinimumHeight(1, moduleHeight);
     }
-    if (signalPathALabel) signalPathALabel->setFixedWidth(pathLabelWidth);
-    if (signalPathBLabel) signalPathBLabel->setFixedWidth(pathLabelWidth);
     for (SignalChainModule *module : signalChainModules)
         module->setCompactWidth(moduleWidth);
     for (SignalJunction *junction : signalChainJunctions)
@@ -3183,17 +3260,22 @@ void modernFloorBoard::applyResponsiveSignalChainLayout()
         const QRect rowB = signalPathsLayout->cellRect(1, 0);
         if (rowA.isValid() && rowB.isValid()) {
             pathOffset = qAbs(rowB.center().y() - rowA.center().y()) / 2.0;
-            if (signalChainContent) {
+            SignalJunction *mergeJunction = signalChainJunctions.size() > 1
+                ? signalChainJunctions.at(1) : nullptr;
+            if (signalChainContent && splitJunction && mergeJunction) {
                 const QPoint panelOrigin = signalParallelPaths->mapTo(
                     signalChainContent, QPoint(0, 0));
-                const int bridgeGap = signalFlowLayout
-                    ? signalFlowLayout->spacing() : 0;
-                const QRect panelRect = QRect(
-                    panelOrigin, signalParallelPaths->size())
-                        .adjusted(-bridgeGap, 0, bridgeGap, 0);
+                const QPoint splitCenter = splitJunction->mapTo(
+                    signalChainContent, splitJunction->rect().center());
+                const QPoint mergeCenter = mergeJunction->mapTo(
+                    signalChainContent, mergeJunction->rect().center());
+                const qreal pathAY = panelOrigin.y() + rowA.center().y();
+                const qreal pathBY = panelOrigin.y() + rowB.center().y();
+                const QRect topologyRect(
+                    QPoint(splitCenter.x(), qRound(pathAY)),
+                    QPoint(mergeCenter.x(), qRound(pathBY)));
                 signalChainContent->setParallelCableGeometry(
-                    panelRect, panelOrigin.y() + rowA.center().y(),
-                    panelOrigin.y() + rowB.center().y());
+                    topologyRect, pathAY, pathBY);
             }
         }
     }

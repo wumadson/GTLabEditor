@@ -104,6 +104,8 @@ private slots:
     void channelModeChanged(int index);
     void channelRoutingBarChanged(int value);
     void outputSelectChanged(int index);
+    void tunerReferenceChanged(int index);
+    void tunerOutputChanged(int index);
 
 private:
     EffectModule *createEffectBlock(const QString &name, bool available);
@@ -225,6 +227,7 @@ private:
     void setDynamicSense(int value);
     void refreshSignalChainModel();
     void refreshOutputSelectHeader();
+    void refreshTunerSettings();
     void requestOutputSystemData();
     void pollOutputSystemData();
     bool hasSourceValue(const QString &area,
@@ -255,8 +258,11 @@ private:
     QLabel *patchNumber;
     QLabel *patchName;
     QComboBox *outputSelectCombo = nullptr;
+    QComboBox *tunerReferenceCombo = nullptr;
+    QComboBox *tunerOutputCombo = nullptr;
     bool outputSystemDataRequested = false;
     bool outputSystemDataReady = false;
+    bool tunerSystemDataReady = false;
     PatchSidebar *patchSidebar = nullptr;
 
     SignalChainModule *reverbCard = nullptr;
@@ -354,8 +360,6 @@ private:
     QList<SignalChainModule *> signalChainModules;
     QList<SignalJunction *> signalChainJunctions;
     QList<SignalConnector *> signalChainConnectors;
-    QLabel *signalPathALabel = nullptr;
-    QLabel *signalPathBLabel = nullptr;
     QTimer *signalChainAutoScrollTimer = nullptr;
     int signalChainAutoScrollDirection = 0;
     bool signalChainTransactionActive = false;

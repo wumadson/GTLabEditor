@@ -12,6 +12,7 @@
 #include <QComboBox>
 #include <QGridLayout>
 #include <QPainter>
+#include <QPainterPath>
 #include <QResizeEvent>
 #include <QScrollArea>
 #include <QSizePolicy>
@@ -192,12 +193,82 @@ BottomControlStrip::BottomControlStrip(QWidget *parent)
         QLabel *title = new QLabel(titles.at(i));
         title->setObjectName("BottomRegionTitle");
         regionLayout->addWidget(title);
-        QLabel *state = new QLabel("NOT INTEGRATED");
-        state->setObjectName("WorkspaceUnavailable");
-        state->setAlignment(Qt::AlignCenter);
-        regionLayout->addWidget(state, 1);
+        if (titles.at(i) == "TUNER") {
+            QGridLayout *tunerLayout = new QGridLayout;
+            tunerLayout->setContentsMargins(0, 0, 0, 0);
+            tunerLayout->setHorizontalSpacing(7);
+            tunerLayout->setVerticalSpacing(5);
+
+            QLabel *referenceLabel = new QLabel("REFERENCE");
+            referenceLabel->setObjectName("BottomTunerLabel");
+            QLabel *outputLabel = new QLabel("OUTPUT");
+            outputLabel->setObjectName("BottomTunerLabel");
+
+            tunerReference = new QComboBox;
+            tunerReference->setObjectName("BottomTunerCombo");
+            for (int raw = 0; raw <= 0x0A; ++raw)
+                tunerReference->addItem(QString::number(435 + raw) + " Hz", raw);
+
+            tunerOutput = new QComboBox;
+            tunerOutput->setObjectName("BottomTunerCombo");
+            tunerOutput->addItem("MUTE", 0x00);
+            tunerOutput->addItem("BYPASSED", 0x01);
+
+            const QList<QComboBox *> tunerCombos = {
+                tunerReference, tunerOutput
+            };
+            for (QComboBox *combo : tunerCombos) {
+                combo->setEnabled(false);
+                combo->setCurrentIndex(-1);
+                combo->setMinimumHeight(24);
+                combo->setMaximumHeight(26);
+                combo->setSizePolicy(QSizePolicy::Expanding,
+                                     QSizePolicy::Fixed);
+            }
+
+            tunerLayout->addWidget(referenceLabel, 0, 0);
+            tunerLayout->addWidget(tunerReference, 0, 1);
+            tunerLayout->addWidget(outputLabel, 1, 0);
+            tunerLayout->addWidget(tunerOutput, 1, 1);
+            tunerLayout->setColumnStretch(1, 1);
+            regionLayout->addLayout(tunerLayout, 1);
+
+            region->setStyleSheet(
+                "QLabel#BottomTunerLabel {"
+                " color: #8C9198; font-size: 9px; font-weight: 600;"
+                " letter-spacing: 0.5px; }"
+                "QComboBox#BottomTunerCombo {"
+                " padding: 0 7px; color: #39B8F3; background: #050607;"
+                " border: 1px solid #24272C; border-radius: 3px; }"
+                "QComboBox#BottomTunerCombo:hover {"
+                " background: #0D0F12; border-color: #34383E; }"
+                "QComboBox#BottomTunerCombo:focus { border-color: #2A7599; }"
+                "QComboBox#BottomTunerCombo:disabled {"
+                " color: #666B72; background: #050607;"
+                " border-color: #24272C; }"
+                "QComboBox#BottomTunerCombo QAbstractItemView {"
+                " color: #ECEFF2; background: #0D0F12;"
+                " border: 1px solid #24272C;"
+                " selection-background-color: #123347; outline: none; }"
+            );
+        } else {
+            QLabel *state = new QLabel("NOT INTEGRATED");
+            state->setObjectName("WorkspaceUnavailable");
+            state->setAlignment(Qt::AlignCenter);
+            regionLayout->addWidget(state, 1);
+        }
         layout->addWidget(region, stretches[i]);
     }
+}
+
+QComboBox *BottomControlStrip::tunerReferenceComboBox() const
+{
+    return tunerReference;
+}
+
+QComboBox *BottomControlStrip::tunerOutputComboBox() const
+{
+    return tunerOutput;
 }
 
 ResponsiveSectionArea::ResponsiveSectionArea(QWidget *parent)
@@ -743,21 +814,34 @@ void SignalChainContent::paintEvent(QPaintEvent *)
     commonCable.setColorAt(.5, QColor("#9AA5AE"));
     commonCable.setColorAt(1, QColor("#394550"));
     if (parallelCableRect.isValid()) {
-        drawCable(QPointF(24, y), QPointF(parallelCableRect.left(), y),
+        const qreal splitX = parallelCableRect.left();
+        const qreal mergeX = parallelCableRect.right();
+        drawCable(QPointF(24, y), QPointF(splitX, y), QBrush(commonCable));
+        drawCable(QPointF(mergeX, y), QPointF(width() - 24, y),
                   QBrush(commonCable));
-        drawCable(QPointF(parallelCableRect.right(), y),
-                  QPointF(width() - 24, y), QBrush(commonCable));
-        QLinearGradient pathCable(parallelCableRect.left(), 0,
-                                  parallelCableRect.right(), 0);
+        QLinearGradient pathCable(splitX, 0, mergeX, 0);
         pathCable.setColorAt(0, QColor("#56636E"));
         pathCable.setColorAt(.5, QColor("#AAB3BA"));
         pathCable.setColorAt(1, QColor("#56636E"));
-        drawCable(QPointF(parallelCableRect.left(), parallelPathAY),
-                  QPointF(parallelCableRect.right(), parallelPathAY),
-                  QBrush(pathCable));
-        drawCable(QPointF(parallelCableRect.left(), parallelPathBY),
-                  QPointF(parallelCableRect.right(), parallelPathBY),
-                  QBrush(pathCable));
+        const auto drawParallelRoute = [&p, splitX, mergeX, y, &pathCable](
+                                           qreal pathY) {
+            QPainterPath route;
+            route.moveTo(splitX, y);
+            route.lineTo(splitX, pathY);
+            route.lineTo(mergeX, pathY);
+            route.lineTo(mergeX, y);
+
+            QTransform shadowTransform;
+            shadowTransform.translate(0, 3);
+            p.setPen(QPen(QColor(0, 0, 0, 175), 7, Qt::SolidLine,
+                          Qt::RoundCap, Qt::RoundJoin));
+            p.drawPath(shadowTransform.map(route));
+            p.setPen(QPen(QBrush(pathCable), 3, Qt::SolidLine,
+                          Qt::RoundCap, Qt::RoundJoin));
+            p.drawPath(route);
+        };
+        drawParallelRoute(parallelPathAY);
+        drawParallelRoute(parallelPathBY);
     } else {
         drawCable(QPointF(24, y), QPointF(width() - 24, y),
                   QBrush(commonCable));
@@ -830,9 +914,9 @@ void SignalChainContent::dropEvent(QDropEvent *event)
 }
 
 SignalJunction::SignalJunction(Kind kind, QWidget *parent)
-    : QPushButton(parent), junctionKind(kind), junctionSelected(false),
-      junctionPathOffset(46.0)
+    : QPushButton(parent), junctionSelected(false), junctionPathOffset(46.0)
 {
+    Q_UNUSED(kind);
     setFixedSize(54, 168);
     setCursor(Qt::PointingHandCursor);
     setFocusPolicy(Qt::NoFocus);
@@ -869,24 +953,6 @@ void SignalJunction::paintEvent(QPaintEvent *)
     p.setRenderHint(QPainter::Antialiasing);
     const qreal x = width() / 2.0;
     const qreal centerY = height() / 2.0;
-    const qreal pathAY = centerY - junctionPathOffset;
-    const qreal pathBY = centerY + junctionPathOffset;
-    const QColor cable("#7E8A94");
-
-    const qreal commonStart = junctionKind == Split ? 0 : x;
-    const qreal commonEnd = junctionKind == Split ? x : width();
-    const qreal branchStart = junctionKind == Split ? x : 0;
-    const qreal branchEnd = junctionKind == Split ? width() : x;
-    p.setPen(QPen(QColor(0, 0, 0, 180), 7, Qt::SolidLine, Qt::RoundCap));
-    p.drawLine(QPointF(commonStart, centerY + 3), QPointF(commonEnd, centerY + 3));
-    p.drawLine(QPointF(x, pathAY + 3), QPointF(x, pathBY + 3));
-    p.drawLine(QPointF(branchStart, pathAY + 3), QPointF(branchEnd, pathAY + 3));
-    p.drawLine(QPointF(branchStart, pathBY + 3), QPointF(branchEnd, pathBY + 3));
-    p.setPen(QPen(cable, 2.5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-    p.drawLine(QPointF(commonStart, centerY), QPointF(commonEnd, centerY));
-    p.drawLine(QPointF(x, pathAY), QPointF(x, pathBY));
-    p.drawLine(QPointF(branchStart, pathAY), QPointF(branchEnd, pathAY));
-    p.drawLine(QPointF(branchStart, pathBY), QPointF(branchEnd, pathBY));
 
     QColor nodeOutline("#17C7E8");
     nodeOutline.setAlpha(junctionSelected ? 245

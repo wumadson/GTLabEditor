@@ -71,6 +71,11 @@ class BottomControlStrip : public QFrame
 {
 public:
     explicit BottomControlStrip(QWidget *parent = nullptr);
+    QComboBox *tunerReferenceComboBox() const;
+    QComboBox *tunerOutputComboBox() const;
+private:
+    QComboBox *tunerReference = nullptr;
+    QComboBox *tunerOutput = nullptr;
 };
 
 class ParameterSection : public QWidget
@@ -275,7 +280,6 @@ protected:
     void enterEvent(QEvent *event) override;
     void leaveEvent(QEvent *event) override;
 private:
-    Kind junctionKind;
     bool junctionSelected;
     qreal junctionPathOffset;
 };
