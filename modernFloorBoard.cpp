@@ -27,6 +27,7 @@
 #include <QPaintEvent>
 #include <QPushButton>
 #include <QScrollArea>
+#include <QScrollBar>
 #include <QResizeEvent>
 #include <QEvent>
 #include <QStandardItemModel>
@@ -722,6 +723,11 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     signalChainScroll->setFrameShape(QFrame::NoFrame);
     signalChainScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     signalChainScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    connect(signalChainScroll->verticalScrollBar(), &QScrollBar::valueChanged,
+            this, [this](int value) {
+        if (value != 0 && signalChainScroll)
+            signalChainScroll->verticalScrollBar()->setValue(0);
+    });
     signalChainScroll->setStyleSheet(QString(
         "QScrollArea{background:transparent;border:none;}"
         "QScrollBar:horizontal{height:8px;background:%1;}"
@@ -2679,18 +2685,18 @@ void modernFloorBoard::rebuildSignalChainView()
     signalChainConnectors.clear();
     signalFlowLayout = nullptr;
     signalPathsLayout = nullptr;
+    signalParallelPaths = nullptr;
     signalPathALabel = nullptr;
     signalPathBLabel = nullptr;
 
-    QWidget *content = new QWidget;
-    content->setObjectName("SignalChainContent");
+    QWidget *content = new SignalChainContent;
     content->setStyleSheet("QWidget#SignalChainContent{background:transparent;}");
     signalFlowLayout = new QHBoxLayout(content);
     signalFlowLayout->setContentsMargins(4, 0, 4, 0);
     signalFlowLayout->setSpacing(5);
     SignalConnector *inputConnector = new SignalConnector(SignalConnector::Input);
     signalChainConnectors.append(inputConnector);
-    signalFlowLayout->addWidget(inputConnector);
+    signalFlowLayout->addWidget(inputConnector, 0, Qt::AlignVCenter);
 
     if (!signalChainModel.isValid()) {
         QLabel *placeholder = new QLabel("Load a GT-10 patch to display its real signal chain");
@@ -2701,22 +2707,24 @@ void modernFloorBoard::rebuildSignalChainView()
         signalFlowLayout->addWidget(placeholder, 1);
         SignalConnector *outputConnector = new SignalConnector(SignalConnector::Output);
         signalChainConnectors.append(outputConnector);
-        signalFlowLayout->addWidget(outputConnector);
+        signalFlowLayout->addWidget(outputConnector, 0, Qt::AlignVCenter);
         signalChainScroll->setWidget(content);
         return;
     }
 
     for (const modernSignalChainModel::Entry &entry : signalChainModel.commonPrefix())
-        signalFlowLayout->addWidget(createSignalChainModule(entry));
+        signalFlowLayout->addWidget(createSignalChainModule(entry),
+                                    0, Qt::AlignVCenter);
 
     splitJunction = new SignalJunction(SignalJunction::Split);
     splitJunction->setSelected(selectedEditor == "CHANNEL ROUTING");
     connect(splitJunction, SIGNAL(clicked()),
             this, SLOT(showChannelRoutingEditor()));
     signalChainJunctions.append(splitJunction);
-    signalFlowLayout->addWidget(splitJunction);
+    signalFlowLayout->addWidget(splitJunction, 0, Qt::AlignVCenter);
 
     QWidget *parallelPaths = new QWidget;
+    signalParallelPaths = parallelPaths;
     parallelPaths->setObjectName("ParallelPaths");
     parallelPaths->setStyleSheet(QString(
         "QWidget#ParallelPaths{background:%1;border:1px solid %2;"
@@ -2741,7 +2749,8 @@ void modernFloorBoard::rebuildSignalChainView()
 
     int column = 1;
     for (const modernSignalChainModel::Entry &entry : signalChainModel.pathA())
-        signalPathsLayout->addWidget(createSignalChainModule(entry), 0, column++);
+        signalPathsLayout->addWidget(createSignalChainModule(entry), 0, column++,
+                                     Qt::AlignCenter);
     if (column == 1) {
         QLabel *empty = new QLabel("EMPTY PATH");
         empty->setStyleSheet(QString(
@@ -2752,7 +2761,8 @@ void modernFloorBoard::rebuildSignalChainView()
 
     column = 1;
     for (const modernSignalChainModel::Entry &entry : signalChainModel.pathB())
-        signalPathsLayout->addWidget(createSignalChainModule(entry), 1, column++);
+        signalPathsLayout->addWidget(createSignalChainModule(entry), 1, column++,
+                                     Qt::AlignCenter);
     if (column == 1) {
         QLabel *empty = new QLabel("EMPTY PATH");
         empty->setStyleSheet(QString(
@@ -2760,16 +2770,17 @@ void modernFloorBoard::rebuildSignalChainView()
             .arg(ModernTheme::color(ModernTheme::DisabledText)));
         signalPathsLayout->addWidget(empty, 1, column);
     }
-    signalFlowLayout->addWidget(parallelPaths);
+    signalFlowLayout->addWidget(parallelPaths, 0, Qt::AlignVCenter);
     SignalJunction *merge = new SignalJunction(SignalJunction::Merge);
     signalChainJunctions.append(merge);
-    signalFlowLayout->addWidget(merge);
+    signalFlowLayout->addWidget(merge, 0, Qt::AlignVCenter);
 
     for (const modernSignalChainModel::Entry &entry : signalChainModel.commonSuffix())
-        signalFlowLayout->addWidget(createSignalChainModule(entry));
+        signalFlowLayout->addWidget(createSignalChainModule(entry),
+                                    0, Qt::AlignVCenter);
     SignalConnector *outputConnector = new SignalConnector(SignalConnector::Output);
     signalChainConnectors.append(outputConnector);
-    signalFlowLayout->addWidget(outputConnector);
+    signalFlowLayout->addWidget(outputConnector, 0, Qt::AlignVCenter);
 
     signalChainScroll->setWidget(content);
     QTimer::singleShot(0, this, [this]() { applyResponsiveSignalChainLayout(); });
@@ -2781,8 +2792,15 @@ void modernFloorBoard::applyResponsiveSignalChainLayout()
         return;
 
     const int available = signalChainScroll->viewport()->width();
-    if (available <= 0)
+    const int viewportHeight = signalChainScroll->viewport()->height();
+    if (available <= 0 || viewportHeight <= 0)
         return;
+
+    QWidget *content = signalChainScroll->widget();
+    if (!content)
+        return;
+    content->setMinimumHeight(viewportHeight);
+    content->setMaximumHeight(viewportHeight);
 
     const int slotCount = signalChainModel.commonPrefix().size()
         + qMax(signalChainModel.pathA().size(), signalChainModel.pathB().size())
@@ -2801,6 +2819,7 @@ void modernFloorBoard::applyResponsiveSignalChainLayout()
     const int fixedWidth = connectorWidth * 2 + junctionWidth * 2
         + pathLabelWidth + 16 + totalGapWidth;
     const int moduleWidth = qBound(52, (available - fixedWidth) / slotCount, 96);
+    const int moduleHeight = qBound(58, int(moduleWidth * .78), 78);
 
     signalFlowLayout->setContentsMargins(2, 0, 2, 0);
     signalFlowLayout->setSpacing(gap);
@@ -2808,6 +2827,8 @@ void modernFloorBoard::applyResponsiveSignalChainLayout()
         const int pathMargin = moduleWidth < 66 ? 2 : 4;
         signalPathsLayout->setContentsMargins(pathMargin, 4, pathMargin, 4);
         signalPathsLayout->setHorizontalSpacing(gap);
+        signalPathsLayout->setRowMinimumHeight(0, moduleHeight);
+        signalPathsLayout->setRowMinimumHeight(1, moduleHeight);
     }
     if (signalPathALabel) signalPathALabel->setFixedWidth(pathLabelWidth);
     if (signalPathBLabel) signalPathBLabel->setFixedWidth(pathLabelWidth);
@@ -2817,6 +2838,50 @@ void modernFloorBoard::applyResponsiveSignalChainLayout()
         junction->setCompactWidth(junctionWidth);
     for (SignalConnector *connector : signalChainConnectors)
         connector->setCompactWidth(connectorWidth);
+
+    signalFlowLayout->invalidate();
+    signalFlowLayout->activate();
+    if (signalPathsLayout)
+        signalPathsLayout->activate();
+
+    qreal pathOffset = (moduleHeight
+        + (signalPathsLayout ? signalPathsLayout->verticalSpacing() : 0)) / 2.0;
+    if (signalPathsLayout && signalParallelPaths) {
+        const QRect rowA = signalPathsLayout->cellRect(0, 0);
+        const QRect rowB = signalPathsLayout->cellRect(1, 0);
+        if (rowA.isValid() && rowB.isValid())
+            pathOffset = qAbs(rowB.center().y() - rowA.center().y()) / 2.0;
+    }
+    for (SignalJunction *junction : signalChainJunctions)
+        junction->setChainGeometry(viewportHeight, pathOffset);
+
+    signalFlowLayout->invalidate();
+    signalFlowLayout->activate();
+    signalChainScroll->verticalScrollBar()->setValue(0);
+
+#ifndef QT_NO_DEBUG
+    const qreal chainCenterY = viewportHeight / 2.0;
+    for (SignalChainModule *module : signalChainModules) {
+        if (module->parentWidget() != content)
+            continue;
+        const qreal moduleCenterY = module->mapTo(content, module->rect().center()).y();
+        Q_ASSERT_X(qAbs(moduleCenterY - chainCenterY) <= 1.0,
+                   "Signal Chain geometry", "common module is off the chain axis");
+    }
+    for (SignalJunction *junction : signalChainJunctions) {
+        const qreal junctionCenterY =
+            junction->mapTo(content, junction->rect().center()).y();
+        Q_ASSERT_X(qAbs(junctionCenterY - chainCenterY) <= 1.0,
+                   "Signal Chain geometry", "junction is off the chain axis");
+    }
+    if (signalPathsLayout) {
+        const QRect rowA = signalPathsLayout->cellRect(0, 0);
+        const QRect rowB = signalPathsLayout->cellRect(1, 0);
+        Q_ASSERT_X(qAbs((rowA.center().y() + rowB.center().y())
+                       / 2.0 - signalParallelPaths->height() / 2.0) <= 1.0,
+                   "Signal Chain geometry", "parallel paths are not symmetric");
+    }
+#endif
 }
 
 void modernFloorBoard::resizeEvent(QResizeEvent *event)
@@ -2827,12 +2892,17 @@ void modernFloorBoard::resizeEvent(QResizeEvent *event)
 
 bool modernFloorBoard::eventFilter(QObject *watched, QEvent *event)
 {
-    if (signalChainScroll
-        && watched == signalChainScroll->viewport()
-        && event->type() == QEvent::Resize) {
-        QTimer::singleShot(0, this, [this]() {
-            applyResponsiveSignalChainLayout();
-        });
+    if (signalChainScroll && watched == signalChainScroll->viewport()) {
+        if (event->type() == QEvent::Resize) {
+            QTimer::singleShot(0, this, [this]() {
+                applyResponsiveSignalChainLayout();
+            });
+        } else if (event->type() == QEvent::Wheel) {
+            QTimer::singleShot(0, this, [this]() {
+                if (signalChainScroll)
+                    signalChainScroll->verticalScrollBar()->setValue(0);
+            });
+        }
     }
 
     return QWidget::eventFilter(watched, event);

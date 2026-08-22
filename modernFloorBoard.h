@@ -336,6 +336,7 @@ private:
     QScrollArea *signalChainScroll = nullptr;
     QHBoxLayout *signalFlowLayout = nullptr;
     QGridLayout *signalPathsLayout = nullptr;
+    QWidget *signalParallelPaths = nullptr;
     QList<SignalChainModule *> signalChainModules;
     QList<SignalJunction *> signalChainJunctions;
     QList<SignalConnector *> signalChainConnectors;

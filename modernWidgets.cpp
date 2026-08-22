@@ -656,27 +656,45 @@ void SignalConnector::setCompactWidth(int w){setFixedSize(w,76);update();}
 void SignalConnector::paintEvent(QPaintEvent *)
 {
     QPainter p(this);p.setRenderHint(QPainter::Antialiasing);p.setPen(QPen(QColor("#8D98A5"),1.5));p.setFont(QFont("Helvetica Neue",9,QFont::DemiBold));p.drawText(QRectF(0,4,width(),16),Qt::AlignCenter,connectorDirection==Input?"IN":"OUT");
-    const qreal y=42;p.setPen(QPen(QColor("#080A0D"),8,Qt::SolidLine,Qt::RoundCap));p.drawLine(QPointF(7,y),QPointF(width()-7,y));p.setPen(QPen(QColor("#78848E"),2,Qt::SolidLine,Qt::RoundCap));p.drawLine(QPointF(7,y),QPointF(width()-7,y));
+    const qreal y=height()/2.0;p.setPen(QPen(QColor("#080A0D"),8,Qt::SolidLine,Qt::RoundCap));p.drawLine(QPointF(7,y),QPointF(width()-7,y));p.setPen(QPen(QColor("#78848E"),2,Qt::SolidLine,Qt::RoundCap));p.drawLine(QPointF(7,y),QPointF(width()-7,y));
     p.setBrush(QColor("#11171D"));p.setPen(QPen(QColor("#65717C"),1));const QPointF jack(connectorDirection==Input?width()-7:7,y);p.drawEllipse(jack,5,5);
 }
 
 SignalChainPanel::SignalChainPanel(QWidget *parent):QFrame(parent){setObjectName("SignalChain");}
 void SignalChainPanel::paintEvent(QPaintEvent *event)
 {
-    QFrame::paintEvent(event);QPainter p(this);p.setRenderHint(QPainter::Antialiasing);const qreal y=height()/2.0+5;
+    QFrame::paintEvent(event);
+}
+
+SignalChainContent::SignalChainContent(QWidget *parent)
+    : QWidget(parent)
+{
+    setObjectName("SignalChainContent");
+}
+
+void SignalChainContent::paintEvent(QPaintEvent *)
+{
+    QPainter p(this);p.setRenderHint(QPainter::Antialiasing);const qreal y=height()/2.0;
     p.setPen(QPen(QColor(0,0,0,175),7,Qt::SolidLine,Qt::RoundCap));p.drawLine(QPointF(24,y+3),QPointF(width()-24,y+3));
     QLinearGradient cable(18,y,width()-18,y);cable.setColorAt(0,QColor("#394550"));cable.setColorAt(.5,QColor("#9AA5AE"));cable.setColorAt(1,QColor("#394550"));p.setPen(QPen(QBrush(cable),3,Qt::SolidLine,Qt::RoundCap));p.drawLine(QPointF(24,y),QPointF(width()-24,y));
 }
 
 SignalJunction::SignalJunction(Kind kind, QWidget *parent)
-    : QPushButton(parent), junctionKind(kind), junctionSelected(false)
+    : QPushButton(parent), junctionKind(kind), junctionSelected(false),
+      junctionPathOffset(46.0)
 {
-    setFixedSize(54, 176);
+    setFixedSize(54, 168);
     setCursor(Qt::PointingHandCursor);
     setFocusPolicy(Qt::NoFocus);
     setStyleSheet("background:transparent;border:none;");
 }
-void SignalJunction::setCompactWidth(int w){setFixedSize(w,176);update();}
+void SignalJunction::setCompactWidth(int w){setFixedWidth(w);update();}
+void SignalJunction::setChainGeometry(int h, qreal pathOffset)
+{
+    setFixedHeight(qMax(1, h));
+    junctionPathOffset = qMax<qreal>(1.0, pathOffset);
+    update();
+}
 void SignalJunction::setSelected(bool selected)
 {
     junctionSelected = selected;
@@ -701,8 +719,8 @@ void SignalJunction::paintEvent(QPaintEvent *)
     p.setRenderHint(QPainter::Antialiasing);
     const qreal x = width() / 2.0;
     const qreal centerY = height() / 2.0;
-    const qreal pathAY = 42;
-    const qreal pathBY = height() - 42;
+    const qreal pathAY = centerY - junctionPathOffset;
+    const qreal pathBY = centerY + junctionPathOffset;
     const QColor cable("#7E8A94");
 
     const qreal commonStart = junctionKind == Split ? 0 : x;

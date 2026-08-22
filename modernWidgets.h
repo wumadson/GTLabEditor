@@ -221,12 +221,21 @@ protected:
     void paintEvent(QPaintEvent *event) override;
 };
 
+class SignalChainContent : public QWidget
+{
+public:
+    explicit SignalChainContent(QWidget *parent = nullptr);
+protected:
+    void paintEvent(QPaintEvent *event) override;
+};
+
 class SignalJunction : public QPushButton
 {
 public:
     enum Kind { Split, Merge };
     explicit SignalJunction(Kind kind, QWidget *parent = nullptr);
     void setCompactWidth(int width);
+    void setChainGeometry(int height, qreal pathOffset);
     void setSelected(bool selected);
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -235,6 +244,7 @@ protected:
 private:
     Kind junctionKind;
     bool junctionSelected;
+    qreal junctionPathOffset;
 };
 
 class SignalChainModule : public QPushButton
