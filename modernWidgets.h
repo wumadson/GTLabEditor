@@ -244,6 +244,7 @@ public:
                       const QColor &faceColor,
                       QWidget *parent = nullptr);
     void setEffectState(bool available, bool on);
+    void setStructural(bool structural);
     void setSelected(bool selected);
     void setNavigable(bool navigable);
     void setCompactWidth(int width);
@@ -255,6 +256,7 @@ private:
     QColor moduleFaceColor;
     bool stateAvailable;
     bool stateOn;
+    bool structuralModule;
     bool moduleSelected;
     bool moduleNavigable;
 };

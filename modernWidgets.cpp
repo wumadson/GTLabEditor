@@ -740,7 +740,8 @@ SignalChainModule::SignalChainModule(const QString &name, const QColor &accent,
                                      QWidget *parent)
     : QPushButton(parent), moduleName(name), moduleAccent(accent),
       moduleFaceColor(faceColor),
-      stateAvailable(false), stateOn(false), moduleSelected(false),
+      stateAvailable(false), stateOn(false), structuralModule(false),
+      moduleSelected(false),
       moduleNavigable(false)
 {
     setFixedSize(96, 78);
@@ -753,6 +754,12 @@ void SignalChainModule::setEffectState(bool available, bool on)
 {
     stateAvailable = available;
     stateOn = available && on;
+    update();
+}
+
+void SignalChainModule::setStructural(bool structural)
+{
+    structuralModule = structural;
     update();
 }
 
@@ -794,15 +801,18 @@ void SignalChainModule::paintEvent(QPaintEvent *)
     p.drawRoundedRect(body.translated(0, 2), 6, 6);
 
     QLinearGradient surface(body.topLeft(), body.bottomLeft());
+    const bool visuallyPresent = stateAvailable || structuralModule;
     QColor faceTop = moduleFaceColor;
-    QColor faceMiddle = moduleFaceColor.darker(stateOn ? 108 : stateAvailable ? 125 : 145);
-    QColor faceBottom = moduleFaceColor.darker(stateOn ? 145 : stateAvailable ? 165 : 185);
+    QColor faceMiddle = moduleFaceColor.darker(
+        stateOn ? 108 : visuallyPresent ? 125 : 145);
+    QColor faceBottom = moduleFaceColor.darker(
+        stateOn ? 145 : visuallyPresent ? 165 : 185);
     if (stateOn) faceTop = faceTop.lighter(112);
     surface.setColorAt(0, faceTop);
     surface.setColorAt(.52, faceMiddle);
     surface.setColorAt(1, faceBottom);
     QColor categoryOutline = moduleAccent.darker(185);
-    categoryOutline.setAlpha(stateAvailable ? 145 : 90);
+    categoryOutline.setAlpha(visuallyPresent ? 145 : 90);
     QColor outline = moduleSelected
         ? QColor(ModernTheme::color(ModernTheme::AccentCyan))
         : categoryOutline;
@@ -811,7 +821,8 @@ void SignalChainModule::paintEvent(QPaintEvent *)
     p.drawRoundedRect(body, 6, 6);
 
     QColor accent = moduleAccent;
-    accent.setAlpha(moduleSelected ? 235 : stateOn ? 220 : stateAvailable ? 165 : 130);
+    accent.setAlpha(moduleSelected ? 235 : stateOn ? 220
+        : visuallyPresent ? 165 : 130);
     p.setPen(Qt::NoPen);
     p.setBrush(accent);
     p.drawRoundedRect(QRectF(body.left() + 8, body.top() + 5,
@@ -826,10 +837,36 @@ void SignalChainModule::paintEvent(QPaintEvent *)
     const int namePointSize = width() < 62 ? 7 : width() < 78 ? 8 : 9;
     p.setFont(QFont("Helvetica Neue", namePointSize, QFont::DemiBold));
     QColor nameColor(ModernTheme::color(ModernTheme::PrimaryText));
-    nameColor.setAlpha(moduleSelected ? 255 : stateOn ? 250 : stateAvailable ? 225 : 190);
+    nameColor.setAlpha(moduleSelected ? 255 : stateOn ? 250
+        : visuallyPresent ? 225 : 190);
     p.setPen(nameColor);
     p.drawText(QRectF(body.left() + 4, body.top() + 11,
                       body.width() - 8, 15), Qt::AlignCenter, moduleName);
+
+    if (structuralModule) {
+        const qreal arrowY = body.bottom() - 22;
+        const qreal arrowLeft = body.left() + qMax<qreal>(11, body.width() * .20);
+        const qreal arrowRight = body.right() - qMax<qreal>(11, body.width() * .20);
+        QColor arrowColor = moduleAccent;
+        arrowColor.setAlpha(185);
+        p.setPen(QPen(arrowColor, 1.7, Qt::SolidLine,
+                      Qt::RoundCap, Qt::RoundJoin));
+        p.drawLine(QPointF(arrowLeft, arrowY),
+                   QPointF(arrowRight, arrowY));
+        p.drawLine(QPointF(arrowRight - 5, arrowY - 4),
+                   QPointF(arrowRight, arrowY));
+        p.drawLine(QPointF(arrowRight - 5, arrowY + 4),
+                   QPointF(arrowRight, arrowY));
+
+        p.setFont(QFont("Helvetica Neue", 7, QFont::DemiBold));
+        QColor roleColor(ModernTheme::color(ModernTheme::SecondaryText));
+        roleColor.setAlpha(175);
+        p.setPen(roleColor);
+        p.drawText(QRectF(body.left(), body.bottom() - 13,
+                          body.width(), 10),
+                   Qt::AlignCenter, "DIGITAL");
+        return;
+    }
 
     const QPointF ledCenter(body.center().x(), body.bottom() - 23);
     if (stateOn) {

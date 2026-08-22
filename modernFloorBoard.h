@@ -34,6 +34,7 @@ enum class NoiseSuppressorSlot;
 class ModernFxEditor;
 class ModernPedalFxEditor;
 class ModernNoiseSuppressorEditor;
+class ModernSendReturnEditor;
 class StatusBadge;
 class PatchSidebar;
 
@@ -73,6 +74,7 @@ private slots:
     void showFootVolumeEditor();
     void showNs1Editor();
     void showNs2Editor();
+    void showSendReturnEditor();
     void showChannelRoutingEditor();
     void compTypeChanged(int value);
     void compModelSelected(int index);
@@ -207,6 +209,8 @@ private:
     void showNoiseSuppressorEditor(NoiseSuppressorSlot slot);
     void refreshNoiseSuppressors();
     void clearNoiseSuppressorSelection();
+    void refreshSendReturn();
+    void clearSendReturnSelection();
     QWidget *createChannelRoutingEditor();
     void updateChannelRoutingPage(int mode);
     void updateChannelRoutingControls(bool available);
@@ -246,6 +250,7 @@ private:
     SignalChainModule *footVolumeCard = nullptr;
     SignalChainModule *ns1Card = nullptr;
     SignalChainModule *ns2Card = nullptr;
+    SignalChainModule *sendReturnCard = nullptr;
     SignalJunction *splitJunction = nullptr;
     QStackedWidget *effectEditorStack = nullptr;
     EffectEditorPanel *reverbEditor = nullptr;
@@ -261,6 +266,7 @@ private:
     ModernPedalFxEditor *pedalFxEditor = nullptr;
     ModernNoiseSuppressorEditor *ns1Editor = nullptr;
     ModernNoiseSuppressorEditor *ns2Editor = nullptr;
+    ModernSendReturnEditor *sendReturnEditor = nullptr;
     QWidget *channelRoutingEditor = nullptr;
     QWidget *channelRoutingDiagram = nullptr;
     QComboBox *channelMode = nullptr;

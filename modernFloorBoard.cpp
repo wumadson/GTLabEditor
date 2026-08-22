@@ -9,6 +9,7 @@
 #include "modernFxEditor.h"
 #include "modernPedalFxEditor.h"
 #include "modernNoiseSuppressorEditor.h"
+#include "modernSendReturnEditor.h"
 #include "parameterBar.h"
 #include "patchSidebar.h"
 
@@ -1026,6 +1027,13 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
         if (ns2Card)
             ns2Card->setEffectState(available, on);
     });
+    sendReturnEditor = new ModernSendReturnEditor(this);
+    effectEditorStack->addWidget(sendReturnEditor->widget());
+    connect(sendReturnEditor, &ModernSendReturnEditor::stateChanged,
+            this, [this](bool available, bool on) {
+        if (sendReturnCard)
+            sendReturnCard->setEffectState(available, on);
+    });
 
     mainLayout->addWidget(effectEditorStack, 1);
 
@@ -1960,6 +1968,7 @@ void modernFloorBoard::backendConnected()
     refreshFx(FxSlot::FX2);
     refreshPedalFx();
     refreshNoiseSuppressors();
+    refreshSendReturn();
 }
 
 void modernFloorBoard::backendDisconnected()
@@ -1981,6 +1990,7 @@ void modernFloorBoard::backendDisconnected()
     refreshFx(FxSlot::FX2);
     refreshPedalFx();
     refreshNoiseSuppressors();
+    refreshSendReturn();
     patchNumber->setText(QString::fromUtf8("—"));
     patchName->setText("NO PATCH DATA");
     patchListModel.setCurrentPatch(0, 0, QString());
@@ -2023,6 +2033,7 @@ void modernFloorBoard::refreshReverbState()
         refreshFx(FxSlot::FX2);
         refreshPedalFx();
         refreshNoiseSuppressors();
+        refreshSendReturn();
         return;
     }
 
@@ -2046,6 +2057,7 @@ void modernFloorBoard::refreshReverbState()
     refreshFx(FxSlot::FX2);
     refreshPedalFx();
     refreshNoiseSuppressors();
+    refreshSendReturn();
 }
 
 void modernFloorBoard::refreshCompState()
@@ -2156,15 +2168,18 @@ SignalChainModule *modernFloorBoard::createSignalChainModule(
     const bool isFootVolume = entry.moduleId == 0x0B;
     const bool isNs1 = entry.moduleId == 0x0C;
     const bool isNs2 = entry.moduleId == 0x0D;
+    const bool isSendReturn = entry.moduleId == 0x0E;
+    const bool isDigitalOut = entry.moduleId == 0x0F;
     SignalChainModule *module = new SignalChainModule(
         name, QColor(ModernTheme::effectColor(fullName)),
         QColor(ModernTheme::effectFaceColor(fullName)));
     module->setEffectState(false, false);
+    module->setStructural(isDigitalOut);
     module->setNavigable(isComp || isReverb || isOdds || isDelay || isChorus
                          || isEq || isFx1 || isFx2
                          || isPreampA || isPreampB
                          || isPedalFx || isFootVolume
-                         || isNs1 || isNs2);
+                         || isNs1 || isNs2 || isSendReturn);
     module->setProperty("chainPosition", entry.originalPosition);
     module->setProperty("rawValue", entry.rawValue);
     module->setProperty("signalPath", entry.path);
@@ -2244,6 +2259,12 @@ SignalChainModule *modernFloorBoard::createSignalChainModule(
         ns2Card->setSelected(selectedEditor == "NS-2");
         connect(module, SIGNAL(clicked()), this, SLOT(showNs2Editor()));
     }
+    if (isSendReturn) {
+        sendReturnCard = module;
+        sendReturnCard->setSelected(selectedEditor == "SEND/RETURN");
+        connect(module, SIGNAL(clicked()),
+                this, SLOT(showSendReturnEditor()));
+    }
     return module;
 }
 
@@ -2262,6 +2283,7 @@ void modernFloorBoard::rebuildSignalChainView()
     footVolumeCard = nullptr;
     ns1Card = nullptr;
     ns2Card = nullptr;
+    sendReturnCard = nullptr;
     splitJunction = nullptr;
     signalChainModules.clear();
     signalChainJunctions.clear();
@@ -3026,6 +3048,7 @@ void modernFloorBoard::showNoiseSuppressorEditor(NoiseSuppressorSlot slot)
     if (splitJunction)
         splitJunction->setSelected(false);
     clearPedalSelection();
+    clearSendReturnSelection();
 }
 
 void modernFloorBoard::refreshNoiseSuppressors()
@@ -3044,6 +3067,59 @@ void modernFloorBoard::clearNoiseSuppressorSelection()
         ns1Card->setSelected(false);
     if (ns2Card)
         ns2Card->setSelected(false);
+    clearSendReturnSelection();
+}
+
+void modernFloorBoard::showSendReturnEditor()
+{
+    if (!sendReturnEditor)
+        return;
+
+    selectedEditor = "SEND/RETURN";
+    sendReturnEditor->refreshSendReturn(backendIsConnected,
+                                        backendHasPatchData);
+    if (effectEditorStack)
+        effectEditorStack->setCurrentWidget(sendReturnEditor->widget());
+
+    if (compCard)
+        compCard->setSelected(false);
+    if (reverbCard)
+        reverbCard->setSelected(false);
+    if (oddsCard)
+        oddsCard->setSelected(false);
+    if (delayCard)
+        delayCard->setSelected(false);
+    if (chorusCard)
+        chorusCard->setSelected(false);
+    if (eqCard)
+        eqCard->setSelected(false);
+    if (preampACard)
+        preampACard->setSelected(false);
+    if (preampBCard)
+        preampBCard->setSelected(false);
+    if (fx1Card)
+        fx1Card->setSelected(false);
+    if (fx2Card)
+        fx2Card->setSelected(false);
+    if (splitJunction)
+        splitJunction->setSelected(false);
+    clearPedalSelection();
+    clearNoiseSuppressorSelection();
+    if (sendReturnCard)
+        sendReturnCard->setSelected(true);
+}
+
+void modernFloorBoard::refreshSendReturn()
+{
+    if (sendReturnEditor)
+        sendReturnEditor->refreshSendReturn(backendIsConnected,
+                                             backendHasPatchData);
+}
+
+void modernFloorBoard::clearSendReturnSelection()
+{
+    if (sendReturnCard)
+        sendReturnCard->setSelected(false);
 }
 
 void modernFloorBoard::showChannelRoutingEditor()
