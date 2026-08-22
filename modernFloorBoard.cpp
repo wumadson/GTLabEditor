@@ -7,6 +7,7 @@
 #include "effectModelBrowser.h"
 #include "modernEqGraph.h"
 #include "modernFxEditor.h"
+#include "modernPedalFxEditor.h"
 #include "parameterBar.h"
 #include "patchSidebar.h"
 
@@ -1004,6 +1005,10 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     effectEditorStack->addWidget(fx2Editor->widget());
     connect(fx2Editor, &ModernFxEditor::stateChanged,
             this, &modernFloorBoard::fx2StateChanged);
+    pedalFxEditor = new ModernPedalFxEditor(this);
+    effectEditorStack->addWidget(pedalFxEditor->widget());
+    connect(pedalFxEditor, &ModernPedalFxEditor::activityChanged,
+            this, &modernFloorBoard::pedalFxActivityChanged);
 
     mainLayout->addWidget(effectEditorStack, 1);
 
@@ -1936,6 +1941,7 @@ void modernFloorBoard::backendConnected()
     updateChannelRoutingControls(false);
     refreshFx(FxSlot::FX1);
     refreshFx(FxSlot::FX2);
+    refreshPedalFx();
 }
 
 void modernFloorBoard::backendDisconnected()
@@ -1955,6 +1961,7 @@ void modernFloorBoard::backendDisconnected()
     updateChannelRoutingControls(false);
     refreshFx(FxSlot::FX1);
     refreshFx(FxSlot::FX2);
+    refreshPedalFx();
     patchNumber->setText(QString::fromUtf8("—"));
     patchName->setText("NO PATCH DATA");
     patchListModel.setCurrentPatch(0, 0, QString());
@@ -1995,6 +2002,7 @@ void modernFloorBoard::refreshReverbState()
         refreshChannelRouting();
         refreshFx(FxSlot::FX1);
         refreshFx(FxSlot::FX2);
+        refreshPedalFx();
         return;
     }
 
@@ -2016,6 +2024,7 @@ void modernFloorBoard::refreshReverbState()
     refreshChannelRouting();
     refreshFx(FxSlot::FX1);
     refreshFx(FxSlot::FX2);
+    refreshPedalFx();
 }
 
 void modernFloorBoard::refreshCompState()
@@ -2122,13 +2131,16 @@ SignalChainModule *modernFloorBoard::createSignalChainModule(
     const bool isFx2 = entry.moduleId == 0x06;
     const bool isPreampA = entry.moduleId == 0x02;
     const bool isPreampB = entry.moduleId == 0x03;
+    const bool isPedalFx = entry.moduleId == 0x0A;
+    const bool isFootVolume = entry.moduleId == 0x0B;
     SignalChainModule *module = new SignalChainModule(
         name, QColor(ModernTheme::effectColor(fullName)),
         QColor(ModernTheme::effectFaceColor(fullName)));
     module->setEffectState(false, false);
     module->setNavigable(isComp || isReverb || isOdds || isDelay || isChorus
                          || isEq || isFx1 || isFx2
-                         || isPreampA || isPreampB);
+                         || isPreampA || isPreampB
+                         || isPedalFx || isFootVolume);
     module->setProperty("chainPosition", entry.originalPosition);
     module->setProperty("rawValue", entry.rawValue);
     module->setProperty("signalPath", entry.path);
@@ -2186,6 +2198,18 @@ SignalChainModule *modernFloorBoard::createSignalChainModule(
         connect(module, SIGNAL(clicked()),
                 this, SLOT(showPreampBEditor()));
     }
+    if (isPedalFx) {
+        pedalFxCard = module;
+        pedalFxCard->setSelected(selectedEditor == "P.FX");
+        connect(module, SIGNAL(clicked()),
+                this, SLOT(showPedalFxEditor()));
+    }
+    if (isFootVolume) {
+        footVolumeCard = module;
+        footVolumeCard->setSelected(selectedEditor == "FV");
+        connect(module, SIGNAL(clicked()),
+                this, SLOT(showFootVolumeEditor()));
+    }
     return module;
 }
 
@@ -2200,6 +2224,8 @@ void modernFloorBoard::rebuildSignalChainView()
     fx2Card = nullptr;
     preampACard = nullptr;
     preampBCard = nullptr;
+    pedalFxCard = nullptr;
+    footVolumeCard = nullptr;
     splitJunction = nullptr;
     signalChainModules.clear();
     signalChainJunctions.clear();
@@ -2547,6 +2573,7 @@ void modernFloorBoard::showCompEditor()
         preampBCard->setSelected(false);
     if (splitJunction)
         splitJunction->setSelected(false);
+    clearPedalSelection();
 }
 
 void modernFloorBoard::showReverbEditor()
@@ -2576,6 +2603,7 @@ void modernFloorBoard::showReverbEditor()
         preampBCard->setSelected(false);
     if (splitJunction)
         splitJunction->setSelected(false);
+    clearPedalSelection();
 }
 
 void modernFloorBoard::showOddsEditor()
@@ -2605,6 +2633,7 @@ void modernFloorBoard::showOddsEditor()
         preampBCard->setSelected(false);
     if (splitJunction)
         splitJunction->setSelected(false);
+    clearPedalSelection();
 }
 
 void modernFloorBoard::showDelayEditor()
@@ -2634,6 +2663,7 @@ void modernFloorBoard::showDelayEditor()
         fx2Card->setSelected(false);
     if (splitJunction)
         splitJunction->setSelected(false);
+    clearPedalSelection();
 }
 
 void modernFloorBoard::showChorusEditor()
@@ -2664,6 +2694,7 @@ void modernFloorBoard::showChorusEditor()
         preampBCard->setSelected(false);
     if (splitJunction)
         splitJunction->setSelected(false);
+    clearPedalSelection();
 }
 
 void modernFloorBoard::showEqEditor()
@@ -2693,6 +2724,7 @@ void modernFloorBoard::showEqEditor()
         preampBCard->setSelected(false);
     if (splitJunction)
         splitJunction->setSelected(false);
+    clearPedalSelection();
 }
 
 void modernFloorBoard::showPreampAEditor()
@@ -2722,6 +2754,7 @@ void modernFloorBoard::showPreampAEditor()
         fx2Card->setSelected(false);
     if (splitJunction)
         splitJunction->setSelected(false);
+    clearPedalSelection();
 }
 
 void modernFloorBoard::showPreampBEditor()
@@ -2751,6 +2784,7 @@ void modernFloorBoard::showPreampBEditor()
         fx2Card->setSelected(false);
     if (splitJunction)
         splitJunction->setSelected(false);
+    clearPedalSelection();
 }
 
 void modernFloorBoard::showFx1Editor()
@@ -2797,6 +2831,7 @@ void modernFloorBoard::showFxEditor(FxSlot slot)
         eqCard->setSelected(false);
     if (splitJunction)
         splitJunction->setSelected(false);
+    clearPedalSelection();
 }
 
 void modernFloorBoard::refreshFx(FxSlot slot)
@@ -2817,6 +2852,82 @@ void modernFloorBoard::fx2StateChanged(bool available, bool on)
 {
     if (fx2Card)
         fx2Card->setEffectState(available, on);
+}
+
+void modernFloorBoard::showPedalFxEditor()
+{
+    showPedalEditor(false);
+}
+
+void modernFloorBoard::showFootVolumeEditor()
+{
+    showPedalEditor(true);
+}
+
+void modernFloorBoard::showPedalEditor(bool footVolumeContext)
+{
+    if (!pedalFxEditor)
+        return;
+
+    selectedEditor = footVolumeContext ? "FV" : "P.FX";
+    pedalFxEditor->setContext(footVolumeContext
+        ? PedalEditorContext::FootVolume
+        : PedalEditorContext::General);
+    pedalFxEditor->refreshPedalFx(backendIsConnected,
+                                  backendHasPatchData);
+    if (effectEditorStack)
+        effectEditorStack->setCurrentWidget(pedalFxEditor->widget());
+
+    if (pedalFxCard)
+        pedalFxCard->setSelected(!footVolumeContext);
+    if (footVolumeCard)
+        footVolumeCard->setSelected(footVolumeContext);
+    if (compCard)
+        compCard->setSelected(false);
+    if (reverbCard)
+        reverbCard->setSelected(false);
+    if (oddsCard)
+        oddsCard->setSelected(false);
+    if (delayCard)
+        delayCard->setSelected(false);
+    if (chorusCard)
+        chorusCard->setSelected(false);
+    if (eqCard)
+        eqCard->setSelected(false);
+    if (preampACard)
+        preampACard->setSelected(false);
+    if (preampBCard)
+        preampBCard->setSelected(false);
+    if (fx1Card)
+        fx1Card->setSelected(false);
+    if (fx2Card)
+        fx2Card->setSelected(false);
+    if (splitJunction)
+        splitJunction->setSelected(false);
+}
+
+void modernFloorBoard::refreshPedalFx()
+{
+    if (pedalFxEditor)
+        pedalFxEditor->refreshPedalFx(backendIsConnected,
+                                      backendHasPatchData);
+}
+
+void modernFloorBoard::pedalFxActivityChanged(
+    bool available, bool pedalFxActive, bool footVolumeActive)
+{
+    if (pedalFxCard)
+        pedalFxCard->setEffectState(available, pedalFxActive);
+    if (footVolumeCard)
+        footVolumeCard->setEffectState(available, footVolumeActive);
+}
+
+void modernFloorBoard::clearPedalSelection()
+{
+    if (pedalFxCard)
+        pedalFxCard->setSelected(false);
+    if (footVolumeCard)
+        footVolumeCard->setSelected(false);
 }
 
 void modernFloorBoard::showChannelRoutingEditor()
@@ -2847,6 +2958,7 @@ void modernFloorBoard::showChannelRoutingEditor()
         fx1Card->setSelected(false);
     if (fx2Card)
         fx2Card->setSelected(false);
+    clearPedalSelection();
 }
 
 void modernFloorBoard::updateChannelRoutingPage(int mode)
