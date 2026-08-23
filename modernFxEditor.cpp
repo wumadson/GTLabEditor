@@ -12,6 +12,7 @@
 #include <QAbstractButton>
 #include <QComboBox>
 #include <QFont>
+#include <QGridLayout>
 #include <QHash>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -19,6 +20,7 @@
 #include <QScrollArea>
 #include <QSet>
 #include <QSignalBlocker>
+#include <QResizeEvent>
 #include <QStackedWidget>
 #include <QStringList>
 #include <QVBoxLayout>
@@ -28,6 +30,99 @@
 
 namespace {
 const char kStructure[] = "Structure";
+
+class ResponsiveSectionColumns : public QWidget
+{
+public:
+    explicit ResponsiveSectionColumns(QWidget *parent = nullptr)
+        : QWidget(parent), grid(new QGridLayout(this))
+    {
+        grid->setContentsMargins(0, 0, 0, 0);
+        grid->setSpacing(kSpacing);
+        grid->setSizeConstraint(QLayout::SetNoConstraint);
+        setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    }
+
+    void addSection(QWidget *section)
+    {
+        sections.append(section);
+        updateArrangement(true);
+    }
+
+    QSize minimumSizeHint() const override
+    {
+        int minimumWidth = 0;
+        int minimumHeight = 0;
+        for (QWidget *section : sections) {
+            const QSize sectionMinimum = section->minimumSizeHint();
+            minimumWidth = qMax(minimumWidth, sectionMinimum.width());
+            if (horizontal)
+                minimumHeight = qMax(minimumHeight, sectionMinimum.height());
+            else
+                minimumHeight += sectionMinimum.height();
+        }
+        if (!horizontal && sections.size() > 1)
+            minimumHeight += kSpacing * (sections.size() - 1);
+        return QSize(minimumWidth, minimumHeight);
+    }
+
+protected:
+    void resizeEvent(QResizeEvent *event) override
+    {
+        QWidget::resizeEvent(event);
+        updateArrangement(false);
+    }
+
+private:
+    int horizontalMinimumWidth() const
+    {
+        int required = 0;
+        for (QWidget *section : sections)
+            required += qMax(0, section->minimumSizeHint().width());
+        if (sections.size() > 1)
+            required += kSpacing * (sections.size() - 1);
+        return required;
+    }
+
+    void updateArrangement(bool force)
+    {
+        if (sections.isEmpty())
+            return;
+
+        const int breakpoint = horizontalMinimumWidth();
+        bool useHorizontal = horizontal;
+        if (!arranged)
+            useHorizontal = width() >= breakpoint;
+        else if (horizontal && width() < breakpoint - kHysteresis)
+            useHorizontal = false;
+        else if (!horizontal && width() > breakpoint + kHysteresis)
+            useHorizontal = true;
+
+        if (!force && arranged && useHorizontal == horizontal)
+            return;
+
+        while (QLayoutItem *item = grid->takeAt(0))
+            delete item;
+        for (int index = 0; index < sections.size(); ++index) {
+            const int row = useHorizontal ? 0 : index;
+            const int column = useHorizontal ? index : 0;
+            grid->addWidget(sections.at(index), row, column);
+            grid->setRowStretch(index, 0);
+            grid->setColumnStretch(index, useHorizontal ? 1 : 0);
+        }
+        grid->setColumnStretch(0, 1);
+        horizontal = useHorizontal;
+        arranged = true;
+        updateGeometry();
+    }
+
+    static constexpr int kSpacing = 12;
+    static constexpr int kHysteresis = 8;
+    QGridLayout *grid;
+    QVector<QWidget *> sections;
+    bool horizontal = true;
+    bool arranged = false;
+};
 
 FxParameterSpec parameter(int bank, const QString &offset,
                           FxControlKind kind, const QString &section,
@@ -264,6 +359,7 @@ void ModernFxEditor::buildEditor()
 
     browser = new EffectModelBrowser;
     browser->setAccentColor(accent);
+    browser->setCategoriesCollapsible(true);
     editor->setModelBrowserWidget(browser);
 
     QVBoxLayout *layout = new QVBoxLayout(editor->parameterArea());
@@ -949,10 +1045,8 @@ QWidget *ModernFxEditor::createAlgorithmPage(
                 parameterSpec, spec->raw));
         }
 
-        QWidget *columns = new QWidget;
-        QHBoxLayout *columnsLayout = new QHBoxLayout(columns);
-        columnsLayout->setContentsMargins(0, 0, 0, 0);
-        columnsLayout->setSpacing(12);
+        ResponsiveSectionColumns *columns =
+            new ResponsiveSectionColumns;
         for (const QString &sectionName : spec->sideBySideSections) {
             QWidget *column = new QWidget;
             QVBoxLayout *columnLayout = new QVBoxLayout(column);
@@ -968,7 +1062,7 @@ QWidget *ModernFxEditor::createAlgorithmPage(
                 }
             }
             columnLayout->addStretch(1);
-            columnsLayout->addWidget(column, 1);
+            columns->addSection(column);
         }
         layout->addWidget(columns);
     }

@@ -22,6 +22,7 @@
 ****************************************************************************/
 
 #include <QtGui>
+#include <QStackedLayout>
 #include "statusBarWidget.h"
 #include "modernTheme.h"
 
@@ -43,7 +44,6 @@ statusBarWidget::statusBarWidget(QWidget *parent)
 
 	this->label = new QLabel(this);
 	this->label->setObjectName("StatusMessage");
-	this->label->setMinimumWidth(100);
 	this->label->setText("");
 
 	this->dBuglabel = new QLabel(this);
@@ -56,27 +56,54 @@ statusBarWidget::statusBarWidget(QWidget *parent)
 	this->connectionLabel->setObjectName("ConnectionLabel");
 	setConnectionState(false);
 
-	QHBoxLayout *widgetLayout = new QHBoxLayout;
+	QWidget *operationalGroup = new QWidget(this);
+	QHBoxLayout *operationalLayout = new QHBoxLayout(operationalGroup);
+	operationalLayout->setContentsMargins(0, 0, 0, 0);
+	operationalLayout->setSpacing(4);
+	operationalLayout->addWidget(this->symbol, 0, Qt::AlignVCenter);
+	operationalLayout->addWidget(this->label, 0, Qt::AlignVCenter);
+	operationalLayout->addWidget(this->progressBar, 0, Qt::AlignVCenter);
+
+	QWidget *connectionGroup = new QWidget(this);
+	QHBoxLayout *connectionLayout = new QHBoxLayout(connectionGroup);
+	connectionLayout->setContentsMargins(0, 0, 0, 0);
+	connectionLayout->setSpacing(4);
+	connectionLayout->addWidget(this->connectionDot, 0, Qt::AlignVCenter);
+	connectionLayout->addWidget(this->connectionLabel, 0, Qt::AlignVCenter);
+
+	QWidget *statusRow = new QWidget(this);
+	QHBoxLayout *statusRowLayout = new QHBoxLayout(statusRow);
+	statusRowLayout->setContentsMargins(0, 0, 0, 0);
+	statusRowLayout->setSpacing(7);
+	statusRowLayout->addWidget(operationalGroup, 0, Qt::AlignVCenter);
+	statusRowLayout->addStretch(1);
+	statusRowLayout->addWidget(connectionGroup, 0, Qt::AlignVCenter);
+
+	QWidget *activityLayer = new QWidget(this);
+	activityLayer->setAttribute(Qt::WA_TransparentForMouseEvents);
+	QHBoxLayout *activityLayout = new QHBoxLayout(activityLayer);
+	activityLayout->setContentsMargins(0, 0, 0, 0);
+	activityLayout->addStretch(1);
+	activityLayout->addWidget(this->dBuglabel, 0, Qt::AlignCenter);
+	activityLayout->addStretch(1);
+
+	QStackedLayout *widgetLayout = new QStackedLayout;
 	widgetLayout->setContentsMargins(10, 0, 10, 0);
-	widgetLayout->setSpacing(7);
-	widgetLayout->addWidget(this->symbol, Qt::AlignCenter);
-	widgetLayout->addWidget(this->label, Qt::AlignCenter);
-	widgetLayout->addWidget(this->progressBar, Qt::AlignCenter);
-	widgetLayout->addWidget(this->dBuglabel, 1, Qt::AlignCenter);
-	widgetLayout->addWidget(this->connectionDot, 0, Qt::AlignCenter);
-	widgetLayout->addWidget(this->connectionLabel, 0, Qt::AlignCenter);
+	widgetLayout->setStackingMode(QStackedLayout::StackAll);
+	widgetLayout->addWidget(statusRow);
+	widgetLayout->addWidget(activityLayer);
 
 	this->setLayout(widgetLayout);
 };
 
 void statusBarWidget::setStatusMessage(QString message)
 {
-	this->label->setText(message);
+	this->label->setText(message.toUpper());
 };
 
 void statusBarWidget::setStatusdBugMessage(QString dBug)
 {
-	this->dBuglabel->setText(dBug);
+	this->dBuglabel->setText(dBug.toUpper());
 };
 
 void statusBarWidget::setStatusProgress(int value)
@@ -98,12 +125,13 @@ void statusBarWidget::setConnectionState(bool connected)
 {
 	this->connectionLabel->setText(connected ? "GT-10 CONNECTED"
 	                                         : "GT-10 DISCONNECTED");
-	this->connectionDot->setStyleSheet(
-		connected ? "color: #39c66d; font-size: 9px;"
-		          : "color: #56606b; font-size: 9px;");
-	this->connectionLabel->setStyleSheet(
-		connected ? "color: #8d99a5; font-size: 9px; font-weight: 600;"
-		          : "color: #59636e; font-size: 9px; font-weight: 600;");
+	const char *state = connected ? "connected" : "disconnected";
+	this->connectionDot->setProperty("state", state);
+	this->connectionLabel->setProperty("state", state);
+	this->connectionDot->style()->unpolish(this->connectionDot);
+	this->connectionDot->style()->polish(this->connectionDot);
+	this->connectionLabel->style()->unpolish(this->connectionLabel);
+	this->connectionLabel->style()->polish(this->connectionLabel);
 };
 
 

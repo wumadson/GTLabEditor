@@ -4,9 +4,12 @@
 
 #include <QAbstractItemView>
 #include <QColor>
+#include <QEvent>
 #include <QFont>
+#include <QKeyEvent>
 #include <QListWidget>
 #include <QPainter>
+#include <QPainterPath>
 #include <QRegularExpression>
 #include <QScrollBar>
 #include <QStyledItemDelegate>
@@ -18,7 +21,9 @@ enum ItemRole {
     ModelIndexRole = Qt::UserRole + 1,
     CategoryRole,
     FirstCategoryRole,
-    AccentColorRole
+    AccentColorRole,
+    CollapsibleRole,
+    ExpandedRole
 };
 
 class EffectModelDelegate : public QStyledItemDelegate
@@ -33,9 +38,7 @@ public:
                    const QModelIndex &index) const override
     {
         Q_UNUSED(option)
-        if (!index.data(CategoryRole).toBool())
-            return QSize(0, 29);
-        return QSize(0, index.data(FirstCategoryRole).toBool() ? 29 : 35);
+        return QSize(0, index.data(CategoryRole).toBool() ? 30 : 28);
     }
 
     void paint(QPainter *painter, const QStyleOptionViewItem &option,
@@ -51,19 +54,21 @@ public:
         QRect row = option.rect.adjusted(2, 1, -2, -1);
 
         if (category) {
-            const bool firstCategory = index.data(FirstCategoryRole).toBool();
-            const int contentTop = row.top() + (firstCategory ? 2 : 8);
+            const bool collapsible = index.data(CollapsibleRole).toBool();
+            const bool expanded = index.data(ExpandedRole).toBool();
+            const int contentTop = row.top() + 2;
             const int contentBottom = row.bottom() - 3;
             QFont categoryFont = option.font;
-            categoryFont.setPointSizeF(qMax(8.0, categoryFont.pointSizeF() - 2.0));
+            categoryFont.setPixelSize(9);
             categoryFont.setWeight(QFont::Bold);
-            categoryFont.setLetterSpacing(QFont::AbsoluteSpacing, 1.0);
+            categoryFont.setLetterSpacing(QFont::AbsoluteSpacing, 0.7);
             painter->setFont(categoryFont);
             painter->setPen(QColor(ModernTheme::color(
                 enabled ? ModernTheme::PrimaryText
                         : ModernTheme::DisabledText)));
-            painter->drawText(QRect(row.left() + 15, contentTop,
-                                    row.width() - 20,
+            painter->drawText(QRect(row.left() + (collapsible ? 22 : 15),
+                                    contentTop,
+                                    row.width() - (collapsible ? 27 : 20),
                                     contentBottom - contentTop),
                               Qt::AlignLeft | Qt::AlignVCenter,
                               index.data(Qt::DisplayRole).toString());
@@ -73,12 +78,29 @@ public:
                 accent = QColor(ModernTheme::color(
                     ModernTheme::EditorAccent));
             accent.setAlpha(enabled ? 175 : 70);
-            painter->setPen(Qt::NoPen);
-            painter->setBrush(accent);
-            painter->drawRoundedRect(
-                QRectF(row.left() + 5, contentTop + 5, 2,
-                       qMax(7, contentBottom - contentTop - 10)),
-                1, 1);
+            if (collapsible) {
+                painter->setPen(QPen(accent, 1.4, Qt::SolidLine,
+                                     Qt::RoundCap, Qt::RoundJoin));
+                painter->setBrush(Qt::NoBrush);
+                QPainterPath chevron;
+                if (expanded) {
+                    chevron.moveTo(row.left() + 7, contentTop + 8);
+                    chevron.lineTo(row.left() + 11, contentTop + 12);
+                    chevron.lineTo(row.left() + 15, contentTop + 8);
+                } else {
+                    chevron.moveTo(row.left() + 9, contentTop + 6);
+                    chevron.lineTo(row.left() + 13, contentTop + 10);
+                    chevron.lineTo(row.left() + 9, contentTop + 14);
+                }
+                painter->drawPath(chevron);
+            } else {
+                painter->setPen(Qt::NoPen);
+                painter->setBrush(accent);
+                painter->drawRoundedRect(
+                    QRectF(row.left() + 5, contentTop + 5, 2,
+                           qMax(7, contentBottom - contentTop - 10)),
+                    1, 1);
+            }
 
             QColor divider(ModernTheme::color(ModernTheme::BorderSubtle));
             divider.setAlpha(190);
@@ -118,6 +140,7 @@ public:
         }
 
         QFont itemFont = option.font;
+        itemFont.setPixelSize(10);
         itemFont.setWeight(selected ? QFont::DemiBold : QFont::Normal);
         painter->setFont(itemFont);
         const ModernTheme::ColorRole textRole = !enabled
@@ -127,7 +150,7 @@ public:
         painter->setPen(QColor(ModernTheme::color(textRole)));
         painter->drawText(row.adjusted(18, 0, -6, 0),
                           Qt::AlignLeft | Qt::AlignVCenter,
-                          index.data(Qt::DisplayRole).toString());
+                          index.data(Qt::DisplayRole).toString().toUpper());
         painter->restore();
     }
 };
@@ -152,7 +175,8 @@ void splitModelLabel(const QString &source, QString *category, QString *name)
 
 EffectModelBrowser::EffectModelBrowser(QWidget *parent)
     : QWidget(parent), modelList(new QListWidget(this)),
-      browserAccent(ModernTheme::color(ModernTheme::EditorAccent))
+      browserAccent(ModernTheme::color(ModernTheme::EditorAccent)),
+      categoriesCollapsible(false)
 {
     setObjectName("EffectModelBrowser");
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -168,6 +192,7 @@ EffectModelBrowser::EffectModelBrowser(QWidget *parent)
     modelList->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     modelList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     modelList->setMouseTracking(true);
+    modelList->installEventFilter(this);
     modelList->setSpacing(0);
     modelList->setItemDelegate(new EffectModelDelegate(modelList));
     modelList->verticalScrollBar()->setObjectName("EffectModelScroll");
@@ -198,6 +223,8 @@ void EffectModelBrowser::setModels(const QStringList &labels)
             heading->setData(CategoryRole, true);
             heading->setData(FirstCategoryRole, firstCategory);
             heading->setData(AccentColorRole, browserAccent);
+            heading->setData(CollapsibleRole, categoriesCollapsible);
+            heading->setData(ExpandedRole, !categoriesCollapsible);
             heading->setFlags(Qt::ItemIsEnabled);
             currentCategoryItem = heading;
             previousCategory = category;
@@ -215,6 +242,8 @@ void EffectModelBrowser::setModels(const QStringList &labels)
         item->setData(AccentColorRole, browserAccent);
         modelItems.append(item);
         modelCategoryItems.append(currentCategoryItem);
+        if (currentCategoryItem && categoriesCollapsible)
+            item->setHidden(true);
     }
 }
 
@@ -227,8 +256,10 @@ void EffectModelBrowser::setCurrentIndex(int index)
     }
 
     QListWidgetItem *item = modelItems.at(index);
-    modelList->setCurrentItem(item);
     QListWidgetItem *category = modelCategoryItems.at(index);
+    if (category && categoriesCollapsible)
+        setCategoryExpanded(category, true);
+    modelList->setCurrentItem(item);
     if (category)
         modelList->scrollToItem(category, QAbstractItemView::PositionAtTop);
     modelList->scrollToItem(item, QAbstractItemView::EnsureVisible);
@@ -244,6 +275,20 @@ void EffectModelBrowser::setAccentColor(const QColor &color)
     modelList->viewport()->update();
 }
 
+void EffectModelBrowser::setCategoriesCollapsible(bool enabled)
+{
+    if (categoriesCollapsible == enabled)
+        return;
+    categoriesCollapsible = enabled;
+    for (QListWidgetItem *category : modelCategoryItems) {
+        if (!category)
+            continue;
+        category->setData(CollapsibleRole, enabled);
+        setCategoryExpanded(category, !enabled);
+    }
+    modelList->viewport()->update();
+}
+
 QColor EffectModelBrowser::accentColor() const
 {
     return browserAccent;
@@ -254,13 +299,70 @@ int EffectModelBrowser::modelCount() const
     return modelItems.size();
 }
 
+bool EffectModelBrowser::eventFilter(QObject *watched, QEvent *event)
+{
+    if (watched != modelList || event->type() != QEvent::KeyPress)
+        return QWidget::eventFilter(watched, event);
+
+    QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+    const int key = keyEvent->key();
+    if (key == Qt::Key_Return || key == Qt::Key_Enter
+        || key == Qt::Key_Space) {
+        QListWidgetItem *current = modelList->currentItem();
+        if (current)
+            itemClicked(current);
+        return current != nullptr;
+    }
+
+    if (key != Qt::Key_Up && key != Qt::Key_Down)
+        return QWidget::eventFilter(watched, event);
+
+    const int direction = key == Qt::Key_Down ? 1 : -1;
+    int row = modelList->currentRow();
+    if (row < 0)
+        row = direction > 0 ? -1 : modelList->count();
+    for (row += direction;
+         row >= 0 && row < modelList->count(); row += direction) {
+        QListWidgetItem *candidate = modelList->item(row);
+        if (!candidate->isHidden()
+            && candidate->flags().testFlag(Qt::ItemIsSelectable)) {
+            modelList->setCurrentItem(candidate);
+            modelList->scrollToItem(
+                candidate, QAbstractItemView::EnsureVisible);
+            return true;
+        }
+    }
+    return true;
+}
+
 void EffectModelBrowser::itemClicked(QListWidgetItem *item)
 {
     if (!item)
         return;
 
+    if (item->data(CategoryRole).toBool()) {
+        if (categoriesCollapsible) {
+            setCategoryExpanded(
+                item, !item->data(ExpandedRole).toBool());
+        }
+        return;
+    }
+
     bool validIndex = false;
     const int index = item->data(ModelIndexRole).toInt(&validIndex);
     if (validIndex)
         emit modelSelected(index);
+}
+
+void EffectModelBrowser::setCategoryExpanded(QListWidgetItem *category,
+                                               bool expanded)
+{
+    if (!category)
+        return;
+    category->setData(ExpandedRole, expanded);
+    for (int index = 0; index < modelItems.size(); ++index) {
+        if (modelCategoryItems.value(index) == category)
+            modelItems.at(index)->setHidden(!expanded);
+    }
+    modelList->viewport()->update();
 }

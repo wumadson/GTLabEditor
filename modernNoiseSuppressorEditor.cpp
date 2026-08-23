@@ -131,6 +131,7 @@ void ModernNoiseSuppressorEditor::buildEditor()
     parameterLayout->addStretch(1);
 
     ParameterCombo *detectControl = new ParameterCombo("Detect");
+    detectControl->setLabelVisible(false);
     detectCombo = detectControl->comboBox();
     const Midi detectMap = midiTable->getMidiMap(
         kStructure, kBank, kMiddleByte, addressForOffset(3));
@@ -140,15 +141,12 @@ void ModernNoiseSuppressorEditor::buildEditor()
         bool rawOk = false;
         const int raw = entry.value.toInt(&rawOk, 16);
         if (rawOk)
-            detectCombo->addItem(enumLabel(entry), raw);
+            detectCombo->addItem(enumLabel(entry).toUpper(), raw);
     }
     QWidget *detectionPanel = new QWidget;
     QVBoxLayout *detectionLayout = new QVBoxLayout(detectionPanel);
     detectionLayout->setContentsMargins(0, 0, 0, 0);
     detectionLayout->setSpacing(8);
-    QLabel *detectTitle = new QLabel("DETECT");
-    detectTitle->setObjectName("ParameterSectionTitle");
-    detectionLayout->addWidget(detectTitle);
     detectionLayout->addWidget(detectControl);
     detectionLayout->addStretch(1);
     editor->setRightPanelWidget(detectionPanel);

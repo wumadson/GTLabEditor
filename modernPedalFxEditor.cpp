@@ -11,8 +11,10 @@
 #include <QAbstractButton>
 #include <QComboBox>
 #include <QFrame>
+#include <QGridLayout>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QResizeEvent>
 #include <QSignalBlocker>
 #include <QStackedWidget>
 #include <QVBoxLayout>
@@ -41,6 +43,66 @@ QLabel *sectionTitle(const QString &text)
     label->setObjectName("ParameterSectionTitle");
     return label;
 }
+
+class ResponsivePedalControlRow final : public QWidget
+{
+public:
+    explicit ResponsivePedalControlRow(QWidget *parent = nullptr)
+        : QWidget(parent), columns(0)
+    {
+        setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+        grid = new QGridLayout(this);
+        grid->setContentsMargins(0, 0, 0, 0);
+        grid->setHorizontalSpacing(10);
+        grid->setVerticalSpacing(8);
+    }
+
+    void addControl(QWidget *control)
+    {
+        controls.append(control);
+        updateLayout();
+    }
+
+protected:
+    void resizeEvent(QResizeEvent *event) override
+    {
+        QWidget::resizeEvent(event);
+        updateLayout();
+    }
+
+private:
+    void updateLayout()
+    {
+        constexpr int breakpoint = 470;
+        constexpr int hysteresis = 8;
+        int nextColumns = columns;
+        if (nextColumns == 0)
+            nextColumns = width() >= breakpoint ? 3 : 2;
+        else if (nextColumns == 3 && width() < breakpoint - hysteresis)
+            nextColumns = 2;
+        else if (nextColumns == 2 && width() > breakpoint + hysteresis)
+            nextColumns = 3;
+        if (nextColumns == columns && grid->count() == controls.size())
+            return;
+
+        columns = nextColumns;
+        while (grid->count() > 0)
+            delete grid->takeAt(0);
+        for (int index = 0; index < controls.size(); ++index) {
+            const int row = columns == 3 ? 0 : index / 2;
+            const int column = columns == 3 ? index : index % 2;
+            grid->addWidget(controls.at(index), row, column,
+                            Qt::AlignLeft | Qt::AlignTop);
+        }
+        for (int column = 0; column < 3; ++column)
+            grid->setColumnStretch(column, column < columns ? 1 : 0);
+        updateGeometry();
+    }
+
+    QGridLayout *grid;
+    QVector<QWidget *> controls;
+    int columns;
+};
 }
 
 ModernPedalFxEditor::ModernPedalFxEditor(QObject *parent)
@@ -120,13 +182,11 @@ void ModernPedalFxEditor::buildEditor()
     layout->addWidget(stateRow);
 
     layout->addWidget(sectionTitle("CONTROL"));
-    QWidget *controlColumns = new QWidget;
-    QHBoxLayout *controlLayout = new QHBoxLayout(controlColumns);
-    controlLayout->setContentsMargins(0, 0, 0, 0);
-    controlLayout->setSpacing(10);
-    controlLayout->addWidget(createCombo("EXP Switch Function", "46"));
-    controlLayout->addWidget(createCombo("CTL1 Function", "47"));
-    controlLayout->addWidget(createCombo("CTL2 Function", "48"));
+    ResponsivePedalControlRow *controlColumns =
+        new ResponsivePedalControlRow;
+    controlColumns->addControl(createCombo("EXP Switch Function", "46"));
+    controlColumns->addControl(createCombo("CTL1 Function", "47"));
+    controlColumns->addControl(createCombo("CTL2 Function", "48"));
     layout->addWidget(controlColumns);
 
     modeStack = new QStackedWidget;

@@ -9,6 +9,7 @@
 #include <QList>
 #include <QLineF>
 #include <QPoint>
+#include <QPointer>
 #include <QPushButton>
 #include <QRect>
 
@@ -28,6 +29,9 @@ class QVariantAnimation;
 class AudioGearKnob;
 class AudioGearSwitch;
 class ModernToggleSwitch;
+
+QWidget *createParameterScrollContent(QWidget *content,
+                                      QWidget *parent = nullptr);
 
 class ResponsiveSectionArea : public QWidget
 {
@@ -123,10 +127,13 @@ class ParameterCombo : public QWidget
 public:
     ParameterCombo(const QString &label, QWidget *parent = nullptr);
     QComboBox *comboBox() const;
+    void setLabelVisible(bool visible);
     QSize sizeHint() const override;
     QSize minimumSizeHint() const override;
 private:
+    QLabel *title;
     QComboBox *combo;
+    bool labelVisible;
 };
 
 class ParameterToggle : public QWidget
@@ -246,7 +253,7 @@ public:
     void setDragLeaveHandler(const DragLeaveHandler &handler);
     void setDragFeedback(const QRect &regionRect, const QLineF &insertionLine,
                          bool valid);
-    void setParallelCableGeometry(const QRect &parallelRect,
+    void setParallelCableGeometry(QWidget *split, QWidget *merge,
                                   qreal pathAY, qreal pathBY);
     void clearDragFeedback();
 protected:
@@ -262,7 +269,8 @@ private:
     QLineF dragInsertionLine;
     bool dragFeedbackActive = false;
     bool dragFeedbackValid = false;
-    QRect parallelCableRect;
+    QPointer<QWidget> parallelSplitAnchor;
+    QPointer<QWidget> parallelMergeAnchor;
     qreal parallelPathAY = -1.0;
     qreal parallelPathBY = -1.0;
 };

@@ -21,6 +21,7 @@
 #include <QDebug>
 #include <QDial>
 #include <QFrame>
+#include <QFontMetrics>
 #include <QGridLayout>
 #include <QHash>
 #include <QHBoxLayout>
@@ -39,12 +40,66 @@
 #include <QSignalBlocker>
 #include <QSet>
 #include <QStackedWidget>
+#include <QStringList>
 #include <QVBoxLayout>
 #include "globalVariables.h"
 
 #include <algorithm>
 
 namespace {
+class GtLabBrandWidget final : public QWidget
+{
+public:
+    explicit GtLabBrandWidget(QWidget *parent = nullptr)
+        : QWidget(parent)
+    {
+        setFixedSize(132, 25);
+        setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    }
+
+protected:
+    void paintEvent(QPaintEvent *) override
+    {
+        QPainter painter(this);
+        painter.setRenderHint(QPainter::Antialiasing, true);
+        painter.setRenderHint(QPainter::TextAntialiasing, true);
+
+        QFont brandFont = font();
+        brandFont.setPixelSize(20);
+        brandFont.setWeight(QFont::DemiBold);
+        brandFont.setLetterSpacing(QFont::AbsoluteSpacing, 0.2);
+
+        QFont editorFont = font();
+        editorFont.setPixelSize(19);
+        editorFont.setWeight(QFont::Normal);
+
+        const QFontMetricsF brandMetrics(brandFont);
+        const qreal baseline = (height() - brandMetrics.height()) / 2.0
+            + brandMetrics.ascent();
+        const qreal editorX = brandMetrics.horizontalAdvance("GT Lab") + 7.0;
+
+        QPainterPath brandPath;
+        brandPath.addText(QPointF(0.5, baseline), brandFont, "GT Lab");
+        QLinearGradient steel(0.0, brandPath.boundingRect().top(),
+                              0.0, brandPath.boundingRect().bottom());
+        steel.setColorAt(0.00, QColor("#87929C"));
+        steel.setColorAt(0.32, QColor("#E8EDF1"));
+        steel.setColorAt(0.58, QColor("#B8C1C9"));
+        steel.setColorAt(1.00, QColor("#75818B"));
+        painter.fillPath(brandPath, steel);
+
+        painter.setPen(QPen(QColor(55, 159, 218, 145), 1.0,
+                            Qt::SolidLine, Qt::RoundCap));
+        const qreal accentY = qMin<qreal>(height() - 1.5, baseline + 3.0);
+        painter.drawLine(QPointF(1.0, accentY),
+                         QPointF(editorX - 9.0, accentY));
+
+        painter.setFont(editorFont);
+        painter.setPen(QColor("#9AA5AF"));
+        painter.drawText(QPointF(editorX, baseline), "Editor");
+    }
+};
+
 class OutputSelectIconEngine final : public QIconEngine
 {
 public:
@@ -182,8 +237,18 @@ public:
         : QComboBox(parent)
     {
         setFrame(false);
+        setMinimumWidth(142);
+        setMaximumWidth(184);
+        setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
         setAttribute(Qt::WA_MacShowFocusRect, false);
         setAttribute(Qt::WA_TranslucentBackground, true);
+    }
+
+    QSize sizeHint() const override
+    {
+        QSize hint = QComboBox::sizeHint();
+        hint.setWidth(168);
+        return hint;
     }
 
 protected:
@@ -232,9 +297,11 @@ protected:
         const int textLeft = icon.isNull() ? 1 : 25;
         const QRect textRect(textLeft, 0,
                              qMax(0, width() - textLeft - 22), height() - 2);
+        const QString visibleText = QFontMetrics(valueFont).elidedText(
+            currentText(), Qt::ElideRight, textRect.width());
         painter.drawText(textRect,
                          Qt::AlignVCenter | Qt::AlignLeft,
-                         currentText());
+                         visibleText);
 
         const qreal arrowX = width() - 10.0;
         const qreal arrowY = height() / 2.0 + 0.5;
@@ -536,7 +603,7 @@ protected:
         const int mode = property("routingMode").toInt();
         const int channel = property("routingChannel").toInt();
         const bool valid = mode >= 0 && mode <= 3;
-        const QRectF area = rect().adjusted(20, 20, -20, -34);
+        const QRectF area = rect().adjusted(20, 20, -20, -20);
         const qreal nodeX = area.left() + area.width() * 0.38;
         const qreal endX = area.right() - 18;
         const qreal centerY = area.center().y();
@@ -579,17 +646,14 @@ protected:
         painter.drawText(QRectF(endX - 8, pathBY + 5, 34, 20),
                          Qt::AlignCenter, "B");
 
-        painter.setPen(QColor(ModernTheme::color(
-            ModernTheme::SecondaryText)));
-        painter.setFont(QFont("Helvetica Neue", 9, QFont::DemiBold));
-        painter.drawText(QRectF(area.left(), area.bottom() + 10,
-                                area.width(), 18),
-                         Qt::AlignCenter,
-                         !valid ? "NO PATCH DATA"
-                         : mode == 0 ? "SINGLE"
-                         : mode == 1 ? "DUAL MONO"
-                         : mode == 2 ? "DUAL L/R"
-                                     : "DYNAMIC");
+        if (!valid) {
+            painter.setPen(QColor(ModernTheme::color(
+                ModernTheme::SecondaryText)));
+            painter.setFont(QFont("Helvetica Neue", 9, QFont::DemiBold));
+            painter.drawText(QRectF(area.left(), area.bottom() + 10,
+                                    area.width(), 18),
+                             Qt::AlignCenter, "NO PATCH DATA");
+        }
     }
 };
 }
@@ -616,8 +680,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
 
     QVBoxLayout *brandLayout = new QVBoxLayout;
 
-    QLabel *title = new QLabel("GT LAB Editor");
-    title->setObjectName("BrandTitle");
+    GtLabBrandWidget *title = new GtLabBrandWidget;
 
     QLabel *subtitle = new QLabel("BOSS GT-10");
     subtitle->setObjectName("BrandSubtitle");
@@ -650,7 +713,6 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     outputSelectCaption->setObjectName("OutputSelectCaption");
     outputSelectCombo = new OutputSelectComboBox;
     outputSelectCombo->setObjectName("OutputSelectCombo");
-    outputSelectCombo->setFixedWidth(168);
     outputSelectCombo->setMinimumHeight(27);
     outputSelectCombo->setIconSize(QSize(18, 18));
 
@@ -890,6 +952,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     oddsModelBrowser = new EffectModelBrowser;
     oddsModelBrowser->setAccentColor(QColor(
         ModernTheme::activeEffectAccent("OD/DS")));
+    oddsModelBrowser->setCategoriesCollapsible(true);
     oddsEditor->setModelBrowserWidget(oddsModelBrowser);
     connect(oddsModelBrowser, &EffectModelBrowser::modelSelected,
             this, &modernFloorBoard::oddsModelSelected);
@@ -1206,14 +1269,14 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     eqTitle->setObjectName("EditorTitle");
     eqTitle->setStyleSheet(QString("color:%1;").arg(
         ModernTheme::activeEffectAccent("EQ")));
-    eqHeaderLayout->addWidget(eqTitle);
-    eqHeaderLayout->addStretch(1);
     EffectToggleControl *eqToggle = new EffectToggleControl("State");
     eqOnOff = eqToggle->toggle();
     eqOnOff->setAccentColor(QColor(
         ModernTheme::activeEffectAccent("EQ")));
     connect(eqOnOff, SIGNAL(clicked()), this, SLOT(toggleEq()));
     eqHeaderLayout->addWidget(eqToggle, 0, Qt::AlignTop);
+    eqHeaderLayout->addStretch(1);
+    eqHeaderLayout->addWidget(eqTitle);
     eqLayout->addWidget(eqHeader);
 
     eqGraph = new ModernEqGraph;
@@ -1266,7 +1329,8 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     eqControlsScroll->setFrameShape(QFrame::NoFrame);
     eqControlsScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     eqControlsScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    eqControlsScroll->setWidget(eqControlsContent);
+    eqControlsScroll->setWidget(
+        createParameterScrollContent(eqControlsContent));
     eqLayout->addWidget(eqControlsScroll, 1);
     effectEditorStack->addWidget(eqEditor);
 
@@ -1609,10 +1673,6 @@ QWidget *modernFloorBoard::createChannelRoutingEditor()
     QVBoxLayout *parameterPaneLayout = new QVBoxLayout(parameterPane);
     parameterPaneLayout->setContentsMargins(10, 10, 10, 10);
     parameterPaneLayout->setSpacing(6);
-    QLabel *parameterTitle = new QLabel("CHANNEL ROUTING");
-    parameterTitle->setObjectName("WorkspaceColumnTitle");
-    parameterPaneLayout->addWidget(parameterTitle);
-
     QWidget *parameters = new QWidget;
     parameters->setObjectName("EffectParameterArea");
     QVBoxLayout *layout = new QVBoxLayout(parameters);
@@ -1624,7 +1684,7 @@ QWidget *modernFloorBoard::createChannelRoutingEditor()
     scroll->setFrameShape(QFrame::NoFrame);
     scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    scroll->setWidget(parameters);
+    scroll->setWidget(createParameterScrollContent(parameters));
     parameterPaneLayout->addWidget(scroll, 1);
 
     ParameterCombo *modeControl = new ParameterCombo("Mode");
@@ -1637,7 +1697,45 @@ QWidget *modernFloorBoard::createChannelRoutingEditor()
     }
     connect(channelMode, SIGNAL(currentIndexChanged(int)),
             this, SLOT(channelModeChanged(int)));
-    layout->addWidget(modeControl);
+    modeControl->hide();
+
+    QLabel *modeLabel = new QLabel("CHANNEL MODE");
+    modeLabel->setObjectName("ParameterLabel");
+    layout->addWidget(modeLabel);
+    QWidget *modeSelector = new QWidget;
+    QHBoxLayout *modeSelectorLayout = new QHBoxLayout(modeSelector);
+    modeSelectorLayout->setContentsMargins(0, 0, 0, 0);
+    modeSelectorLayout->setSpacing(1);
+    const QString modeSelectorStyle = QString(
+        "QPushButton{background:%1;color:%2;border:1px solid %3;"
+        "border-radius:4px;font-size:10px;font-weight:600;padding:0 8px;}"
+        "QPushButton:hover{border-color:%4;color:%5;}"
+        "QPushButton:checked{background:%6;color:%5;border-color:%4;}"
+        "QPushButton:disabled{color:%7;border-color:%3;}")
+        .arg(ModernTheme::color(ModernTheme::ControlBackground),
+             ModernTheme::color(ModernTheme::SecondaryText),
+             ModernTheme::color(ModernTheme::BorderSubtle),
+             ModernTheme::color(ModernTheme::AccentCyan),
+             ModernTheme::color(ModernTheme::PrimaryText),
+             ModernTheme::color(ModernTheme::ElevatedPanel),
+             ModernTheme::color(ModernTheme::DisabledText));
+    QButtonGroup *modeGroup = new QButtonGroup(modeSelector);
+    modeGroup->setExclusive(true);
+    const QStringList modeNames = {
+        "SINGLE", "DUAL MONO", "DUAL L/R", "DYNAMIC"
+    };
+    for (int raw = 0; raw < modeNames.size(); ++raw) {
+        QPushButton *button = new QPushButton(modeNames.at(raw));
+        button->setCheckable(true);
+        button->setMinimumHeight(32);
+        button->setStyleSheet(modeSelectorStyle);
+        modeGroup->addButton(button, raw);
+        connect(button, &QPushButton::clicked,
+                this, [this, raw]() { setChannelMode(raw); });
+        modeSelectorLayout->addWidget(button, 1);
+        channelModeButtons.append(button);
+    }
+    layout->addWidget(modeSelector);
 
     channelRoutingStack = new QStackedWidget;
 
@@ -1645,9 +1743,6 @@ QWidget *modernFloorBoard::createChannelRoutingEditor()
     QVBoxLayout *singleLayout = new QVBoxLayout(singlePage);
     singleLayout->setContentsMargins(0, 0, 0, 0);
     singleLayout->setSpacing(9);
-    QLabel *singleTitle = new QLabel("SINGLE");
-    singleTitle->setObjectName("ParameterSectionTitle");
-    singleLayout->addWidget(singleTitle);
     QLabel *channelLabel = new QLabel("CHANNEL");
     channelLabel->setObjectName("ParameterLabel");
     singleLayout->addWidget(channelLabel);
@@ -1693,9 +1788,6 @@ QWidget *modernFloorBoard::createChannelRoutingEditor()
     QVBoxLayout *dualLayout = new QVBoxLayout(dualPage);
     dualLayout->setContentsMargins(0, 0, 0, 0);
     dualLayout->setSpacing(9);
-    QLabel *dualTitle = new QLabel("DUAL");
-    dualTitle->setObjectName("ParameterSectionTitle");
-    dualLayout->addWidget(dualTitle);
     channelDelay = new ParameterBar("Channel Delay");
     channelDelay->setRange(0, 100);
     channelDelay->setProperty("channelRoutingAddress", "03");
@@ -1711,10 +1803,7 @@ QWidget *modernFloorBoard::createChannelRoutingEditor()
     QVBoxLayout *dynamicLayout = new QVBoxLayout(dynamicPage);
     dynamicLayout->setContentsMargins(0, 0, 0, 0);
     dynamicLayout->setSpacing(9);
-    QLabel *dynamicTitle = new QLabel("DYNAMIC");
-    dynamicTitle->setObjectName("ParameterSectionTitle");
-    dynamicLayout->addWidget(dynamicTitle);
-    dynamicSense = new ParameterBar("Sensitivity");
+    dynamicSense = new ParameterBar("Dynamic Sense");
     dynamicSense->setRange(0, 100);
     dynamicSense->setProperty("channelRoutingAddress", "04");
     dynamicSense->setAccentColor(QColor(
@@ -1842,11 +1931,14 @@ QWidget *modernFloorBoard::createOddsCombo(const QString &label,
 
     const Midi parameter = MidiTable::Instance()->getMidiMap(
         "Structure", "00", "00", address);
-    QStringList labels;
+    QStringList browserLabels;
     for (const Midi &item : parameter.level) {
         const QString text = item.desc.isEmpty() ? item.name : item.desc;
         combo->addItem(text);
-        labels.append(text);
+        bool rawOk = false;
+        const int raw = item.value.toInt(&rawOk, 16);
+        browserLabels.append(address == "71" && rawOk && raw == 0x19
+            ? QString("(CUSTOM) %1").arg(text) : text);
     }
 
     connect(combo, SIGNAL(currentIndexChanged(int)),
@@ -1854,7 +1946,7 @@ QWidget *modernFloorBoard::createOddsCombo(const QString &label,
     if (address == "71") {
         oddsType = combo;
         if (oddsModelBrowser)
-            oddsModelBrowser->setModels(labels);
+            oddsModelBrowser->setModels(browserLabels);
     } else if (address == "79") {
         oddsCustomType = combo;
     }
@@ -2263,6 +2355,7 @@ void modernFloorBoard::refreshOutputSelectHeader()
     const QSignalBlocker blocker(outputSelectCombo);
     outputSelectCombo->setEnabled(false);
     outputSelectCombo->setCurrentIndex(0);
+    outputSelectCombo->setToolTip(QString());
 
     SysxIO *sysxIO = SysxIO::Instance();
     if (!backendIsConnected || !sysxIO->isConnected()
@@ -2288,8 +2381,9 @@ void modernFloorBoard::refreshOutputSelectHeader()
         return;
 
     outputSelectCombo->setCurrentIndex(comboIndex);
-    outputSelectCombo->setToolTip(
-        patchScope ? "Patch Output Select" : "System Output Select");
+    outputSelectCombo->setToolTip(QString("%1\n%2")
+        .arg(patchScope ? "Patch Output Select" : "System Output Select",
+             outputSelectCombo->currentText()));
     outputSelectCombo->setEnabled(true);
 }
 
@@ -2635,15 +2729,46 @@ void modernFloorBoard::refreshSignalChainModel()
 {
     if (signalChainTransactionActive)
         return;
+
+    const bool wasValid = signalChainModel.isValid();
+    const modernSignalChainModel::ChainSnapshot previousSnapshot =
+        signalChainModel.snapshot();
+
+    const auto structuralSignature = [](
+        const modernSignalChainModel::ChainSnapshot &snapshot) {
+        QStringList signature;
+        const auto appendRegion = [&signature](
+            const QList<modernSignalChainModel::Entry> &entries,
+            const QString &separator) {
+            signature.append(separator);
+            for (const modernSignalChainModel::Entry &entry : entries)
+                signature.append(entry.rawValue.toUpper());
+        };
+        appendRegion(snapshot.commonPrefix, "PREFIX");
+        signature.append("SPLIT:" + snapshot.split.rawValue.toUpper());
+        appendRegion(snapshot.pathA, "PATH-A");
+        appendRegion(snapshot.pathB, "PATH-B");
+        signature.append("MERGE:" + snapshot.merge.rawValue.toUpper());
+        appendRegion(snapshot.commonSuffix, "SUFFIX");
+        return signature;
+    };
+
     if (!backendIsConnected || !backendHasPatchData) {
         signalChainModel.clear();
-        rebuildSignalChainView();
+        if (wasValid || !signalChainContent)
+            rebuildSignalChainView();
         return;
     }
 
     signalChainModel.refreshFromLegacyBackend();
     signalChainModel.logInterpretedChain();
-    rebuildSignalChainView();
+    const bool isValid = signalChainModel.isValid();
+    const bool structureChanged = wasValid != isValid
+        || (wasValid && isValid
+            && structuralSignature(previousSnapshot)
+                != structuralSignature(signalChainModel.snapshot()));
+    if (structureChanged || !signalChainContent)
+        rebuildSignalChainView();
 }
 
 SignalChainModule *modernFloorBoard::createSignalChainModule(
@@ -2685,7 +2810,6 @@ SignalChainModule *modernFloorBoard::createSignalChainModule(
                          || isNs1 || isNs2 || isSendReturn);
     module->setMovable(entry.movable && !signalChainTransactionActive,
                        entry.moduleId);
-    module->setPending(entry.moduleId == pendingSignalChainModuleId);
     module->setProperty("chainPosition", entry.originalPosition);
     module->setProperty("rawValue", entry.rawValue);
     module->setProperty("signalPath", entry.path);
@@ -2828,7 +2952,10 @@ void modernFloorBoard::rebuildSignalChainView()
         SignalConnector *outputConnector = new SignalConnector(SignalConnector::Output);
         signalChainConnectors.append(outputConnector);
         signalFlowLayout->addWidget(outputConnector, 0, Qt::AlignVCenter);
+        signalChainScroll->setUpdatesEnabled(false);
         signalChainScroll->setWidget(content);
+        signalChainScroll->setUpdatesEnabled(true);
+        signalChainScroll->viewport()->update();
         return;
     }
 
@@ -2902,8 +3029,47 @@ void modernFloorBoard::rebuildSignalChainView()
     signalChainConnectors.append(outputConnector);
     signalFlowLayout->addWidget(outputConnector, 0, Qt::AlignVCenter);
 
+    // The 18 structure bytes carry topology only. Recreated cards must read
+    // their presentation state from the existing parameter backends before
+    // the new view becomes visible.
+    refreshSignalChainPresentation();
+
+    // Installing a freshly-created chain at its constructor defaults (96x78)
+    // and compacting it on the next event-loop pass exposed an intermediate
+    // geometry for one or more frames. Keep the scroll area frozen until the
+    // responsive geometry has been applied synchronously.
+    signalChainScroll->setUpdatesEnabled(false);
     signalChainScroll->setWidget(content);
-    QTimer::singleShot(0, this, [this]() { applyResponsiveSignalChainLayout(); });
+    applyResponsiveSignalChainLayout();
+    signalChainScroll->setUpdatesEnabled(true);
+    signalChainScroll->viewport()->update();
+}
+
+void modernFloorBoard::refreshSignalChainPresentation()
+{
+    if (!backendIsConnected || !backendHasPatchData)
+        return;
+
+    if (reverbCard) {
+        if (hasValidReverbBuffer()) {
+            const bool on = SysxIO::Instance()->getSourceValue(
+                "Structure", "0A", "00", "30") == 1;
+            reverbCard->setEffectState(true, on);
+        } else {
+            reverbCard->setEffectState(false, false);
+        }
+    }
+    refreshCompState();
+    refreshOddsState();
+    refreshDelayState();
+    refreshChorus();
+    refreshEq();
+    refreshPreampGlobalState();
+    refreshFx(FxSlot::FX1);
+    refreshFx(FxSlot::FX2);
+    refreshPedalFx();
+    refreshNoiseSuppressors();
+    refreshSendReturn();
 }
 
 modernSignalChainModel::ChainDestination
@@ -3258,32 +3424,34 @@ void modernFloorBoard::applyResponsiveSignalChainLayout()
     if (signalPathsLayout && signalParallelPaths) {
         const QRect rowA = signalPathsLayout->cellRect(0, 0);
         const QRect rowB = signalPathsLayout->cellRect(1, 0);
-        if (rowA.isValid() && rowB.isValid()) {
+        if (rowA.isValid() && rowB.isValid())
             pathOffset = qAbs(rowB.center().y() - rowA.center().y()) / 2.0;
-            SignalJunction *mergeJunction = signalChainJunctions.size() > 1
-                ? signalChainJunctions.at(1) : nullptr;
-            if (signalChainContent && splitJunction && mergeJunction) {
-                const QPoint panelOrigin = signalParallelPaths->mapTo(
-                    signalChainContent, QPoint(0, 0));
-                const QPoint splitCenter = splitJunction->mapTo(
-                    signalChainContent, splitJunction->rect().center());
-                const QPoint mergeCenter = mergeJunction->mapTo(
-                    signalChainContent, mergeJunction->rect().center());
-                const qreal pathAY = panelOrigin.y() + rowA.center().y();
-                const qreal pathBY = panelOrigin.y() + rowB.center().y();
-                const QRect topologyRect(
-                    QPoint(splitCenter.x(), qRound(pathAY)),
-                    QPoint(mergeCenter.x(), qRound(pathBY)));
-                signalChainContent->setParallelCableGeometry(
-                    topologyRect, pathAY, pathBY);
-            }
-        }
     }
     for (SignalJunction *junction : signalChainJunctions)
         junction->setChainGeometry(viewportHeight, pathOffset);
 
     signalFlowLayout->invalidate();
     signalFlowLayout->activate();
+    if (signalPathsLayout)
+        signalPathsLayout->activate();
+
+    // Register the live junction widgets after their geometry is established.
+    // SignalChainContent maps their centers into paint coordinates on demand.
+    SignalJunction *mergeJunction = signalChainJunctions.size() > 1
+        ? signalChainJunctions.at(1) : nullptr;
+    if (signalPathsLayout && signalParallelPaths && signalChainContent
+        && splitJunction && mergeJunction) {
+        const QRect rowA = signalPathsLayout->cellRect(0, 0);
+        const QRect rowB = signalPathsLayout->cellRect(1, 0);
+        if (rowA.isValid() && rowB.isValid()) {
+            const QPoint panelOrigin = signalParallelPaths->mapTo(
+                signalChainContent, QPoint(0, 0));
+            const qreal pathAY = panelOrigin.y() + rowA.center().y();
+            const qreal pathBY = panelOrigin.y() + rowB.center().y();
+            signalChainContent->setParallelCableGeometry(
+                splitJunction, mergeJunction, pathAY, pathBY);
+        }
+    }
     signalChainScroll->verticalScrollBar()->setValue(0);
 
 #ifndef QT_NO_DEBUG
@@ -4060,6 +4228,8 @@ void modernFloorBoard::updateChannelRoutingControls(bool available)
 {
     if (channelMode)
         channelMode->setEnabled(available);
+    for (QPushButton *button : channelModeButtons)
+        button->setEnabled(available);
     if (channelAButton)
         channelAButton->setEnabled(available);
     if (channelBButton)
@@ -4074,6 +4244,10 @@ void modernFloorBoard::updateChannelRoutingControls(bool available)
     if (channelMode) {
         const QSignalBlocker blocker(channelMode);
         channelMode->setCurrentIndex(-1);
+    }
+    for (QPushButton *button : channelModeButtons) {
+        const QSignalBlocker blocker(button);
+        button->setChecked(false);
     }
     if (channelAButton) {
         const QSignalBlocker blocker(channelAButton);
@@ -4116,6 +4290,10 @@ void modernFloorBoard::refreshChannelRouting()
     if (channelMode) {
         const QSignalBlocker blocker(channelMode);
         channelMode->setCurrentIndex(mode);
+    }
+    for (int raw = 0; raw < channelModeButtons.size(); ++raw) {
+        const QSignalBlocker blocker(channelModeButtons.at(raw));
+        channelModeButtons.at(raw)->setChecked(raw == mode);
     }
     if (channelAButton) {
         const QSignalBlocker blocker(channelAButton);
@@ -4160,6 +4338,10 @@ void modernFloorBoard::setChannelMode(int index)
     {
         const QSignalBlocker blocker(channelMode);
         channelMode->setCurrentIndex(index);
+    }
+    for (int raw = 0; raw < channelModeButtons.size(); ++raw) {
+        const QSignalBlocker blocker(channelModeButtons.at(raw));
+        channelModeButtons.at(raw)->setChecked(raw == index);
     }
     // The GT-10 raw value is the UI index. midi.xml contains duplicated
     // value attributes for these labels, so Midi.value is intentionally

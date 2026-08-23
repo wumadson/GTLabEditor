@@ -2,6 +2,7 @@
 #include "modernTheme.h"
 
 #include <QApplication>
+#include <QAbstractItemView>
 #include <QDrag>
 #include <QDragEnterEvent>
 #include <QDragMoveEvent>
@@ -10,11 +11,14 @@
 #include <QMimeData>
 #include <QMouseEvent>
 #include <QComboBox>
+#include <QFontMetrics>
 #include <QGridLayout>
 #include <QPainter>
 #include <QPainterPath>
 #include <QResizeEvent>
 #include <QScrollArea>
+#include <QStyleOptionComboBox>
+#include <QStylePainter>
 #include <QSizePolicy>
 #include <QStringList>
 #include <QVariantAnimation>
@@ -23,6 +27,70 @@
 
 namespace {
 const qreal kPi = 3.14159265358979323846;
+
+class CompactComboBox final : public QComboBox
+{
+public:
+    explicit CompactComboBox(QWidget *parent = nullptr)
+        : QComboBox(parent)
+    {
+        connect(this, &QComboBox::currentTextChanged,
+                this, [this]() { updateTextTooltip(); });
+    }
+
+    void showPopup() override
+    {
+        int popupWidth = width();
+        const QFontMetrics metrics(view()->font());
+        for (int index = 0; index < count(); ++index)
+            popupWidth = qMax(popupWidth,
+                              metrics.horizontalAdvance(itemText(index)) + 36);
+        view()->setMinimumWidth(popupWidth);
+        QComboBox::showPopup();
+    }
+
+protected:
+    void paintEvent(QPaintEvent *) override
+    {
+        QStyleOptionComboBox option;
+        initStyleOption(&option);
+
+        QStylePainter painter(this);
+        painter.drawComplexControl(QStyle::CC_ComboBox, option);
+
+        const QRect textRect = style()->subControlRect(
+            QStyle::CC_ComboBox, &option,
+            QStyle::SC_ComboBoxEditField, this);
+        const QString fullText = option.currentText;
+        option.currentText = fontMetrics().elidedText(
+            fullText, Qt::ElideRight, qMax(0, textRect.width() - 4));
+        painter.drawControl(QStyle::CE_ComboBoxLabel, option);
+
+        const QString desiredTooltip = option.currentText == fullText
+            ? QString() : fullText;
+        if (toolTip() != desiredTooltip)
+            setToolTip(desiredTooltip);
+    }
+
+    void resizeEvent(QResizeEvent *event) override
+    {
+        QComboBox::resizeEvent(event);
+        updateTextTooltip();
+    }
+
+private:
+    void updateTextTooltip()
+    {
+        QStyleOptionComboBox option;
+        initStyleOption(&option);
+        const QRect textRect = style()->subControlRect(
+            QStyle::CC_ComboBox, &option,
+            QStyle::SC_ComboBoxEditField, this);
+        const QString elided = fontMetrics().elidedText(
+            currentText(), Qt::ElideRight, qMax(0, textRect.width() - 4));
+        setToolTip(elided == currentText() ? QString() : currentText());
+    }
+};
 
 void drawScrew(QPainter &p, const QPointF &c)
 {
@@ -35,6 +103,18 @@ void drawScrew(QPainter &p, const QPointF &c)
     p.setPen(QPen(QColor("#242A30"), 1.4));
     p.drawLine(c - QPointF(2.5, 0), c + QPointF(2.5, 0));
 }
+
+}
+
+QWidget *createParameterScrollContent(QWidget *content, QWidget *parent)
+{
+    QWidget *wrapper = new QWidget(parent);
+    wrapper->setObjectName("EffectParameterScrollContent");
+    QHBoxLayout *layout = new QHBoxLayout(wrapper);
+    layout->setContentsMargins(0, 0, 12, 0);
+    layout->setSpacing(0);
+    layout->addWidget(content);
+    return wrapper;
 }
 
 EffectEditorPanel::EffectEditorPanel(const QString &effectName, QWidget *parent)
@@ -84,7 +164,7 @@ EffectEditorPanel::EffectEditorPanel(const QString &effectName, QWidget *parent)
     parameterScroll->setFrameShape(QFrame::NoFrame);
     parameterScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     parameterScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    parameterScroll->setWidget(parameters);
+    parameterScroll->setWidget(createParameterScrollContent(parameters));
     parameterPaneLayout->addWidget(parameterScroll, 1);
 
     QFrame *modelPane = new QFrame;
@@ -458,25 +538,36 @@ QSize ParameterKnob::sizeHint() const { return QSize(124, 136); }
 QSize ParameterKnob::minimumSizeHint() const { return QSize(108, 130); }
 
 ParameterCombo::ParameterCombo(const QString &label, QWidget *parent)
-    : QWidget(parent)
+    : QWidget(parent), title(new QLabel(label.toUpper())),
+      labelVisible(true)
 {
     setObjectName("ParameterCombo");
-    setMinimumSize(150, 64);
-    setMaximumWidth(240);
+    setMinimumSize(130, 64);
+    setMaximumWidth(216);
     setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
     QVBoxLayout *layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(8);
-    QLabel *title = new QLabel(label.toUpper());
     title->setObjectName("ControlLabel");
-    combo = new QComboBox;
+    combo = new CompactComboBox;
     layout->addWidget(title);
     layout->addWidget(combo);
 }
 
 QComboBox *ParameterCombo::comboBox() const { return combo; }
-QSize ParameterCombo::sizeHint() const { return QSize(190, 66); }
-QSize ParameterCombo::minimumSizeHint() const { return QSize(150, 64); }
+void ParameterCombo::setLabelVisible(bool visible)
+{
+    if (labelVisible == visible)
+        return;
+    labelVisible = visible;
+    title->setVisible(visible);
+    setMinimumHeight(visible ? 64 : 36);
+    updateGeometry();
+}
+QSize ParameterCombo::sizeHint() const
+{ return QSize(166, labelVisible ? 66 : 38); }
+QSize ParameterCombo::minimumSizeHint() const
+{ return QSize(130, labelVisible ? 64 : 36); }
 
 ParameterToggle::ParameterToggle(const QString &label, QWidget *parent)
     : QWidget(parent)
@@ -508,8 +599,8 @@ ModernToggleSwitch::ModernToggleSwitch(QWidget *parent)
     setCheckable(true);
     setCursor(Qt::PointingHandCursor);
     setFocusPolicy(Qt::StrongFocus);
-    setFixedSize(88, 30);
-    thumbAnimation->setDuration(145);
+    setFixedSize(66, 24);
+    thumbAnimation->setDuration(125);
     thumbAnimation->setEasingCurve(QEasingCurve::OutCubic);
     connect(thumbAnimation, &QVariantAnimation::valueChanged,
             this, [this](const QVariant &value) {
@@ -533,8 +624,8 @@ QColor ModernToggleSwitch::accentColor() const
     return switchAccent;
 }
 
-QSize ModernToggleSwitch::sizeHint() const { return QSize(88, 30); }
-QSize ModernToggleSwitch::minimumSizeHint() const { return QSize(88, 30); }
+QSize ModernToggleSwitch::sizeHint() const { return QSize(66, 24); }
+QSize ModernToggleSwitch::minimumSizeHint() const { return QSize(66, 24); }
 
 void ModernToggleSwitch::animateThumb(bool checked)
 {
@@ -569,12 +660,30 @@ void ModernToggleSwitch::paintEvent(QPaintEvent *)
     painter.drawRoundedRect(track, track.height() / 2,
                             track.height() / 2);
 
-    const qreal thumbRadius = 10.5;
-    const qreal leftCenter = track.left() + 4 + thumbRadius;
-    const qreal rightCenter = track.right() - 4 - thumbRadius;
+    const qreal thumbRadius = 8.0;
+    const qreal leftCenter = track.left() + thumbRadius + 3.5;
+    const qreal rightCenter = track.right() - thumbRadius - 3.5;
     const qreal thumbX = leftCenter
         + thumbPosition * (rightCenter - leftCenter);
     const QPointF thumbCenter(thumbX, track.center().y());
+
+    // State labels are fixed and painted before the thumb. The moving thumb
+    // deliberately covers ON at the left end and OFF at the right end.
+    QFont stateFont = font();
+    stateFont.setPixelSize(8);
+    stateFont.setWeight(QFont::Medium);
+    painter.setFont(stateFont);
+    painter.setPen(QColor(ModernTheme::color(
+        isEnabled() ? ModernTheme::PrimaryText
+                    : ModernTheme::DisabledText)));
+    const QRectF onTextRect(track.left(), track.top(),
+                            leftCenter * 2.0 - track.left() * 2.0,
+                            track.height());
+    const QRectF offTextRect(rightCenter * 2.0 - track.right(), track.top(),
+                             track.right() * 2.0 - rightCenter * 2.0,
+                             track.height());
+    painter.drawText(onTextRect, Qt::AlignCenter, "ON");
+    painter.drawText(offTextRect, Qt::AlignCenter, "OFF");
 
     painter.setPen(Qt::NoPen);
     painter.setBrush(QColor(0, 0, 0, isEnabled() ? 82 : 45));
@@ -591,23 +700,6 @@ void ModernToggleSwitch::paintEvent(QPaintEvent *)
     painter.setPen(QPen(QColor("#08090A"), 0.8));
     painter.setBrush(thumbSurface);
     painter.drawEllipse(thumbCenter, thumbRadius, thumbRadius);
-
-    QFont stateFont = font();
-    stateFont.setPointSizeF(qMax(8.0, stateFont.pointSizeF() - 1.0));
-    stateFont.setWeight(QFont::DemiBold);
-    painter.setFont(stateFont);
-    painter.setPen(QColor(ModernTheme::color(
-        isEnabled() ? ModernTheme::PrimaryText
-                    : ModernTheme::DisabledText)));
-    const QRectF stateRect = isChecked()
-        ? QRectF(track.left() + 7, track.top(),
-                 rightCenter - thumbRadius - track.left() - 8,
-                 track.height())
-        : QRectF(leftCenter + thumbRadius + 5, track.top(),
-                 track.right() - leftCenter - thumbRadius - 9,
-                 track.height());
-    painter.drawText(stateRect, Qt::AlignCenter,
-                     isChecked() ? "ON" : "OFF");
 
     if (hasFocus()) {
         QColor focus = switchAccent;
@@ -749,6 +841,7 @@ SignalChainContent::SignalChainContent(QWidget *parent)
 {
     setObjectName("SignalChainContent");
     setAcceptDrops(true);
+    setAttribute(Qt::WA_OpaquePaintEvent, true);
 }
 
 void SignalChainContent::setDragHandler(const DragHandler &handler)
@@ -769,9 +862,10 @@ void SignalChainContent::setDragFeedback(const QRect &regionRect,
 }
 
 void SignalChainContent::setParallelCableGeometry(
-    const QRect &parallelRect, qreal pathAY, qreal pathBY)
+    QWidget *split, QWidget *merge, qreal pathAY, qreal pathBY)
 {
-    parallelCableRect = parallelRect;
+    parallelSplitAnchor = split;
+    parallelMergeAnchor = merge;
     parallelPathAY = pathAY;
     parallelPathBY = pathBY;
     update();
@@ -787,6 +881,11 @@ void SignalChainContent::clearDragFeedback()
 void SignalChainContent::paintEvent(QPaintEvent *)
 {
     QPainter p(this);
+    // The drag indicator is repainted across changing regions. Clear the
+    // complete opaque surface first so no cable/preview pixels survive from
+    // the preceding frame on raster-backed Retina displays.
+    p.fillRect(rect(), QColor(ModernTheme::color(
+        ModernTheme::ControlBackground)));
     p.setRenderHint(QPainter::Antialiasing);
     const qreal y = height() / 2.0;
 
@@ -813,9 +912,15 @@ void SignalChainContent::paintEvent(QPaintEvent *)
     commonCable.setColorAt(0, QColor("#394550"));
     commonCable.setColorAt(.5, QColor("#9AA5AE"));
     commonCable.setColorAt(1, QColor("#394550"));
-    if (parallelCableRect.isValid()) {
-        const qreal splitX = parallelCableRect.left();
-        const qreal mergeX = parallelCableRect.right();
+    if (parallelSplitAnchor && parallelMergeAnchor
+        && parallelPathAY >= 0.0 && parallelPathBY >= 0.0) {
+        // The painter works in SignalChainContent coordinates. Resolve both
+        // junction centers into that same space for every paint; QScrollArea
+        // may resize this content after a prior layout calculation.
+        const qreal splitX = parallelSplitAnchor->mapTo(
+            this, parallelSplitAnchor->rect().center()).x();
+        const qreal mergeX = parallelMergeAnchor->mapTo(
+            this, parallelMergeAnchor->rect().center()).x();
         drawCable(QPointF(24, y), QPointF(splitX, y), QBrush(commonCable));
         drawCable(QPointF(mergeX, y), QPointF(width() - 24, y),
                   QBrush(commonCable));

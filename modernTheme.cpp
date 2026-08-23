@@ -91,6 +91,7 @@ QString ModernTheme::applicationStyleSheet()
             color: #8C9198;
             font-size: 9px;
             font-weight: 700;
+            letter-spacing: 1px;
             padding: 5px 4px 2px 4px;
         }
         QLineEdit#PatchSearch {
@@ -112,8 +113,9 @@ QString ModernTheme::applicationStyleSheet()
             background: transparent;
             border: none;
             border-radius: 4px;
-            font-size: 10px;
+            font-size: 9px;
             font-weight: 600;
+            letter-spacing: 0.8px;
         }
         QPushButton#PatchBankHeader:hover { background: #0D0F12; color: #ECEFF2; }
         QPushButton#PatchBankHeader[expanded="true"] {
@@ -138,13 +140,13 @@ QString ModernTheme::applicationStyleSheet()
         }
         PatchListItem QLabel#PatchItemNumber {
             color: #36A1C8;
-            font-size: 10px;
+            font-size: 9px;
             font-weight: 600;
         }
         PatchListItem QLabel#PatchItemName {
             color: #B3B7BC;
-            font-size: 11px;
-            font-weight: 500;
+            font-size: 10px;
+            font-weight: 400;
         }
         PatchListItem[current="true"] QLabel#PatchItemName {
             color: #ECEFF2;
@@ -326,7 +328,7 @@ QString ModernTheme::applicationStyleSheet()
         }
         QFrame#EffectEditorPanel QComboBox {
             min-height: 32px;
-            padding: 0 10px;
+            padding: 0 8px;
             color: #ECEFF2;
             background: #050607;
             border: 1px solid #24272C;
@@ -355,6 +357,10 @@ QString ModernTheme::applicationStyleSheet()
         QLabel#StatusSymbol { color: #666B72; font-size: 10px; }
         QLabel#StatusSymbol[state="ready"] { color: #27C768; }
         QLabel#StatusSymbol[state="busy"] { color: #D98B35; }
+        QLabel#ConnectionDot { color: #56606B; font-size: 9px; }
+        QLabel#ConnectionDot[state="connected"] { color: #39C66D; }
+        QLabel#ConnectionLabel { color: #59636E; font-size: 9px; font-weight: 600; }
+        QLabel#ConnectionLabel[state="connected"] { color: #8D99A5; }
         QProgressBar#StatusProgress { background: #050607; border: none; border-radius: 2px; }
         QProgressBar#StatusProgress::chunk { background: #258DB5; border-radius: 2px; }
     )");

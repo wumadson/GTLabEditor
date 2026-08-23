@@ -235,6 +235,7 @@ private:
                         const QString &hex2,
                         const QString &hex3) const;
     void rebuildSignalChainView();
+    void refreshSignalChainPresentation();
     void applyResponsiveSignalChainLayout();
     SignalChainModule *createSignalChainModule(const modernSignalChainModel::Entry &entry);
     modernSignalChainModel::ChainDestination resolveSignalChainDestination(
@@ -299,6 +300,7 @@ private:
     QWidget *channelRoutingEditor = nullptr;
     QWidget *channelRoutingDiagram = nullptr;
     QComboBox *channelMode = nullptr;
+    QList<QPushButton *> channelModeButtons;
     QPushButton *channelAButton = nullptr;
     QPushButton *channelBButton = nullptr;
     QStackedWidget *channelRoutingStack = nullptr;
