@@ -2,6 +2,7 @@
 #include "modernPatchListModel.h"
 
 #include <QEvent>
+#include <QFont>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
@@ -90,6 +91,9 @@ PatchBankSection::PatchBankSection(int bank, const QString &label, QWidget *pare
     header->setObjectName("PatchBankHeader");
     header->setProperty("expanded", false);
     header->setCursor(Qt::PointingHandCursor);
+    QFont headerFont = header->font();
+    headerFont.setCapitalization(QFont::AllUppercase);
+    header->setFont(headerFont);
     connect(header, SIGNAL(clicked()), this, SLOT(toggleExpanded()));
     content = new QWidget;
     contentLayout = new QVBoxLayout(content);

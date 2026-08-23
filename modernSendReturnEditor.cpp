@@ -130,6 +130,7 @@ void ModernSendReturnEditor::buildEditor()
     parameterLayout->addStretch(1);
 
     ParameterCombo *modeControl = new ParameterCombo("Mode");
+    modeControl->setLabelVisible(false);
     modeCombo = modeControl->comboBox();
     modeCombo->addItem("NORMAL", 0x00);
     modeCombo->addItem("DIRECT MIX", 0x01);
@@ -138,9 +139,6 @@ void ModernSendReturnEditor::buildEditor()
     QVBoxLayout *modeLayout = new QVBoxLayout(modePanel);
     modeLayout->setContentsMargins(0, 0, 0, 0);
     modeLayout->setSpacing(8);
-    QLabel *modeTitle = new QLabel("MODE");
-    modeTitle->setObjectName("ParameterSectionTitle");
-    modeLayout->addWidget(modeTitle);
     modeLayout->addWidget(modeControl);
     modeLayout->addStretch(1);
     editor->setRightPanelWidget(modePanel);
