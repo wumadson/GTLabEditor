@@ -36,8 +36,7 @@ void ModernPatchListModel::setPatchName(int bank, int patch, const QString &name
     emit patchUpdated(bank, patch);
 }
 
-void ModernPatchListModel::setCurrentPatch(int bank, int patch, const QString &name)
+void ModernPatchListModel::setCurrentPatch(int bank, int patch)
 {
-    if (!name.trimmed().isEmpty()) setPatchName(bank, patch, name);
     emit currentPatchChanged(bank, patch);
 }

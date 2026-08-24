@@ -8,6 +8,7 @@
 #include "modernEqGraph.h"
 #include "modernFxEditor.h"
 #include "modernPedalFxEditor.h"
+#include "modernControlAssignEditor.h"
 #include "modernNoiseSuppressorEditor.h"
 #include "modernSendReturnEditor.h"
 #include "modernSignalChainMutationController.h"
@@ -1769,6 +1770,10 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     effectEditorStack->addWidget(pedalFxEditor->widget());
     connect(pedalFxEditor, &ModernPedalFxEditor::activityChanged,
             this, &modernFloorBoard::pedalFxActivityChanged);
+    controlAssignEditor = new ModernControlAssignEditor(this);
+    effectEditorStack->addWidget(controlAssignEditor->widget());
+    connect(controlAssignEditor, &ModernControlAssignEditor::summaryChanged,
+            this, &modernFloorBoard::refreshControlAssignSummary);
     ns1Editor = new ModernNoiseSuppressorEditor(
         NoiseSuppressorSlot::NS1, this);
     effectEditorStack->addWidget(ns1Editor->widget());
@@ -1795,9 +1800,17 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
 
     mainLayout->addWidget(effectEditorStack, 1);
 
-    BottomControlStrip *bottomControlStrip = new BottomControlStrip;
+    bottomControlStrip = new BottomControlStrip;
     tunerReferenceCombo = bottomControlStrip->tunerReferenceComboBox();
     tunerOutputCombo = bottomControlStrip->tunerOutputComboBox();
+    bottomControlStrip->setControlAssignActivated(
+        [this]() { showControlAssignEditor(); });
+    bottomControlStrip->setAssignActivated([this](int index) {
+        if (!controlAssignEditor)
+            return;
+        controlAssignEditor->selectAssignForNavigation(index);
+        showControlAssignEditor();
+    });
     connect(tunerReferenceCombo,
             QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, &modernFloorBoard::tunerReferenceChanged);
@@ -3095,6 +3108,7 @@ void modernFloorBoard::backendConnected()
     refreshFx(FxSlot::FX1);
     refreshFx(FxSlot::FX2);
     refreshPedalFx();
+    refreshControlAssign();
     refreshNoiseSuppressors();
     refreshSendReturn();
 }
@@ -3127,11 +3141,12 @@ void modernFloorBoard::backendDisconnected()
     refreshFx(FxSlot::FX1);
     refreshFx(FxSlot::FX2);
     refreshPedalFx();
+    refreshControlAssign();
     refreshNoiseSuppressors();
     refreshSendReturn();
     patchNumber->setText(QString::fromUtf8("—"));
     patchName->setText("NO PATCH DATA");
-    patchListModel.setCurrentPatch(0, 0, QString());
+    patchListModel.setCurrentPatch(0, 0);
 }
 
 void modernFloorBoard::backendActivityChanged(int status)
@@ -3162,7 +3177,7 @@ void modernFloorBoard::refreshReverbState()
         const QString name = sysxIO->getCurrentPatchName().trimmed();
         patchNumber->setText(patchListModel.patchNumber(bank, patch));
         patchName->setText(name.isEmpty() ? QString::fromUtf8("—") : name);
-        patchListModel.setCurrentPatch(bank, patch, name);
+        patchListModel.setCurrentPatch(bank, patch);
     }
 
     refreshTempoHeader();
@@ -3188,6 +3203,7 @@ void modernFloorBoard::refreshReverbState()
         refreshFx(FxSlot::FX1);
         refreshFx(FxSlot::FX2);
         refreshPedalFx();
+        refreshControlAssign();
         refreshNoiseSuppressors();
         refreshSendReturn();
         return;
@@ -3212,6 +3228,7 @@ void modernFloorBoard::refreshReverbState()
     refreshFx(FxSlot::FX1);
     refreshFx(FxSlot::FX2);
     refreshPedalFx();
+    refreshControlAssign();
     refreshNoiseSuppressors();
     refreshSendReturn();
 }
@@ -4714,6 +4731,41 @@ void modernFloorBoard::refreshPedalFx()
     if (pedalFxEditor)
         pedalFxEditor->refreshPedalFx(backendIsConnected,
                                       backendHasPatchData);
+}
+
+void modernFloorBoard::showControlAssignEditor()
+{
+    if (!controlAssignEditor)
+        return;
+    selectedEditor = "CONTROL ASSIGN";
+    refreshControlAssign();
+    if (effectEditorStack)
+        effectEditorStack->setCurrentWidget(controlAssignEditor->widget());
+    if (splitJunction)
+        splitJunction->setSelected(false);
+    clearPedalSelection();
+    clearNoiseSuppressorSelection();
+    clearSendReturnSelection();
+}
+
+void modernFloorBoard::refreshControlAssign()
+{
+    if (controlAssignEditor)
+        controlAssignEditor->refresh(backendIsConnected,
+                                     backendHasPatchData);
+}
+
+void modernFloorBoard::refreshControlAssignSummary()
+{
+    if (!bottomControlStrip || !controlAssignEditor)
+        return;
+    bottomControlStrip->setControlAssignSummary(
+        controlAssignEditor->summaryAvailable(),
+        controlAssignEditor->directControlSummary("47"),
+        controlAssignEditor->directControlSummary("48"),
+        controlAssignEditor->directControlSummary("46"),
+        controlAssignEditor->assignStateSummary(),
+        controlAssignEditor->selectedAssignIndex());
 }
 
 void modernFloorBoard::pedalFxActivityChanged(

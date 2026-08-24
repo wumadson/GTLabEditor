@@ -24,7 +24,7 @@ public:
 
 public slots:
     void setPatchName(int bank, int patch, const QString &name);
-    void setCurrentPatch(int bank, int patch, const QString &name);
+    void setCurrentPatch(int bank, int patch);
 
 signals:
     void patchUpdated(int bank, int patch);

@@ -12,6 +12,7 @@
 #include <QPointer>
 #include <QPushButton>
 #include <QRect>
+#include <QVector>
 
 #include <functional>
 
@@ -77,9 +78,20 @@ public:
     explicit BottomControlStrip(QWidget *parent = nullptr);
     QComboBox *tunerReferenceComboBox() const;
     QComboBox *tunerOutputComboBox() const;
+    void setControlAssignActivated(const std::function<void()> &callback);
+    void setAssignActivated(const std::function<void(int)> &callback);
+    void setControlAssignSummary(bool available,
+                                 const QString &ctl1,
+                                 const QString &ctl2,
+                                 const QString &expSwitch,
+                                 const QVector<bool> &assignStates,
+                                 int selectedAssign);
 private:
     QComboBox *tunerReference = nullptr;
     QComboBox *tunerOutput = nullptr;
+    QWidget *controlAssignRegion = nullptr;
+    QVector<QLabel *> controlAssignValues;
+    QVector<QPushButton *> controlAssignBadges;
 };
 
 class ParameterSection : public QWidget
@@ -153,6 +165,7 @@ public:
     explicit ModernToggleSwitch(QWidget *parent = nullptr);
     void setAccentColor(const QColor &color);
     QColor accentColor() const;
+    void setCheckedFromBackend(bool checked);
     QSize sizeHint() const override;
     QSize minimumSizeHint() const override;
 protected:

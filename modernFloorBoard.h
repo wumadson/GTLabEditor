@@ -36,9 +36,11 @@ enum class FxSlot;
 enum class NoiseSuppressorSlot;
 class ModernFxEditor;
 class ModernPedalFxEditor;
+class ModernControlAssignEditor;
 class ModernNoiseSuppressorEditor;
 class ModernSendReturnEditor;
 class PatchSidebar;
+class BottomControlStrip;
 
 class modernFloorBoard : public QWidget
 {
@@ -80,6 +82,7 @@ private slots:
     void showFx2Editor();
     void showPedalFxEditor();
     void showFootVolumeEditor();
+    void showControlAssignEditor();
     void showNs1Editor();
     void showNs2Editor();
     void showSendReturnEditor();
@@ -216,6 +219,8 @@ private:
     void fx2StateChanged(bool available, bool on);
     void showPedalEditor(bool footVolumeContext);
     void refreshPedalFx();
+    void refreshControlAssign();
+    void refreshControlAssignSummary();
     void pedalFxActivityChanged(bool available, bool pedalFxActive,
                                 bool footVolumeActive);
     void clearPedalSelection();
@@ -280,6 +285,7 @@ private:
     QComboBox *outputSelectCombo = nullptr;
     QComboBox *tunerReferenceCombo = nullptr;
     QComboBox *tunerOutputCombo = nullptr;
+    BottomControlStrip *bottomControlStrip = nullptr;
     bool outputSystemDataRequested = false;
     bool outputSystemDataReady = false;
     bool tunerSystemDataReady = false;
@@ -313,6 +319,7 @@ private:
     ModernFxEditor *fx1Editor = nullptr;
     ModernFxEditor *fx2Editor = nullptr;
     ModernPedalFxEditor *pedalFxEditor = nullptr;
+    ModernControlAssignEditor *controlAssignEditor = nullptr;
     ModernNoiseSuppressorEditor *ns1Editor = nullptr;
     ModernNoiseSuppressorEditor *ns2Editor = nullptr;
     ModernSendReturnEditor *sendReturnEditor = nullptr;

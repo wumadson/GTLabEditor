@@ -17,6 +17,7 @@
 #include <QPainterPath>
 #include <QResizeEvent>
 #include <QScrollArea>
+#include <QSignalBlocker>
 #include <QStyleOptionComboBox>
 #include <QStylePainter>
 #include <QSizePolicy>
@@ -248,6 +249,112 @@ QSize EffectEditorPanel::minimumSizeHint() const
     return QSize(840, qMax(330, parameters->minimumSizeHint().height() + 46));
 }
 
+namespace {
+class BottomActionRegion final : public QFrame
+{
+public:
+    explicit BottomActionRegion(QWidget *parent = nullptr) : QFrame(parent) {}
+    std::function<void()> activated;
+protected:
+    void mouseReleaseEvent(QMouseEvent *event) override
+    {
+        QFrame::mouseReleaseEvent(event);
+        if (rect().contains(event->pos()) && activated)
+            activated();
+    }
+};
+
+class BottomAssignBadge final : public QPushButton
+{
+public:
+    explicit BottomAssignBadge(int number, QWidget *parent = nullptr)
+        : QPushButton(parent), assignNumber(number)
+    {
+        setFixedSize(22, 31);
+        setCursor(Qt::PointingHandCursor);
+        setFlat(true);
+    }
+
+    void setSummaryState(bool summaryAvailable, bool enabled,
+                         bool selected)
+    {
+        available = summaryAvailable;
+        assignEnabled = enabled;
+        current = selected;
+        setEnabled(summaryAvailable);
+        update();
+    }
+
+protected:
+    void paintEvent(QPaintEvent *) override
+    {
+        QPainter painter(this);
+        painter.setRenderHint(QPainter::Antialiasing, true);
+        const bool highlighted = isEnabled() && (underMouse() || current);
+        painter.setPen(QPen(highlighted ? QColor("#2A7599")
+                                       : QColor("#242A30"), 1));
+        painter.setBrush(highlighted ? QColor("#101B23")
+                                     : QColor("#090D11"));
+        painter.drawRoundedRect(rect().adjusted(0, 0, -1, -1), 4, 4);
+
+        painter.setPen(available ? QColor("#C8CDD2") : QColor("#59616A"));
+        QFont numberFont = font();
+        numberFont.setPixelSize(9);
+        numberFont.setWeight(QFont::DemiBold);
+        painter.setFont(numberFont);
+        painter.drawText(QRect(0, 2, width(), 14), Qt::AlignCenter,
+                         QString::number(assignNumber));
+
+        painter.setPen(Qt::NoPen);
+        painter.setBrush(!available ? QColor("#363D44")
+                                    : assignEnabled ? QColor("#00AEEF")
+                                                    : QColor("#424A52"));
+        painter.drawEllipse(QPointF(width() / 2.0, 23.0), 3.0, 3.0);
+    }
+
+    void enterEvent(QEvent *event) override
+    {
+        QPushButton::enterEvent(event);
+        update();
+    }
+
+    void leaveEvent(QEvent *event) override
+    {
+        QPushButton::leaveEvent(event);
+        update();
+    }
+
+private:
+    int assignNumber = 0;
+    bool available = false;
+    bool assignEnabled = false;
+    bool current = false;
+};
+
+class BottomSummaryValueLabel final : public QLabel
+{
+public:
+    explicit BottomSummaryValueLabel(QWidget *parent = nullptr)
+        : QLabel(parent)
+    {
+        setAlignment(Qt::AlignCenter);
+        setMinimumWidth(0);
+        setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+    }
+
+protected:
+    void paintEvent(QPaintEvent *) override
+    {
+        QPainter painter(this);
+        painter.setFont(font());
+        painter.setPen(palette().color(QPalette::WindowText));
+        const QString visibleText = fontMetrics().elidedText(
+            text(), Qt::ElideRight, qMax(0, contentsRect().width()));
+        painter.drawText(contentsRect(), alignment(), visibleText);
+    }
+};
+}
+
 BottomControlStrip::BottomControlStrip(QWidget *parent)
     : QFrame(parent)
 {
@@ -265,14 +372,37 @@ BottomControlStrip::BottomControlStrip(QWidget *parent)
     };
     const int stretches[] = {17, 28, 39, 16};
     for (int i = 0; i < titles.size(); ++i) {
-        QFrame *region = new QFrame;
+        QFrame *region = i == 1
+            ? static_cast<QFrame *>(new BottomActionRegion)
+            : new QFrame;
         region->setObjectName(i == 0 ? "BottomRegionFirst" : "BottomRegion");
         QVBoxLayout *regionLayout = new QVBoxLayout(region);
         regionLayout->setContentsMargins(14, 11, 14, 11);
         regionLayout->setSpacing(8);
         QLabel *title = new QLabel(titles.at(i));
         title->setObjectName("BottomRegionTitle");
-        regionLayout->addWidget(title);
+        if (i == 1) {
+            QHBoxLayout *headerLayout = new QHBoxLayout;
+            headerLayout->setContentsMargins(0, 0, 0, 0);
+            headerLayout->setSpacing(6);
+            headerLayout->addWidget(title);
+            headerLayout->addStretch(1);
+            QPushButton *editButton = new QPushButton("EDIT");
+            editButton->setObjectName("BottomAssignEditButton");
+            editButton->setFixedSize(38, 19);
+            editButton->setCursor(Qt::PointingHandCursor);
+            headerLayout->addWidget(editButton, 0, Qt::AlignVCenter);
+            regionLayout->addLayout(headerLayout);
+            BottomActionRegion *actionRegion =
+                static_cast<BottomActionRegion *>(region);
+            connect(editButton, &QPushButton::clicked, editButton,
+                    [actionRegion]() {
+                if (actionRegion->activated)
+                    actionRegion->activated();
+            });
+        } else {
+            regionLayout->addWidget(title);
+        }
         if (titles.at(i) == "TUNER") {
             QGridLayout *tunerLayout = new QGridLayout;
             tunerLayout->setContentsMargins(0, 0, 0, 0);
@@ -331,11 +461,67 @@ BottomControlStrip::BottomControlStrip(QWidget *parent)
                 " border: 1px solid #24272C;"
                 " selection-background-color: #123347; outline: none; }"
             );
+        } else if (i == 1) {
+            QGridLayout *summaryLayout = new QGridLayout;
+            summaryLayout->setContentsMargins(0, 0, 0, 0);
+            summaryLayout->setHorizontalSpacing(4);
+            summaryLayout->setVerticalSpacing(1);
+            const QStringList controlNames = {"CTL1", "CTL2", "EXP SW"};
+            for (int column = 0; column < controlNames.size(); ++column) {
+                QLabel *name = new QLabel(controlNames.at(column));
+                name->setObjectName("BottomAssignLabel");
+                name->setAlignment(Qt::AlignCenter);
+                name->setMinimumWidth(0);
+                name->setSizePolicy(QSizePolicy::Ignored,
+                                    QSizePolicy::Preferred);
+                QLabel *value = new BottomSummaryValueLabel;
+                value->setText(QString::fromUtf8("—"));
+                value->setObjectName("BottomAssignValue");
+                controlAssignValues.append(value);
+                summaryLayout->addWidget(name, 0, column);
+                summaryLayout->addWidget(value, 1, column);
+                summaryLayout->setColumnMinimumWidth(column, 0);
+                summaryLayout->setColumnStretch(column, 1);
+            }
+            regionLayout->addLayout(summaryLayout);
+
+            QHBoxLayout *assignLayout = new QHBoxLayout;
+            assignLayout->setContentsMargins(0, 1, 0, 0);
+            assignLayout->setSpacing(3);
+            QLabel *assigns = new QLabel("ASSIGNS");
+            assigns->setObjectName("BottomAssignLabel");
+            assignLayout->addWidget(assigns);
+            assignLayout->addStretch(1);
+            for (int index = 0; index < 8; ++index) {
+                BottomAssignBadge *badge = new BottomAssignBadge(index + 1);
+                controlAssignBadges.append(badge);
+                assignLayout->addWidget(badge);
+            }
+            regionLayout->addLayout(assignLayout);
+            region->setStyleSheet(
+                "QLabel#BottomAssignLabel{color:#777F88;font-size:9px;"
+                "font-weight:600;letter-spacing:0.4px;}"
+                "QLabel#BottomAssignValue{color:#DCE1E5;font-size:8px;"
+                "font-weight:600;}"
+                "QPushButton#BottomAssignEditButton{color:#AEB6BE;"
+                "background:#10151A;border:1px solid #303840;"
+                "border-radius:4px;font-size:8px;font-weight:600;"
+                "padding:0;}"
+                "QPushButton#BottomAssignEditButton:hover{color:#EAF8FF;"
+                "border-color:#00AEEF;background:#10232E;}"
+                "QPushButton#BottomAssignEditButton:pressed{"
+                "background:#0C1B23;}"
+            );
         } else {
-            QLabel *state = new QLabel("NOT INTEGRATED");
+            QLabel *state = new QLabel(i == 1
+                ? "DIRECT CONTROLS" : "NOT INTEGRATED");
             state->setObjectName("WorkspaceUnavailable");
             state->setAlignment(Qt::AlignCenter);
             regionLayout->addWidget(state, 1);
+        }
+        if (i == 1) {
+            controlAssignRegion = region;
+            region->setCursor(Qt::PointingHandCursor);
         }
         layout->addWidget(region, stretches[i]);
     }
@@ -349,6 +535,53 @@ QComboBox *BottomControlStrip::tunerReferenceComboBox() const
 QComboBox *BottomControlStrip::tunerOutputComboBox() const
 {
     return tunerOutput;
+}
+
+void BottomControlStrip::setControlAssignActivated(
+    const std::function<void()> &callback)
+{
+    BottomActionRegion *region =
+        dynamic_cast<BottomActionRegion *>(controlAssignRegion);
+    if (region)
+        region->activated = callback;
+}
+
+void BottomControlStrip::setAssignActivated(
+    const std::function<void(int)> &callback)
+{
+    for (int index = 0; index < controlAssignBadges.size(); ++index) {
+        QObject::connect(controlAssignBadges.at(index), &QPushButton::clicked,
+                         controlAssignBadges.at(index),
+                         [callback, index]() {
+            if (callback)
+                callback(index);
+        });
+    }
+}
+
+void BottomControlStrip::setControlAssignSummary(
+    bool available, const QString &ctl1, const QString &ctl2,
+    const QString &expSwitch, const QVector<bool> &assignStates,
+    int selectedAssign)
+{
+    const QStringList values = {ctl1, ctl2, expSwitch};
+    for (int index = 0; index < controlAssignValues.size(); ++index) {
+        QLabel *label = controlAssignValues.at(index);
+        const QString value = available && index < values.size()
+            && !values.at(index).trimmed().isEmpty()
+            ? values.at(index) : QString::fromUtf8("—");
+        label->setText(value);
+        label->setToolTip(value == QString::fromUtf8("—")
+            ? QString() : value);
+    }
+    for (int index = 0; index < controlAssignBadges.size(); ++index) {
+        BottomAssignBadge *badge = static_cast<BottomAssignBadge *>(
+            controlAssignBadges.at(index));
+        badge->setSummaryState(available && index < assignStates.size(),
+                               index < assignStates.size()
+                                   && assignStates.at(index),
+                               index == selectedAssign);
+    }
 }
 
 ResponsiveSectionArea::ResponsiveSectionArea(QWidget *parent)
@@ -622,6 +855,15 @@ void ModernToggleSwitch::setAccentColor(const QColor &color)
 QColor ModernToggleSwitch::accentColor() const
 {
     return switchAccent;
+}
+
+void ModernToggleSwitch::setCheckedFromBackend(bool checked)
+{
+    const QSignalBlocker blocker(this);
+    QAbstractButton::setChecked(checked);
+    thumbAnimation->stop();
+    thumbPosition = checked ? 1.0 : 0.0;
+    update();
 }
 
 QSize ModernToggleSwitch::sizeHint() const { return QSize(66, 24); }

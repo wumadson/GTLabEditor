@@ -26,6 +26,7 @@
 #include <QFile>
 #include <QDataStream>
 #include <QByteArray>
+#include <QTimer>
 #include "bankTreeList.h"
 #include "Preferences.h"
 #include "MidiTable.h"
@@ -817,7 +818,12 @@ void bankTreeList::requestSelectedPatchReadback()
                 return;
 
         sysxIO->setDeviceReady(false);
-        requestPatch();
+        QTimer::singleShot(150, this, [this]() {
+                SysxIO *sysxIO = SysxIO::Instance();
+                if (!sysxIO->isConnected())
+                        return;
+                requestPatch();
+        });
 }
 
 int bankTreeList::configuredTransmitChannel() const

@@ -118,7 +118,7 @@ SOURCES += modernFloorBoard.cpp modernTheme.cpp modernWidgets.cpp modernSignalCh
            patchTransferCodec.cpp \
            effectArtworkWidget.cpp effectModelBrowser.cpp parameterBar.cpp \
            modernPatchListModel.cpp patchSidebar.cpp modernEqGraph.cpp modernFxEditor.cpp \
-           modernPedalFxEditor.cpp modernNoiseSuppressorEditor.cpp \
+           modernPedalFxEditor.cpp modernAssignModel.cpp modernControlAssignEditor.cpp assignTargetBrowser.cpp assignTargetValueEditor.cpp modernNoiseSuppressorEditor.cpp \
            modernSendReturnEditor.cpp
 HEADERS += modernFloorBoard.h modernTheme.h modernWidgets.h modernSignalChainModel.h \
            modernSignalChainMutationController.h modernSignalChainSerializer.h \
@@ -126,7 +126,7 @@ HEADERS += modernFloorBoard.h modernTheme.h modernWidgets.h modernSignalChainMod
            patchTransferCodec.h \
            effectArtworkWidget.h effectModelBrowser.h parameterBar.h \
            modernPatchListModel.h patchSidebar.h modernEqGraph.h modernFxEditor.h \
-           modernPedalFxEditor.h modernNoiseSuppressorEditor.h \
+           modernPedalFxEditor.h modernAssignModel.h modernControlAssignEditor.h assignTargetBrowser.h assignTargetValueEditor.h modernNoiseSuppressorEditor.h \
            modernSendReturnEditor.h
 
 # Explicit local harness. It replaces the application entry point only when
