@@ -31,6 +31,7 @@
 #include "customRenameWidget.h"
 #include "customComboBox.h"
 #include "globalVariables.h"
+#include "patchTransferCodec.h"
 
 
 
@@ -1184,58 +1185,20 @@ void floorBoardDisplay::writeToMemory()
 {
         SysxIO *sysxIO = SysxIO::Instance();
 
-        QString sysxMsg; bool ok;
-        QList< QList<QString> > patchData = sysxIO->getFileSource().hex; // Get the loaded patch data.
-        QList<QString> patchAddress = sysxIO->getFileSource().address;
-
         emit setStatusSymbol(2);
         emit setStatusMessage(tr("Writing to Patch"));
 
         int bank = sysxIO->getBank();
         int patch = sysxIO->getPatch();
-        QString addr1;
-        QString addr2;
-        if (bank < 101)
+        QString buildError;
+        const QString sysxMsg = PatchTransferCodec::buildLegacyWriteMessage(
+                sysxIO->getFileSource(), bank, patch, &buildError);
+        if (sysxMsg.isEmpty())
         {
-         int patchOffset = (((bank - 1 ) * patchPerBank) + patch) - 1;
-         int memmorySize = QString("7F").toInt(&ok, 16) + 1;
-         int emptyAddresses = (memmorySize) - ((bankTotalUser * patchPerBank) - (memmorySize));
-         if(bank > bankTotalUser) patchOffset += emptyAddresses; //System patches start at a new memmory range.
-     int addrMaxSize = QString("80").toInt(&ok, 16);
-     int n = (int)(patchOffset / addrMaxSize);
-
-        addr1 = QString::number(16 + n, 16).toUpper();
-        addr2 = QString::number(patchOffset - (addrMaxSize * n), 16).toUpper();
-         }
-         else
-         {
-    addr1 = "30";
-    addr2 = QString::number(patch - 1, 16).toUpper();
-   };
-   if (addr1.length() < 2) addr1.prepend("0");
-         if (addr2.length() < 2) addr2.prepend("0");
-        for(int i=0;i<patchData.size();++i)
-        {
-                QList<QString> data = patchData.at(i);
-                for(int x=0;x<data.size();++x)
-                {
-                        QString hex;
-                        if(x == sysxAddressOffset)
-                        {
-                                hex = addr1;
-                        }
-                        else if(x == sysxAddressOffset + 1)
-                        {
-                                hex = addr2;
-                        }
-                        else
-                        {
-                                hex = data.at(x);
-                        };
-                        if (hex.length() < 2) hex.prepend("0");
-                        sysxMsg.append(hex);
-                };
-        };
+                emit setStatusSymbol(1);
+                emit setStatusMessage(buildError);
+                return;
+        }
         sysxIO->setSyncStatus(true);		// Still in sync
         this->writeButton->setBlink(false); // so no blinking here either...
         this->writeButton->setValue(true);	// ... and still the button will be active also ...

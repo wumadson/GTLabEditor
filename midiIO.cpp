@@ -45,7 +45,8 @@ QString midiIO::msgType = "name";
   #define SLEEP( milliseconds ) usleep( (unsigned long) (milliseconds * 1000.0) )
 #endif
 
-midiIO::midiIO()
+midiIO::midiIO(QObject *parent)
+    : QThread(parent), shortMidiIn(0)
 {
         this->midi = false; // Set this to false until required;
         /* Connect signals */
@@ -58,6 +59,93 @@ midiIO::midiIO()
         QObject::connect(this, SIGNAL(replyMsg(QString)),	sysxIO, SLOT(receiveSysx(QString)));
         QObject::connect(this, SIGNAL(midiFinished()), sysxIO, SLOT(finishedSending()));
 };
+
+midiIO::~midiIO()
+{
+        stopShortMidiListener();
+}
+
+static void shortMidiCallback(double, std::vector<unsigned char> *message, void *userData)
+{
+        midiIO *listener = static_cast<midiIO *>(userData);
+        if (!listener || !message || message->empty())
+                return;
+
+        const int status = message->at(0);
+        const int type = status & 0xF0;
+        if (type == 0xB0 && message->size() >= 3) {
+                const int controller = message->at(1);
+                if (controller != 0 && controller != 32)
+                        return;
+                QMetaObject::invokeMethod(listener, "dispatchShortMidi", Qt::QueuedConnection,
+                                          Q_ARG(int, status),
+                                          Q_ARG(int, controller),
+                                          Q_ARG(int, message->at(2)));
+        } else if (type == 0xC0 && message->size() >= 2) {
+                QMetaObject::invokeMethod(listener, "dispatchShortMidi", Qt::QueuedConnection,
+                                          Q_ARG(int, status),
+                                          Q_ARG(int, message->at(1)),
+                                          Q_ARG(int, 0));
+        }
+}
+
+bool midiIO::startShortMidiListener()
+{
+        if (shortMidiIn)
+                return true;
+
+        Preferences *preferences = Preferences::Instance();
+        const QString configuredPort = preferences->getPreferences("Midi", "MidiIn", "device");
+        if (configuredPort.isEmpty())
+                return false;
+
+        bool ok = false;
+        int midiInPort = configuredPort.toInt(&ok, 10);
+        if (!ok)
+                return false;
+
+        try {
+                shortMidiIn = new RtMidiIn("GT LAB Patch Change Listener");
+                const unsigned int portCount = shortMidiIn->getPortCount();
+                for (unsigned int i = 0; i < portCount; ++i) {
+                        const QString portName = QString::fromStdString(shortMidiIn->getPortName(i));
+                        if (portName.contains("BOSS GT-10")) {
+                                midiInPort = static_cast<int>(i);
+                        }
+                }
+                if (midiInPort < 0 || static_cast<unsigned int>(midiInPort) >= portCount) {
+                        delete shortMidiIn;
+                        shortMidiIn = 0;
+                        return false;
+                }
+
+                shortMidiIn->ignoreTypes(true, true, true);
+                shortMidiIn->setCallback(&shortMidiCallback, this);
+                shortMidiIn->openPort(static_cast<unsigned int>(midiInPort),
+                                      "GT LAB Patch Change Listener");
+                return true;
+        } catch (RtError &error) {
+                error.printMessage();
+                delete shortMidiIn;
+                shortMidiIn = 0;
+                return false;
+        }
+}
+
+void midiIO::stopShortMidiListener()
+{
+        if (!shortMidiIn)
+                return;
+        shortMidiIn->cancelCallback();
+        shortMidiIn->closePort();
+        delete shortMidiIn;
+        shortMidiIn = 0;
+}
+
+void midiIO::dispatchShortMidi(int status, int data1, int data2)
+{
+        emit shortMidiMessage(status, data1, data2);
+}
 /*********************** queryMidiOutDevices() *****************************
  * Retrieves all MIDI Out devices installed on your system and stores them
  * as a QList of QStrings and device id's.

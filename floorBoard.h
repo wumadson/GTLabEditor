@@ -26,6 +26,7 @@
 
 #include <QWidget>
 #include <QPixmap>
+#include <QMap>
 #include "stompBox.h"
 #include "menuPage.h"
 #include "editWindow.h"
@@ -59,6 +60,10 @@ public slots:
 	void menuButtonSignal();
 	void requestPatchNamesForBank(int bank);
 	void selectModernPatch(int bank, int patch, QString name);
+	void reloadCurrentPatch();
+	void writeCurrentPatchToUser(int targetBank, int targetPatch);
+	void writeTransmissionReply(QString replyMsg);
+	void verifyPersistentWrite(QString replyMsg);
 	//void stompbox_button(bool value);
 
 signals:
@@ -75,6 +80,8 @@ signals:
 	void connectedSignal();
 	void notConnectedSignal();
 	void patchNameResolved(int bank, int patch, QString name);
+	void writeVerificationFinished(int result, int bank, int patch,
+	                              QString verifiedName, QString detail);
 	void pathUpdateSignal();
 	void ch_mode_buttonSignal(bool value);
 	void preamp1_buttonSignal(bool value);
@@ -140,6 +147,10 @@ private:
 	editWindow* editDialog;
 	editWindow* oldDialog;
 	bankTreeList *bankList;
+	bool persistentWriteInFlight = false;
+	int persistentWriteBank = 0;
+	int persistentWritePatch = 0;
+	QMap<QString, QString> persistentWriteSnapshot;
 };
 
 #endif // FLOORBOARD_H

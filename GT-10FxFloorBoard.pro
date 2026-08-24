@@ -115,6 +115,7 @@ QMAKE_CXXFLAGS += -include $$PWD/qt4compat.h
 SOURCES += modernFloorBoard.cpp modernTheme.cpp modernWidgets.cpp modernSignalChainModel.cpp \
            modernSignalChainMutationController.cpp modernSignalChainSerializer.cpp \
            signalChainHardwareValidation.cpp \
+           patchTransferCodec.cpp \
            effectArtworkWidget.cpp effectModelBrowser.cpp parameterBar.cpp \
            modernPatchListModel.cpp patchSidebar.cpp modernEqGraph.cpp modernFxEditor.cpp \
            modernPedalFxEditor.cpp modernNoiseSuppressorEditor.cpp \
@@ -122,6 +123,7 @@ SOURCES += modernFloorBoard.cpp modernTheme.cpp modernWidgets.cpp modernSignalCh
 HEADERS += modernFloorBoard.h modernTheme.h modernWidgets.h modernSignalChainModel.h \
            modernSignalChainMutationController.h modernSignalChainSerializer.h \
            signalChainHardwareValidation.h \
+           patchTransferCodec.h \
            effectArtworkWidget.h effectModelBrowser.h parameterBar.h \
            modernPatchListModel.h patchSidebar.h modernEqGraph.h modernFxEditor.h \
            modernPedalFxEditor.h modernNoiseSuppressorEditor.h \
@@ -143,5 +145,14 @@ contains(CONFIG, signalchain_hardware_tests) {
     SOURCES -= ./main.cpp
     SOURCES += signalChainHardwareTests.cpp
     TARGET = signalChainHardwareTests
+    DESTDIR = $$OUT_PWD
+}
+
+# Pure parser regression harness. It verifies the extracted 00-0C decoder
+# against the legacy updatePatch reconstruction using known GT-10 dumps.
+contains(CONFIG, patchdecoder_tests) {
+    SOURCES -= ./main.cpp
+    SOURCES += patchDecoderTests.cpp
+    TARGET = patchDecoderTests
     DESTDIR = $$OUT_PWD
 }

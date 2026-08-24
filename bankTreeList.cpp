@@ -30,10 +30,23 @@
 #include "Preferences.h"
 #include "MidiTable.h"
 #include "SysxIO.h"
+#include "midiIO.h"
 #include "globalVariables.h"
+#include "patchTransferCodec.h"
 
 bankTreeList::bankTreeList(QWidget *parent)
-    : QWidget(parent)
+    : QWidget(parent),
+      patchChangeListener(new midiIO(this)),
+      lastBankMsb(-1),
+      lastBankLsb(-1),
+      queuedPhysicalBank(0),
+      queuedPhysicalPatch(0),
+      localPatchChangePending(false),
+      localPatchChangeBank(0),
+      localPatchChangePatch(0),
+      preserveLoadedPatchOnNextRead(false),
+      preservedLoadedBank(0),
+      preservedLoadedPatch(0)
 {
         QFont font;
         font.setStretch(85);
@@ -64,7 +77,15 @@ bankTreeList::bankTreeList(QWidget *parent)
         QObject::connect(this, SIGNAL(setStatusMessage(QString)), sysxIO, SIGNAL(setStatusMessage(QString)));
 
         QObject::connect(this, SIGNAL(notConnectedSignal()), sysxIO, SIGNAL(notConnectedSignal()));
+
+        QObject::connect(patchChangeListener, SIGNAL(shortMidiMessage(int,int,int)),
+                         this, SLOT(shortMidiMessageReceived(int,int,int)));
 };
+
+bankTreeList::~bankTreeList()
+{
+        patchChangeListener->stopShortMidiListener();
+}
 
 void bankTreeList::updateSize(QRect newrect)
 {
@@ -543,6 +564,15 @@ void bankTreeList::requestPatch(int bank, int patch)
         };
 };
 
+void bankTreeList::reloadCurrentPatch()
+{
+        SysxIO *sysxIO = SysxIO::Instance();
+        preservedLoadedBank = sysxIO->getLoadedBank();
+        preservedLoadedPatch = sysxIO->getLoadedPatch();
+        preserveLoadedPatchOnNextRead = true;
+        requestPatch();
+}
+
 /*********************** updatePatch() *******************************
  * Updates the source of the currently handled patch and set the
  * attributes accordingly.
@@ -557,49 +587,12 @@ void bankTreeList::updatePatch(QString replyMsg)
                 this, SLOT(updatePatch(QString)));
 
 
-        replyMsg = replyMsg.remove(" ").toUpper();       /* TRANSLATE SYSX MESSAGE FORMAT to 128 byte data blocks */
-        if (replyMsg.size()/2 == 1784){
-        QString header = "F0410000002F12";
-        QString footer ="00F7";
-        QString addressMsb = replyMsg.mid(14,4);
-        QString part1 = replyMsg.mid(22, 256);
-  part1.prepend("0000").prepend(addressMsb).prepend(header).append(footer);
-        QString part2 = replyMsg.mid(278, 228);
-        QString part2B = replyMsg.mid(532, 28);
-        part2.prepend("0100").prepend(addressMsb).prepend(header).append(part2B).append(footer);
-        QString part3 = replyMsg.mid(560, 256);
-        part3.prepend("0200").prepend(addressMsb).prepend(header).append(footer);
-        QString part4 = replyMsg.mid(816, 200);
-        QString part4B = replyMsg.mid(1042, 56);
-        part4.prepend("0300").prepend(addressMsb).prepend(header).append(part4B).append(footer);
-        QString part5 = replyMsg.mid(1098, 256);
-        part5.prepend("0400").prepend(addressMsb).prepend(header).append(footer);
-        QString part6 = replyMsg.mid(1354, 172);   //
-        part6.prepend("0500").prepend(addressMsb).prepend(header).append(footer);
-        QString part7 = replyMsg.mid(1552, 256);   // 0x308+128
-        part7.prepend("0600").prepend(addressMsb).prepend(header).append(footer);
-        QString part8 = replyMsg.mid(1808, 228);  // 0x388+114
-        QString part8B = replyMsg.mid(2062, 28);   //
-        part8.prepend("0700").prepend(addressMsb).prepend(header).append(part8B).append(footer);
-        QString part9 = replyMsg.mid(2090, 256);
-        part9.prepend("0800").prepend(addressMsb).prepend(header).append(footer);
-        QString part10 = replyMsg.mid(2346,200);    //
-        part10.prepend("0900").prepend(addressMsb).prepend(header).append(footer);
-        QString part11 = replyMsg.mid(2572, 256);
-        part11.prepend("0A00").prepend(addressMsb).prepend(header).append(footer);
-        QString part12 = replyMsg.mid(2828, 226);   //
-        QString part12B = replyMsg.mid(3080, 30);
-        part12.prepend("0B00").prepend(addressMsb).prepend(header).append(part12B).append(footer);
-        QString part13 = replyMsg.mid(3110, 256);
-        part13.prepend("0C00").prepend(addressMsb).prepend(header).append(footer);
-
-        QString QFX = "false";
-        if (replyMsg.contains("F0410000002F1230") || replyMsg.contains("F0410000002F1240")) // if a QFX patch
-          {QFX = "true"; };                                                     // update the temp buffer
-
-        replyMsg = "";
-        replyMsg.append(part1).append(part2).append(part3).append(part4).append(part5).append(part6)
-  .append(part7).append(part8).append(part9).append(part10).append(part11).append(part12).append(part13);
+        replyMsg = replyMsg.remove(" ").toUpper();
+        const DecodedPatch decoded =
+                PatchTransferCodec::decodePatchReply(replyMsg);
+        if (decoded.valid){
+        QString QFX = decoded.quickFx ? "true" : "false";
+        replyMsg = decoded.serialized00To0C();
 
   QByteArray data;
   QFile file(":default.syx");   // Read the default GT-10 sysx file so we don't start empty handed.
@@ -655,8 +648,16 @@ void bankTreeList::updatePatch(QString replyMsg)
                 sysxIO->setDevice(true);				// Patch received from the device so this is set to true.
                 sysxIO->setSyncStatus(true);			// We can't be more in sync than right now! :)
 
-                sysxIO->setLoadedBank(sysxIO->getBank());
-                sysxIO->setLoadedPatch(sysxIO->getPatch());
+                if (preserveLoadedPatchOnNextRead)
+                {
+                        sysxIO->setLoadedBank(preservedLoadedBank);
+                        sysxIO->setLoadedPatch(preservedLoadedPatch);
+                }
+                else
+                {
+                        sysxIO->setLoadedBank(sysxIO->getBank());
+                        sysxIO->setLoadedPatch(sysxIO->getPatch());
+                };
 
                 emit updateSignal();
                 emit setStatusProgress(0);
@@ -727,6 +728,19 @@ void bankTreeList::updatePatch(QString replyMsg)
                         msgBox->exec();
                         };
                 };	*/
+
+        preserveLoadedPatchOnNextRead = false;
+        localPatchChangePending = false;
+        localPatchChangeBank = 0;
+        localPatchChangePatch = 0;
+
+        if (queuedPhysicalBank > 0 && queuedPhysicalPatch > 0) {
+                const int bank = queuedPhysicalBank;
+                const int patch = queuedPhysicalPatch;
+                queuedPhysicalBank = 0;
+                queuedPhysicalPatch = 0;
+                requestPhysicalPatchReadback(bank, patch);
+        }
 };
 
 /********************************** connectedSignal() ****************************
@@ -736,6 +750,7 @@ void bankTreeList::updatePatch(QString replyMsg)
 void bankTreeList::connectedSignal()
 {
         SysxIO *sysxIO = SysxIO::Instance();
+        patchChangeListener->startShortMidiListener();
         if(sysxIO->deviceReady() && sysxIO->isConnected())
         {
                 sysxIO->setDeviceReady(false);
@@ -761,6 +776,18 @@ void bankTreeList::connectedSignal()
         };
 };
 
+void bankTreeList::disconnectedSignal()
+{
+        patchChangeListener->stopShortMidiListener();
+        lastBankMsb = -1;
+        lastBankLsb = -1;
+        queuedPhysicalBank = 0;
+        queuedPhysicalPatch = 0;
+        localPatchChangePending = false;
+        localPatchChangeBank = 0;
+        localPatchChangePatch = 0;
+}
+
 void bankTreeList::selectPatch(int bank, int patch, const QString &name)
 {
         SysxIO *sysxIO = SysxIO::Instance();
@@ -769,9 +796,107 @@ void bankTreeList::selectPatch(int bank, int patch, const QString &name)
             || patch < 1 || patch > patchPerBank)
                 return;
 
+        localPatchChangePending = true;
+        localPatchChangeBank = bank;
+        localPatchChangePatch = patch;
+        QObject::connect(sysxIO, SIGNAL(isFinished()),
+                         this, SLOT(requestSelectedPatchReadback()),
+                         Qt::UniqueConnection);
         sysxIO->requestPatchChange(bank, patch);
         sysxIO->setRequestName(name);
         emit patchSelectSignal(bank, patch);
+}
+
+void bankTreeList::requestSelectedPatchReadback()
+{
+        SysxIO *sysxIO = SysxIO::Instance();
+        QObject::disconnect(sysxIO, SIGNAL(isFinished()),
+                            this, SLOT(requestSelectedPatchReadback()));
+
+        if (!sysxIO->isConnected())
+                return;
+
+        sysxIO->setDeviceReady(false);
+        requestPatch();
+}
+
+int bankTreeList::configuredTransmitChannel() const
+{
+        SysxIO *sysxIO = SysxIO::Instance();
+        const SysxData system = sysxIO->getSystemSource();
+        if (!system.address.contains("0200"))
+                return -1;
+
+        MidiTable *midiTable = MidiTable::Instance();
+        int rawChannel = sysxIO->getSourceValue("System", "02", "00", "02");
+        QString rawHex = QString::number(rawChannel, 16).rightJustified(2, '0').toUpper();
+        QString displayChannel = midiTable->getValue("System", "02", "00", "02", rawHex).trimmed();
+        if (displayChannel.compare("Rx", Qt::CaseInsensitive) == 0) {
+                rawChannel = sysxIO->getSourceValue("System", "02", "00", "01");
+                rawHex = QString::number(rawChannel, 16).rightJustified(2, '0').toUpper();
+                displayChannel = midiTable->getValue("System", "02", "00", "01", rawHex).trimmed();
+        }
+
+        bool ok = false;
+        const int channel = displayChannel.toInt(&ok, 10);
+        return ok && channel >= 1 && channel <= 16 ? channel - 1 : -1;
+}
+
+void bankTreeList::shortMidiMessageReceived(int status, int data1, int data2)
+{
+        const int type = status & 0xF0;
+        const int channel = status & 0x0F;
+        const int expectedChannel = configuredTransmitChannel();
+        if (expectedChannel >= 0 && channel != expectedChannel)
+                return;
+
+        if (type == 0xB0) {
+                if (data1 == 0)
+                        lastBankMsb = data2;
+                else if (data1 == 32)
+                        lastBankLsb = data2;
+                return;
+        }
+
+        if (type != 0xC0 || lastBankMsb < 0 || lastBankLsb != 0)
+                return;
+
+        const int linearPatch = (lastBankMsb * 100) + data1;
+        const int bank = (linearPatch / patchPerBank) + 1;
+        const int patch = (linearPatch % patchPerBank) + 1;
+        if (bank < 1 || bank > bankTotalAll || patch < 1 || patch > patchPerBank)
+                return;
+
+        if (localPatchChangePending
+            && bank == localPatchChangeBank
+            && patch == localPatchChangePatch)
+                return;
+
+        SysxIO *sysxIO = SysxIO::Instance();
+        if (!localPatchChangePending
+            && bank == sysxIO->getLoadedBank()
+            && patch == sysxIO->getLoadedPatch())
+                return;
+
+        requestPhysicalPatchReadback(bank, patch);
+}
+
+void bankTreeList::requestPhysicalPatchReadback(int bank, int patch)
+{
+        SysxIO *sysxIO = SysxIO::Instance();
+        if (!sysxIO->isConnected())
+                return;
+
+        if (!sysxIO->deviceReady() || localPatchChangePending) {
+                queuedPhysicalBank = bank;
+                queuedPhysicalPatch = patch;
+                return;
+        }
+
+        sysxIO->setBank(bank);
+        sysxIO->setPatch(patch);
+        sysxIO->setDeviceReady(false);
+        requestPatch();
 }
 
 void bankTreeList::requestPatchNamesForBank(int bank)

@@ -10,6 +10,7 @@ class QPushButton;
 class QFrame;
 class QComboBox;
 class QDial;
+class QSpinBox;
 class QScrollArea;
 class QStackedWidget;
 class SignalChainPanel;
@@ -49,12 +50,17 @@ public:
 public slots:
     void backendConnected();
     void backendDisconnected();
+    void backendActivityChanged(int status);
     void refreshReverbState();
     void patchNameResolved(int bank, int patch, QString name);
+    void persistentWriteFinished(int result, int bank, int patch,
+                                 QString verifiedName, QString detail);
 
 signals:
     void requestPatchNames(int bank);
     void selectPatchRequested(int bank, int patch, QString name);
+    void readCurrentPatchRequested();
+    void writeCurrentPatchRequested(int bank, int patch);
     void connectionStateChanged(bool connected);
 
 private slots:
@@ -106,6 +112,8 @@ private slots:
     void outputSelectChanged(int index);
     void tunerReferenceChanged(int index);
     void tunerOutputChanged(int index);
+    void readCurrentPatch();
+    void writeCurrentPatch();
 
 private:
     EffectModule *createEffectBlock(const QString &name, bool available);
@@ -227,6 +235,11 @@ private:
     void setDynamicSense(int value);
     void refreshSignalChainModel();
     void refreshOutputSelectHeader();
+    void refreshTempoHeader();
+    void refreshPatchLevelHeader();
+    void refreshReadButtonState();
+    void commitTempoEdit();
+    void commitPatchLevelEdit();
     void refreshTunerSettings();
     void requestOutputSystemData();
     void pollOutputSystemData();
@@ -258,6 +271,12 @@ private:
 
     QLabel *patchNumber;
     QLabel *patchName;
+    QPushButton *readButton = nullptr;
+    QPushButton *writeButton = nullptr;
+    QWidget *tempoControl = nullptr;
+    QSpinBox *tempoValue = nullptr;
+    QWidget *patchLevelControl = nullptr;
+    QSpinBox *patchLevelValue = nullptr;
     QComboBox *outputSelectCombo = nullptr;
     QComboBox *tunerReferenceCombo = nullptr;
     QComboBox *tunerOutputCombo = nullptr;
@@ -351,6 +370,8 @@ private:
     QList<ParameterBar *> eqBars;
     bool backendIsConnected = false;
     bool backendHasPatchData = false;
+    bool readRequestInFlight = false;
+    bool writeRequestInFlight = false;
     modernSignalChainModel signalChainModel;
     ModernPatchListModel patchListModel;
     SignalChainPanel *signalChainPanel = nullptr;

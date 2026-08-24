@@ -25,6 +25,8 @@
 #define BANKTREELIST_H
 
 #include <QWidget>
+
+class midiIO;
 #include <QMap>
 #include <QList>
 #include <QTreeWidget>
@@ -35,6 +37,7 @@ class bankTreeList : public QWidget
 
 public:
 	bankTreeList(QWidget *parent = 0);
+	~bankTreeList();
 
 public slots:
 	void updateSize(QRect newrect);
@@ -43,10 +46,14 @@ public slots:
 	void setClosedItems(QTreeWidgetItem *item);
 	void setOpenItems(QTreeWidgetItem *item);
 	void connectedSignal();
+	void disconnectedSignal();
 	void requestPatch();
 	void requestPatch(int bank, int patch);
+	void reloadCurrentPatch();
+	void requestSelectedPatchReadback();
 	void requestPatchNamesForBank(int bank);
 	void selectPatch(int bank, int patch, const QString &name);
+	void shortMidiMessageReceived(int status, int data1, int data2);
 	void setItemClicked(QTreeWidgetItem *item, int column);
 	void setItemDoubleClicked(QTreeWidgetItem *item, int column);
 
@@ -67,12 +74,25 @@ signals:
 	void notConnectedSignal();
 
 private:
+	void requestPhysicalPatchReadback(int bank, int patch);
+	int configuredTransmitChannel() const;
 	void updateTree(QTreeWidgetItem *item);
 	void closeChildren(QTreeWidgetItem *item);
 	QTreeWidget* newTreeList();
 	QList<QTreeWidgetItem*> openBankTreeItems;
 	QList<QTreeWidgetItem*> openPatchTreeItems;
 	QList<QTreeWidgetItem*> currentPatchTreeItems;
+	midiIO *patchChangeListener;
+	int lastBankMsb;
+	int lastBankLsb;
+	int queuedPhysicalBank;
+	int queuedPhysicalPatch;
+	bool localPatchChangePending;
+	int localPatchChangeBank;
+	int localPatchChangePatch;
+	bool preserveLoadedPatchOnNextRead;
+	int preservedLoadedBank;
+	int preservedLoadedPatch;
 	QTreeWidget* treeList;
 	QMap<int, QTreeWidgetItem*> patchBankItems;
 	int itemIndex;

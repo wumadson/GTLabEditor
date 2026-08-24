@@ -63,6 +63,18 @@ mainWindow::mainWindow()
                          legacyFloorBoard, SLOT(requestPatchNamesForBank(int)));
         QObject::connect(modernFloorBoardWidget, SIGNAL(selectPatchRequested(int,int,QString)),
                          legacyFloorBoard, SLOT(selectModernPatch(int,int,QString)));
+        QObject::connect(modernFloorBoardWidget, SIGNAL(readCurrentPatchRequested()),
+                         legacyFloorBoard, SLOT(reloadCurrentPatch()));
+        QObject::connect(modernFloorBoardWidget,
+                         SIGNAL(writeCurrentPatchRequested(int,int)),
+                         legacyFloorBoard,
+                         SLOT(writeCurrentPatchToUser(int,int)));
+        QObject::connect(legacyFloorBoard,
+                         SIGNAL(writeVerificationFinished(int,int,int,QString,QString)),
+                         modernFloorBoardWidget,
+                         SLOT(persistentWriteFinished(int,int,int,QString,QString)));
+        QObject::connect(SysxIO::Instance(), SIGNAL(setStatusSymbol(int)),
+                         modernFloorBoardWidget, SLOT(backendActivityChanged(int)));
 
 
 

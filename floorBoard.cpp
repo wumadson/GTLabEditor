@@ -34,6 +34,7 @@
 #include "sysxWriter.h"
 #include "SysxIO.h"
 #include "globalVariables.h"
+#include "patchTransferCodec.h"
 
 #include "menuPage_assign1.h"
 #include "menuPage_assign2.h"
@@ -118,6 +119,7 @@ floorBoard::floorBoard(QWidget *parent,
 
         QObject::connect(this, SIGNAL( resizeSignal(QRect) ), bankList, SLOT( updateSize(QRect) ) );
         QObject::connect(display, SIGNAL(connectedSignal()), bankList, SLOT(connectedSignal()));
+        QObject::connect(display, SIGNAL(notConnectedSignal()), bankList, SLOT(disconnectedSignal()));
         QObject::connect(display, SIGNAL(connectedSignal()), this, SIGNAL(connectedSignal()));
         QObject::connect(display, SIGNAL(notConnectedSignal()), this, SIGNAL(notConnectedSignal()));
         QObject::connect(this, SIGNAL(valueChanged(QString, QString, QString)), display, SLOT(setValueDisplay(QString, QString, QString)));
@@ -195,6 +197,134 @@ void floorBoard::requestPatchNamesForBank(int bank)
 void floorBoard::selectModernPatch(int bank, int patch, QString name)
 {
         bankList->selectPatch(bank, patch, name);
+}
+
+void floorBoard::reloadCurrentPatch()
+{
+        SysxIO *sysxIO = SysxIO::Instance();
+        if (!sysxIO->isConnected() || !sysxIO->deviceReady())
+                return;
+
+        sysxIO->setDeviceReady(false);
+        bankList->reloadCurrentPatch();
+}
+
+void floorBoard::writeCurrentPatchToUser(int targetBank, int targetPatch)
+{
+        SysxIO *sysxIO = SysxIO::Instance();
+        if (persistentWriteInFlight || !sysxIO->isConnected()
+            || !sysxIO->deviceReady()
+            || targetBank < 1 || targetBank > bankTotalUser
+            || targetPatch < 1 || targetPatch > patchPerBank
+            || sysxIO->getLoadedBank() != targetBank
+            || sysxIO->getLoadedPatch() != targetPatch) {
+                emit writeVerificationFinished(3, targetBank, targetPatch,
+                                               QString(),
+                                               tr("WRITE target is no longer available."));
+                return;
+        }
+
+        QString snapshotError;
+        const QMap<QString, QString> snapshot =
+                PatchTransferCodec::comparableBlocks00To0C(
+                        sysxIO->getFileSource(), &snapshotError);
+        QString buildError;
+        const QString writeMessage =
+                PatchTransferCodec::buildUserWriteMessage(
+                        sysxIO->getFileSource(), targetBank, targetPatch,
+                        &buildError);
+        if (snapshot.size() != 13 || writeMessage.isEmpty()) {
+                emit writeVerificationFinished(
+                        3, targetBank, targetPatch, QString(),
+                        !snapshotError.isEmpty() ? snapshotError : buildError);
+                return;
+        }
+
+        persistentWriteInFlight = true;
+        persistentWriteBank = targetBank;
+        persistentWritePatch = targetPatch;
+        persistentWriteSnapshot = snapshot;
+
+        sysxIO->setDeviceReady(false);
+        sysxIO->emitStatusSymbol(2);
+        sysxIO->emitStatusMessage(tr("WRITING PATCH"));
+        QObject::connect(sysxIO, SIGNAL(sysxReply(QString)), this,
+                         SLOT(writeTransmissionReply(QString)),
+                         Qt::UniqueConnection);
+        sysxIO->sendSysx(writeMessage);
+}
+
+void floorBoard::writeTransmissionReply(QString replyMsg)
+{
+        SysxIO *sysxIO = SysxIO::Instance();
+        QObject::disconnect(sysxIO, SIGNAL(sysxReply(QString)), this,
+                            SLOT(writeTransmissionReply(QString)));
+        if (!persistentWriteInFlight)
+                return;
+
+        // DT1 emits isFinished() before its trailing empty sysxReply. Waiting
+        // for that reply prevents the verifier from consuming the previous
+        // command's completion as the response to the new RQ1.
+        Q_UNUSED(replyMsg);
+        sysxIO->emitStatusSymbol(3);
+        sysxIO->emitStatusMessage(tr("VERIFYING WRITE"));
+        QObject::connect(sysxIO, SIGNAL(sysxReply(QString)), this,
+                         SLOT(verifyPersistentWrite(QString)),
+                         Qt::UniqueConnection);
+        sysxIO->requestPatch(persistentWriteBank, persistentWritePatch);
+}
+
+void floorBoard::verifyPersistentWrite(QString replyMsg)
+{
+        SysxIO *sysxIO = SysxIO::Instance();
+        QObject::disconnect(sysxIO, SIGNAL(sysxReply(QString)), this,
+                            SLOT(verifyPersistentWrite(QString)));
+
+        const int targetBank = persistentWriteBank;
+        const int targetPatch = persistentWritePatch;
+        const QMap<QString, QString> expected = persistentWriteSnapshot;
+        persistentWriteInFlight = false;
+        persistentWriteBank = 0;
+        persistentWritePatch = 0;
+        persistentWriteSnapshot.clear();
+        sysxIO->setDeviceReady(true);
+        sysxIO->emitStatusProgress(0);
+        sysxIO->emitStatusSymbol(1);
+
+        const DecodedPatch decoded =
+                PatchTransferCodec::decodePatchReply(replyMsg);
+        if (!decoded.valid) {
+                sysxIO->emitStatusMessage(tr("WRITE VERIFICATION FAILED"));
+                emit writeVerificationFinished(2, targetBank, targetPatch,
+                                               QString(), decoded.error);
+                return;
+        }
+
+        // The currently known RQ1 returns logical blocks 00-0C. Block 0D is
+        // sent by WRITE, but updatePatch() normally fills it from default.syx;
+        // that synthetic data is not evidence of a User-memory readback and
+        // is deliberately excluded from verification.
+        if (decoded.logicalBlocks00To0C != expected) {
+                QString differingBlock;
+                for (auto it = expected.constBegin(); it != expected.constEnd(); ++it) {
+                        if (decoded.logicalBlocks00To0C.value(it.key()) != it.value()) {
+                                differingBlock = it.key();
+                                break;
+                        }
+                }
+                sysxIO->emitStatusMessage(tr("WRITE MISMATCH"));
+                emit writeVerificationFinished(
+                        1, targetBank, targetPatch, decoded.verifiedName,
+                        differingBlock.isEmpty()
+                            ? tr("Readback data differs from the pre-WRITE snapshot.")
+                            : tr("Readback differs in logical block %1.")
+                                  .arg(differingBlock));
+                return;
+        }
+
+        sysxIO->emitStatusMessage(tr("WRITE VERIFIED"));
+        emit writeVerificationFinished(0, targetBank, targetPatch,
+                                       decoded.verifiedName, QString());
 }
 
 void floorBoard::paintEvent(QPaintEvent *)

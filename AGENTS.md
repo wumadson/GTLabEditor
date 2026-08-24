@@ -614,6 +614,22 @@ These internal Reverb controls were validated with a physical GT-10: changes mad
 
 Initial hardware testing showed that parameter writes reached the GT-10, but the Modern UI initially displayed values from the bundled `default.syx` instead of the GT-10's current patch. The legacy `bankTreeList::connectedSignal()` had its `requestPatch()` calls commented out. The connection flow now requests the current temporary patch buffer after a valid identity reply, and Modern Reverb controls remain unavailable until that device patch has been received and propagated through the legacy `updateSignal()` flow. This correction was validated with the physical GT-10: Type, Reverb Time and the remaining implemented Reverb parameters loaded with the device's actual values.
 
+The Modern header now also has a guarded User-patch WRITE path. It snapshots
+logical blocks `00`-`0C`, sends the complete current buffer (including `0D`)
+through the existing SysEx transport, then performs a direct User-memory RQ1
+readback without changing patches or replacing `fileSource`. Only an exact
+match of all returned `00`-`0C` data is reported as verified. Block `0D` is
+explicitly excluded because the currently known RQ1 does not return it and the
+legacy parser synthesizes it from `default.syx`. Persistent WRITE was physically
+validated on User patch U49-1: after leaving and returning to the patch, the
+edited parameters remained stored. An isolated RQ1 of U49-1 returned the full
+1784-byte reply in 685 ms. The initial automatic verification failure was a
+callback-ordering bug: verification connected after `isFinished()` and consumed
+the preceding DT1 command's trailing empty `sysxReply`. Verification now waits
+for that DT1 completion reply before connecting and issuing the RQ1. The decoder
+has regression coverage; the corrected automatic MATCH result still requires a
+final physical retest.
+
 ## Hardware validation status
 
 The physical BOSS GT-10 was available for the first Modern UI milestone and validated connection, current-patch readback, Reverb ON/OFF and all implemented internal Reverb controls. Hardware availability may still vary between development sessions.

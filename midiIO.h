@@ -29,19 +29,24 @@
 #include <QStringList>
 #include <QList>
 
+class RtMidiIn;
+
 class midiIO: public QThread
 {
 	Q_OBJECT
 
 public:
-	midiIO();
+	midiIO(QObject *parent = 0);
+	~midiIO();
 	void run();
 	void sendSysxMsg(QString sysxOutMsg, int midiOutport, int midiInPort);
 	void sendMidi(QString midiMsg, int midiOutport);
 	void callbackMsg(QString rxData);
 	QList<QString> getMidiOutDevices();
 	QList<QString> getMidiInDevices();
-		
+	bool startShortMidiListener();
+	void stopShortMidiListener();
+
 signals:
 	void errorSignal(QString windowTitle, QString errorMsg);
 	void replyMsg(QString sysxInMsg);
@@ -51,7 +56,11 @@ signals:
 	void setStatusProgress(int value);
   void setStatusMessage(QString message);
   void setStatusdBugMessage(QString dBug);
-		
+	void shortMidiMessage(int status, int data1, int data2);
+
+private slots:
+	void dispatchShortMidi(int status, int data1, int data2);
+
 private:
 	void queryMidiInDevices();
 	void queryMidiOutDevices();
@@ -77,6 +86,7 @@ private:
 	QString hex;
 	bool midi;
 	int count;
+	RtMidiIn *shortMidiIn;
 };
 
 #endif // MIDIIO_H

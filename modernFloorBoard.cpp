@@ -20,6 +20,7 @@
 #include <QButtonGroup>
 #include <QDebug>
 #include <QDial>
+#include <QDialog>
 #include <QFrame>
 #include <QFontMetrics>
 #include <QGridLayout>
@@ -38,6 +39,7 @@
 #include <QStandardItemModel>
 #include <QTimer>
 #include <QSignalBlocker>
+#include <QSpinBox>
 #include <QSet>
 #include <QStackedWidget>
 #include <QStringList>
@@ -47,6 +49,186 @@
 #include <algorithm>
 
 namespace {
+class ModernDialogIcon final : public QWidget
+{
+public:
+    enum Kind { Warning, Success, Error };
+
+    explicit ModernDialogIcon(Kind kind, QWidget *parent = nullptr)
+        : QWidget(parent), iconKind(kind)
+    {
+        setFixedSize(34, 34);
+    }
+
+protected:
+    void paintEvent(QPaintEvent *) override
+    {
+        QPainter painter(this);
+        painter.setRenderHint(QPainter::Antialiasing, true);
+        const QRectF iconRect(4.5, 4.5, 25.0, 25.0);
+
+        if (iconKind == Warning) {
+            QPainterPath triangle;
+            triangle.moveTo(iconRect.center().x(), iconRect.top());
+            triangle.lineTo(iconRect.right(), iconRect.bottom());
+            triangle.lineTo(iconRect.left(), iconRect.bottom());
+            triangle.closeSubpath();
+            painter.setPen(QPen(QColor(ModernTheme::color(ModernTheme::WarningOrange)),
+                                1.5, Qt::SolidLine, Qt::RoundCap,
+                                Qt::RoundJoin));
+            painter.setBrush(QColor(217, 139, 53, 22));
+            painter.drawPath(triangle);
+            painter.setPen(QPen(QColor(ModernTheme::color(ModernTheme::WarningOrange)),
+                                2.0, Qt::SolidLine, Qt::RoundCap));
+            painter.drawLine(QPointF(iconRect.center().x(), 12.0),
+                             QPointF(iconRect.center().x(), 20.0));
+            painter.drawPoint(QPointF(iconRect.center().x(), 24.0));
+            return;
+        }
+
+        const QColor color(ModernTheme::color(
+            iconKind == Success ? ModernTheme::ActiveGreen
+                                : ModernTheme::DangerRed));
+        painter.setPen(QPen(color, 1.5));
+        painter.setBrush(QColor(color.red(), color.green(), color.blue(), 18));
+        painter.drawEllipse(iconRect);
+        painter.setPen(QPen(color, 2.0, Qt::SolidLine, Qt::RoundCap,
+                            Qt::RoundJoin));
+        if (iconKind == Success) {
+            QPainterPath check;
+            check.moveTo(11.0, 17.0);
+            check.lineTo(15.0, 21.0);
+            check.lineTo(23.0, 12.5);
+            painter.drawPath(check);
+        } else {
+            painter.drawLine(QPointF(12.0, 12.0), QPointF(22.0, 22.0));
+            painter.drawLine(QPointF(22.0, 12.0), QPointF(12.0, 22.0));
+        }
+    }
+
+private:
+    Kind iconKind;
+};
+
+class ModernMessageDialog final : public QDialog
+{
+public:
+    ModernMessageDialog(ModernDialogIcon::Kind kind, const QString &title,
+                        const QString &target, const QString &description,
+                        const QString &detail, QWidget *parent)
+        : QDialog(parent)
+    {
+        setWindowTitle(title);
+        setModal(true);
+        setMinimumWidth(410);
+        setMaximumWidth(470);
+        setStyleSheet(QStringLiteral(
+            "QDialog { background: %1; color: %2; border: 1px solid %6; "
+            "border-radius: 5px; }"
+            "QLabel#ModernDialogTitle { color: %2; font-size: 12px; "
+            "font-weight: 700; letter-spacing: 1px; }"
+            "QLabel#ModernDialogTarget { color: %2; font-size: 16px; "
+            "font-weight: 600; }"
+            "QLabel#ModernDialogDescription { color: %3; font-size: 12px; }"
+            "QLabel#ModernDialogDetail { color: %4; font-size: 10px; }"
+            "QPushButton { min-width: 92px; min-height: 30px; padding: 0 14px; "
+            "color: %2; background: %5; border: 1px solid %6; "
+            "border-radius: %7px; font-size: 11px; font-weight: 600; }"
+            "QPushButton:hover { background: #171A1E; border-color: #3A3F45; }"
+            "QPushButton:pressed { background: #050607; }"
+            "QPushButton#PrimaryDialogButton { color: #F2F6F8; "
+            "background: %8; border-color: %9; }"
+            "QPushButton#PrimaryDialogButton:hover { background: %9; }")
+            .arg(ModernTheme::color(ModernTheme::ElevatedPanel),
+                 ModernTheme::color(ModernTheme::PrimaryText),
+                 ModernTheme::color(ModernTheme::SecondaryText),
+                 ModernTheme::color(ModernTheme::DisabledText),
+                 ModernTheme::color(ModernTheme::Panel),
+                 ModernTheme::color(ModernTheme::Border),
+                 QString::number(ModernTheme::radius(ModernTheme::ControlRadius)),
+                 ModernTheme::color(ModernTheme::AccentCyanDim),
+                 ModernTheme::color(ModernTheme::AccentCyan)));
+
+        auto *root = new QVBoxLayout(this);
+        root->setContentsMargins(22, 20, 22, 18);
+        root->setSpacing(0);
+
+        auto *heading = new QHBoxLayout;
+        heading->setSpacing(11);
+        heading->addWidget(new ModernDialogIcon(kind, this), 0, Qt::AlignTop);
+        auto *titleLabel = new QLabel(title, this);
+        titleLabel->setObjectName("ModernDialogTitle");
+        heading->addWidget(titleLabel, 1, Qt::AlignVCenter);
+        root->addLayout(heading);
+
+        auto *rule = new QFrame(this);
+        rule->setFixedHeight(1);
+        rule->setStyleSheet("background: "
+                            + ModernTheme::color(ModernTheme::BorderSubtle)
+                            + "; border: none;");
+        root->addSpacing(12);
+        root->addWidget(rule);
+        root->addSpacing(17);
+
+        if (!target.isEmpty()) {
+            auto *targetLabel = new QLabel(target, this);
+            targetLabel->setObjectName("ModernDialogTarget");
+            targetLabel->setWordWrap(true);
+            root->addWidget(targetLabel);
+            root->addSpacing(12);
+        }
+
+        auto *descriptionLabel = new QLabel(description, this);
+        descriptionLabel->setObjectName("ModernDialogDescription");
+        descriptionLabel->setWordWrap(true);
+        root->addWidget(descriptionLabel);
+
+        if (!detail.trimmed().isEmpty()) {
+            auto *detailLabel = new QLabel(detail, this);
+            detailLabel->setObjectName("ModernDialogDetail");
+            detailLabel->setWordWrap(true);
+            root->addSpacing(10);
+            root->addWidget(detailLabel);
+        }
+
+        buttonRow = new QHBoxLayout;
+        buttonRow->setSpacing(8);
+        buttonRow->addStretch();
+        root->addSpacing(20);
+        root->addLayout(buttonRow);
+    }
+
+    bool addWriteConfirmation()
+    {
+        auto *cancel = new QPushButton(tr("Cancel"), this);
+        auto *write = new QPushButton(tr("Write Patch"), this);
+        write->setObjectName("PrimaryDialogButton");
+        cancel->setDefault(true);
+        cancel->setAutoDefault(true);
+        write->setAutoDefault(true);
+        connect(cancel, &QPushButton::clicked, this, &QDialog::reject);
+        connect(write, &QPushButton::clicked, this, &QDialog::accept);
+        buttonRow->addWidget(cancel);
+        buttonRow->addWidget(write);
+        cancel->setFocus(Qt::OtherFocusReason);
+        return exec() == QDialog::Accepted;
+    }
+
+    void addOkButton()
+    {
+        auto *ok = new QPushButton(tr("OK"), this);
+        ok->setObjectName("PrimaryDialogButton");
+        ok->setDefault(true);
+        connect(ok, &QPushButton::clicked, this, &QDialog::accept);
+        buttonRow->addWidget(ok);
+        ok->setFocus(Qt::OtherFocusReason);
+        exec();
+    }
+
+private:
+    QHBoxLayout *buttonRow = nullptr;
+};
+
 class GtLabBrandWidget final : public QWidget
 {
 public:
@@ -67,26 +249,21 @@ protected:
         QFont brandFont = font();
         brandFont.setPixelSize(20);
         brandFont.setWeight(QFont::DemiBold);
-        brandFont.setLetterSpacing(QFont::AbsoluteSpacing, 0.2);
+        brandFont.setLetterSpacing(QFont::AbsoluteSpacing, 0.0);
 
         QFont editorFont = font();
         editorFont.setPixelSize(19);
         editorFont.setWeight(QFont::Normal);
 
         const QFontMetricsF brandMetrics(brandFont);
-        const qreal baseline = (height() - brandMetrics.height()) / 2.0
-            + brandMetrics.ascent();
+        const qreal baseline = qRound(
+            (height() - brandMetrics.height()) / 2.0
+            + brandMetrics.ascent());
         const qreal editorX = brandMetrics.horizontalAdvance("GT Lab") + 7.0;
 
-        QPainterPath brandPath;
-        brandPath.addText(QPointF(0.5, baseline), brandFont, "GT Lab");
-        QLinearGradient steel(0.0, brandPath.boundingRect().top(),
-                              0.0, brandPath.boundingRect().bottom());
-        steel.setColorAt(0.00, QColor("#87929C"));
-        steel.setColorAt(0.32, QColor("#E8EDF1"));
-        steel.setColorAt(0.58, QColor("#B8C1C9"));
-        steel.setColorAt(1.00, QColor("#75818B"));
-        painter.fillPath(brandPath, steel);
+        painter.setFont(brandFont);
+        painter.setPen(QColor("#D5DCE2"));
+        painter.drawText(QPointF(0.0, baseline), "GT Lab");
 
         painter.setPen(QPen(QColor(55, 159, 218, 145), 1.0,
                             Qt::SolidLine, Qt::RoundCap));
@@ -97,6 +274,76 @@ protected:
         painter.setFont(editorFont);
         painter.setPen(QColor("#9AA5AF"));
         painter.drawText(QPointF(editorX, baseline), "Editor");
+    }
+};
+
+class ElidingPatchNameLabel final : public QLabel
+{
+public:
+    explicit ElidingPatchNameLabel(const QString &text,
+                                   QWidget *parent = nullptr)
+        : QLabel(text, parent)
+    {
+        setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    }
+
+    QSize minimumSizeHint() const override
+    {
+        QSize hint = QLabel::minimumSizeHint();
+        hint.setWidth(72);
+        return hint;
+    }
+
+protected:
+    void paintEvent(QPaintEvent *) override
+    {
+        QPainter painter(this);
+        painter.setRenderHint(QPainter::TextAntialiasing, true);
+        painter.setFont(font());
+        painter.setPen(palette().color(foregroundRole()));
+        const QRect textRect = contentsRect();
+        const QString visibleText = fontMetrics().elidedText(
+            text(), Qt::ElideRight, textRect.width());
+        painter.drawText(textRect, Qt::AlignLeft | Qt::AlignVCenter,
+                         visibleText);
+    }
+};
+
+class TempoSpinBox final : public QSpinBox
+{
+public:
+    explicit TempoSpinBox(QWidget *parent = nullptr)
+        : QSpinBox(parent)
+    {
+        setButtonSymbols(QAbstractSpinBox::NoButtons);
+        setKeyboardTracking(false);
+        setAlignment(Qt::AlignCenter);
+        setAttribute(Qt::WA_MacShowFocusRect, false);
+    }
+
+protected:
+    void wheelEvent(QWheelEvent *event) override
+    {
+        event->ignore();
+    }
+};
+
+class PatchLevelSpinBox final : public QSpinBox
+{
+public:
+    explicit PatchLevelSpinBox(QWidget *parent = nullptr)
+        : QSpinBox(parent)
+    {
+        setButtonSymbols(QAbstractSpinBox::NoButtons);
+        setKeyboardTracking(false);
+        setAlignment(Qt::AlignCenter);
+        setAttribute(Qt::WA_MacShowFocusRect, false);
+    }
+
+protected:
+    void wheelEvent(QWheelEvent *event) override
+    {
+        event->ignore();
     }
 };
 
@@ -282,7 +529,7 @@ protected:
                          QPointF(width() - 0.5, borderY));
 
         const int iconSide = 18;
-        const QRect iconRect(1, (height() - iconSide) / 2,
+        const QRect iconRect(0, qRound((height() - iconSide) / 2.0),
                              iconSide, iconSide);
         const QIcon icon = itemIcon(currentIndex());
         if (!icon.isNull())
@@ -294,7 +541,7 @@ protected:
         valueFont.setWeight(QFont::DemiBold);
         painter.setFont(valueFont);
         painter.setPen(textColor);
-        const int textLeft = icon.isNull() ? 1 : 25;
+        const int textLeft = icon.isNull() ? 0 : 22;
         const QRect textRect(textLeft, 0,
                              qMax(0, width() - textLeft - 22), height() - 2);
         const QString visibleText = QFontMetrics(valueFont).elidedText(
@@ -304,7 +551,7 @@ protected:
                          visibleText);
 
         const qreal arrowX = width() - 10.0;
-        const qreal arrowY = height() / 2.0 + 0.5;
+        const qreal arrowY = height() / 2.0;
         painter.setPen(QPen(active ? QColor("#919da9")
                                    : QColor("#59636e"),
                             1.45, Qt::SolidLine,
@@ -678,7 +925,18 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     QHBoxLayout *headerLayout = new QHBoxLayout(header);
     headerLayout->setContentsMargins(16, 6, 16, 6);
 
-    QVBoxLayout *brandLayout = new QVBoxLayout;
+    const int headerCaptionHeight = 14;
+    const int headerValueHeight = 27;
+    const int headerBlockHeight =
+        headerCaptionHeight + 1 + headerValueHeight;
+
+    QWidget *brandBlock = new QWidget;
+    brandBlock->setFixedHeight(headerBlockHeight);
+    brandBlock->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    QVBoxLayout *brandLayout = new QVBoxLayout(brandBlock);
+    brandLayout->setContentsMargins(0, 0, 0, 0);
+    brandLayout->setSpacing(1);
+    brandLayout->setAlignment(Qt::AlignVCenter);
 
     GtLabBrandWidget *title = new GtLabBrandWidget;
 
@@ -688,32 +946,139 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     brandLayout->addWidget(title);
     brandLayout->addWidget(subtitle);
 
-    headerLayout->addLayout(brandLayout);
+    headerLayout->addWidget(brandBlock, 0, Qt::AlignVCenter);
     headerLayout->addStretch();
 
-    QVBoxLayout *patchNumberLayout = new QVBoxLayout;
-    patchNumberLayout->setSpacing(1);
+    QWidget *patchIdentity = new QWidget;
+    patchIdentity->setFixedHeight(headerBlockHeight);
+    patchIdentity->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    QVBoxLayout *patchIdentityLayout = new QVBoxLayout(patchIdentity);
+    patchIdentityLayout->setContentsMargins(0, 0, 0, 0);
+    patchIdentityLayout->setSpacing(1);
     QLabel *patchCaption = new QLabel("PATCH");
     patchCaption->setObjectName("PatchCaption");
+    patchCaption->setFixedHeight(headerCaptionHeight);
+    patchCaption->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     patchNumber = new QLabel(QString::fromUtf8("—"));
     patchNumber->setObjectName("PatchNumber");
-    patchNumberLayout->addWidget(patchCaption);
-    patchNumberLayout->addWidget(patchNumber);
-
-    patchName = new QLabel("NO PATCH DATA");
+    patchNumber->setFixedWidth(58);
+    patchName = new ElidingPatchNameLabel("NO PATCH DATA");
     patchName->setObjectName("PatchName");
+    QWidget *patchIdentityRow = new QWidget;
+    patchIdentityRow->setFixedHeight(headerValueHeight);
+    QHBoxLayout *patchIdentityRowLayout =
+        new QHBoxLayout(patchIdentityRow);
+    patchIdentityRowLayout->setContentsMargins(0, 0, 0, 0);
+    patchIdentityRowLayout->setSpacing(10);
+    patchIdentityRowLayout->addWidget(patchNumber, 0, Qt::AlignVCenter);
+    patchIdentityRowLayout->addWidget(patchName, 1, Qt::AlignVCenter);
+    patchIdentityLayout->addWidget(patchCaption);
+    patchIdentityLayout->addWidget(patchIdentityRow);
+
+    QWidget *tempoHeader = new QWidget;
+    tempoHeader->setFixedHeight(headerBlockHeight);
+    tempoHeader->setMinimumWidth(66);
+    tempoHeader->setMaximumWidth(74);
+    tempoHeader->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    QVBoxLayout *tempoLayout = new QVBoxLayout(tempoHeader);
+    tempoLayout->setContentsMargins(0, 0, 0, 0);
+    tempoLayout->setSpacing(1);
+    QLabel *tempoCaption = new QLabel("TEMPO BPM");
+    tempoCaption->setObjectName("PatchCaption");
+    tempoCaption->setFixedHeight(headerCaptionHeight);
+    tempoCaption->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+    tempoControl = new QFrame;
+    tempoControl->setObjectName("TempoControl");
+    tempoControl->setFixedHeight(27);
+    QHBoxLayout *tempoControlLayout = new QHBoxLayout(tempoControl);
+    tempoControlLayout->setContentsMargins(5, 0, 5, 0);
+    tempoControlLayout->setSpacing(0);
+    tempoValue = new TempoSpinBox;
+    tempoValue->setObjectName("TempoSpinBox");
+    tempoValue->setRange(39, 250);
+    tempoValue->setSpecialValueText(QString::fromUtf8("—"));
+    tempoValue->setValue(39);
+    tempoValue->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    tempoControlLayout->addWidget(tempoValue, 1);
+    tempoControl->setEnabled(false);
+    tempoControl->setStyleSheet(
+        "QFrame#TempoControl { background: #0B1015; border: 1px solid #33404D; "
+        "border-radius: 4px; }"
+        "QFrame#TempoControl:disabled { border-color: #27313A; }"
+        "QSpinBox#TempoSpinBox { color: #258DB5; background: transparent; "
+        "border: 0; padding: 0; font-size: 13px; font-weight: 700; "
+        "selection-background-color: #244B66; }"
+        "QSpinBox#TempoSpinBox:focus { border-bottom: 1px solid #258DB5; }"
+        "QSpinBox#TempoSpinBox:disabled { color: #59636E; }"
+    );
+    tempoLayout->addWidget(tempoCaption);
+    tempoLayout->addWidget(tempoControl);
+    connect(tempoValue, &QSpinBox::editingFinished,
+            this, &modernFloorBoard::commitTempoEdit);
+
+    QWidget *patchLevelHeader = new QWidget;
+    patchLevelHeader->setFixedHeight(headerBlockHeight);
+    patchLevelHeader->setMinimumWidth(70);
+    patchLevelHeader->setMaximumWidth(80);
+    patchLevelHeader->setSizePolicy(QSizePolicy::Preferred,
+                                    QSizePolicy::Fixed);
+    QVBoxLayout *patchLevelLayout = new QVBoxLayout(patchLevelHeader);
+    patchLevelLayout->setContentsMargins(0, 0, 0, 0);
+    patchLevelLayout->setSpacing(1);
+    QLabel *patchLevelCaption = new QLabel("PATCH LEVEL");
+    patchLevelCaption->setObjectName("PatchCaption");
+    patchLevelCaption->setFixedHeight(headerCaptionHeight);
+    patchLevelCaption->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+    patchLevelControl = new QFrame;
+    patchLevelControl->setObjectName("PatchLevelControl");
+    patchLevelControl->setFixedHeight(headerValueHeight);
+    QHBoxLayout *patchLevelControlLayout =
+        new QHBoxLayout(patchLevelControl);
+    patchLevelControlLayout->setContentsMargins(5, 0, 5, 0);
+    patchLevelControlLayout->setSpacing(0);
+    patchLevelValue = new PatchLevelSpinBox;
+    patchLevelValue->setObjectName("PatchLevelSpinBox");
+    patchLevelValue->setRange(-1, 200);
+    patchLevelValue->setSpecialValueText(QString::fromUtf8("—"));
+    patchLevelValue->setSingleStep(2);
+    patchLevelValue->setValue(-1);
+    patchLevelValue->setSizePolicy(QSizePolicy::Expanding,
+                                   QSizePolicy::Fixed);
+    patchLevelControlLayout->addWidget(patchLevelValue, 1);
+    patchLevelControl->setEnabled(false);
+    patchLevelControl->setStyleSheet(
+        "QFrame#PatchLevelControl { background: #0B1015; "
+        "border: 1px solid #33404D; border-radius: 4px; }"
+        "QFrame#PatchLevelControl:disabled { border-color: #27313A; }"
+        "QSpinBox#PatchLevelSpinBox { color: #258DB5; "
+        "background: transparent; border: 0; padding: 0; "
+        "font-size: 13px; font-weight: 700; "
+        "selection-background-color: #244B66; }"
+        "QSpinBox#PatchLevelSpinBox:focus { "
+        "border-bottom: 1px solid #258DB5; }"
+        "QSpinBox#PatchLevelSpinBox:disabled { color: #59636E; }"
+    );
+    patchLevelLayout->addWidget(patchLevelCaption);
+    patchLevelLayout->addWidget(patchLevelControl);
+    connect(patchLevelValue, &QSpinBox::editingFinished,
+            this, &modernFloorBoard::commitPatchLevelEdit);
 
     QWidget *outputSelectHeader = new QWidget;
     outputSelectHeader->setObjectName("OutputSelectHeader");
+    outputSelectHeader->setFixedHeight(headerBlockHeight);
+    outputSelectHeader->setSizePolicy(QSizePolicy::Preferred,
+                                      QSizePolicy::Fixed);
     QVBoxLayout *outputSelectLayout = new QVBoxLayout(outputSelectHeader);
     outputSelectLayout->setContentsMargins(0, 0, 0, 0);
     outputSelectLayout->setSpacing(1);
 
     QLabel *outputSelectCaption = new QLabel("OUTPUT SELECT");
-    outputSelectCaption->setObjectName("OutputSelectCaption");
+    outputSelectCaption->setObjectName("PatchCaption");
+    outputSelectCaption->setFixedHeight(headerCaptionHeight);
+    outputSelectCaption->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     outputSelectCombo = new OutputSelectComboBox;
     outputSelectCombo->setObjectName("OutputSelectCombo");
-    outputSelectCombo->setMinimumHeight(27);
+    outputSelectCombo->setFixedHeight(headerValueHeight);
     outputSelectCombo->setIconSize(QSize(18, 18));
 
     outputSelectCombo->addItem(QString::fromUtf8("—"), -1);
@@ -738,8 +1103,6 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     outputSelectCombo->setCurrentIndex(0);
     outputSelectCombo->setEnabled(false);
     outputSelectHeader->setStyleSheet(
-        "QLabel#OutputSelectCaption { color: #78828e; font-size: 9px; "
-        "font-weight: 700; letter-spacing: 1px; }"
         "QComboBox#OutputSelectCombo QAbstractItemView { color: #d8e1ea; "
         "background: #11171d; border: 1px solid #35414d; selection-background-color: #244b66; "
         "selection-color: #ffffff; outline: 0; padding: 4px; }"
@@ -752,11 +1115,67 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
             QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, &modernFloorBoard::outputSelectChanged);
 
-    headerLayout->addLayout(patchNumberLayout);
-    headerLayout->addSpacing(14);
-    headerLayout->addWidget(patchName);
-    headerLayout->addSpacing(24);
-    headerLayout->addWidget(outputSelectHeader);
+    readButton = new QPushButton("READ");
+    readButton->setObjectName("HeaderReadButton");
+    readButton->setFixedSize(54, headerValueHeight);
+    readButton->setEnabled(false);
+    readButton->setToolTip("Reload the current GT-10 temporary patch buffer");
+    readButton->setStyleSheet(
+        "QPushButton#HeaderReadButton { color: #D8E1EA; background: #11171D; "
+        "border: 1px solid #35414D; border-radius: 4px; "
+        "font-size: 10px; font-weight: 600; }"
+        "QPushButton#HeaderReadButton:hover { background: #151D26; "
+        "border-color: #4A5968; }"
+        "QPushButton#HeaderReadButton:pressed { background: #0B1015; "
+        "border-color: #258DB5; }"
+        "QPushButton#HeaderReadButton:disabled { color: #59636E; "
+        "background: #0B1015; border-color: #27313A; }"
+    );
+    connect(readButton, &QPushButton::clicked,
+            this, &modernFloorBoard::readCurrentPatch);
+
+    writeButton = new QPushButton("WRITE");
+    writeButton->setObjectName("HeaderWriteButton");
+    writeButton->setFixedSize(54, headerValueHeight);
+    writeButton->setEnabled(false);
+    writeButton->setToolTip("Write and verify the current patch in GT-10 User memory");
+    writeButton->setStyleSheet(
+        "QPushButton#HeaderWriteButton { color: #E6C8C8; background: #211315; "
+        "border: 1px solid #63363A; border-radius: 4px; "
+        "font-size: 10px; font-weight: 600; }"
+        "QPushButton#HeaderWriteButton:hover { background: #2B171A; "
+        "border-color: #865057; color: #F0D8D8; }"
+        "QPushButton#HeaderWriteButton:pressed { background: #180D0F; "
+        "border-color: #A65B62; }"
+        "QPushButton#HeaderWriteButton:disabled { color: #665357; "
+        "background: #110D0E; border-color: #332529; }"
+    );
+    connect(writeButton, &QPushButton::clicked,
+            this, &modernFloorBoard::writeCurrentPatch);
+
+    QWidget *headerActions = new QWidget;
+    headerActions->setFixedHeight(headerBlockHeight);
+    headerActions->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    QVBoxLayout *headerActionsLayout = new QVBoxLayout(headerActions);
+    headerActionsLayout->setContentsMargins(0, 0, 0, 0);
+    headerActionsLayout->setSpacing(1);
+    headerActionsLayout->addSpacing(headerCaptionHeight);
+    QHBoxLayout *headerActionRow = new QHBoxLayout;
+    headerActionRow->setContentsMargins(0, 0, 0, 0);
+    headerActionRow->setSpacing(8);
+    headerActionRow->addWidget(readButton);
+    headerActionRow->addWidget(writeButton);
+    headerActionsLayout->addLayout(headerActionRow);
+
+    headerLayout->addWidget(patchIdentity, 1, Qt::AlignVCenter);
+    headerLayout->addSpacing(18);
+    headerLayout->addWidget(headerActions, 0, Qt::AlignVCenter);
+    headerLayout->addSpacing(18);
+    headerLayout->addWidget(tempoHeader, 0, Qt::AlignVCenter);
+    headerLayout->addSpacing(18);
+    headerLayout->addWidget(patchLevelHeader, 0, Qt::AlignVCenter);
+    headerLayout->addSpacing(18);
+    headerLayout->addWidget(outputSelectHeader, 0, Qt::AlignVCenter);
 
     root->addWidget(header);
 
@@ -2347,6 +2766,126 @@ bool modernFloorBoard::hasSourceValue(const QString &area,
     return source.hex.at(blockIndex).size() > sysxDataOffset + offset;
 }
 
+void modernFloorBoard::refreshTempoHeader()
+{
+    if (!tempoValue)
+        return;
+
+    const QSignalBlocker blocker(tempoValue);
+    tempoControl->setEnabled(false);
+    tempoValue->setRange(39, 250);
+    tempoValue->setValue(39);
+
+    SysxIO *sysxIO = SysxIO::Instance();
+    if (!backendIsConnected || !backendHasPatchData
+        || !sysxIO->isConnected() || !sysxIO->isDevice()
+        || !hasSourceValue("Structure", "0A", "00", "66")
+        || !hasSourceValue("Structure", "0A", "00", "67"))
+        return;
+
+    const int bpm = sysxIO->getSourceValue(
+        "Structure", "0A", "00", "66");
+    if (bpm < 40 || bpm > 250)
+        return;
+
+    tempoValue->setRange(40, 250);
+    tempoValue->setValue(bpm);
+    tempoControl->setEnabled(true);
+}
+
+void modernFloorBoard::refreshPatchLevelHeader()
+{
+    if (!patchLevelControl || !patchLevelValue)
+        return;
+
+    const QSignalBlocker blocker(patchLevelValue);
+    patchLevelControl->setEnabled(false);
+    patchLevelValue->setRange(-1, 200);
+    patchLevelValue->setValue(-1);
+
+    SysxIO *sysxIO = SysxIO::Instance();
+    if (!backendIsConnected || !backendHasPatchData
+        || !sysxIO->isConnected() || !sysxIO->isDevice()
+        || !hasSourceValue("Structure", "0A", "00", "60"))
+        return;
+
+    const int raw = sysxIO->getSourceValue(
+        "Structure", "0A", "00", "60");
+    if (raw < 0 || raw > 100)
+        return;
+
+    const QString rawHex = QString::number(raw, 16)
+        .rightJustified(2, '0').toUpper();
+    QString displayText = MidiTable::Instance()->getValue(
+        "Structure", "0A", "00", "60", rawHex);
+    displayText.remove('%');
+    bool displayOk = false;
+    const int display = displayText.trimmed().toInt(&displayOk);
+    if (!displayOk || display < 0 || display > 200)
+        return;
+
+    patchLevelValue->setRange(0, 200);
+    patchLevelValue->setValue(display);
+    patchLevelControl->setEnabled(true);
+}
+
+void modernFloorBoard::commitPatchLevelEdit()
+{
+    if (!patchLevelControl || !patchLevelValue
+        || !patchLevelControl->isEnabled())
+        return;
+
+    SysxIO *sysxIO = SysxIO::Instance();
+    if (!backendIsConnected || !backendHasPatchData
+        || !sysxIO->isConnected() || !sysxIO->isDevice()
+        || !hasSourceValue("Structure", "0A", "00", "60"))
+        return refreshPatchLevelHeader();
+
+    int display = patchLevelValue->value();
+    if (display < 0 || display > 200)
+        return refreshPatchLevelHeader();
+    if ((display % 2) != 0) {
+        display = qMin(200, display + 1);
+        const QSignalBlocker blocker(patchLevelValue);
+        patchLevelValue->setValue(display);
+    }
+
+    const int raw = display / 2;
+    if (sysxIO->getSourceValue("Structure", "0A", "00", "60") == raw)
+        return;
+
+    const QString rawHex = QString::number(raw, 16)
+        .rightJustified(2, '0').toUpper();
+    sysxIO->setFileSource(
+        "Structure", "0A", "00", "60", rawHex);
+}
+
+void modernFloorBoard::commitTempoEdit()
+{
+    if (!tempoValue || !tempoValue->isEnabled())
+        return;
+
+    SysxIO *sysxIO = SysxIO::Instance();
+    if (!backendIsConnected || !backendHasPatchData
+        || !sysxIO->isConnected() || !sysxIO->isDevice()
+        || !hasSourceValue("Structure", "0A", "00", "66")
+        || !hasSourceValue("Structure", "0A", "00", "67"))
+        return refreshTempoHeader();
+
+    const int bpm = tempoValue->value();
+    if (bpm < 40 || bpm > 250)
+        return refreshTempoHeader();
+    if (sysxIO->getSourceValue("Structure", "0A", "00", "66") == bpm)
+        return;
+
+    const QString high = QString("%1").arg(
+        bpm / 128, 2, 16, QChar('0')).toUpper();
+    const QString low = QString("%1").arg(
+        bpm % 128, 2, 16, QChar('0')).toUpper();
+    sysxIO->setFileSource(
+        "Structure", "0A", "00", "66", high, low);
+}
+
 void modernFloorBoard::refreshOutputSelectHeader()
 {
     if (!outputSelectCombo)
@@ -2539,8 +3078,11 @@ void modernFloorBoard::backendConnected()
     outputSystemDataReady = false;
     tunerSystemDataReady = false;
     emit connectionStateChanged(true);
+    refreshTempoHeader();
+    refreshPatchLevelHeader();
     refreshOutputSelectHeader();
     refreshTunerSettings();
+    refreshReadButtonState();
     requestOutputSystemData();
     setReverbUnavailable();
     setCompUnavailable();
@@ -2564,9 +3106,14 @@ void modernFloorBoard::backendDisconnected()
     outputSystemDataRequested = false;
     outputSystemDataReady = false;
     tunerSystemDataReady = false;
+    readRequestInFlight = false;
+    writeRequestInFlight = false;
     emit connectionStateChanged(false);
+    refreshTempoHeader();
+    refreshPatchLevelHeader();
     refreshOutputSelectHeader();
     refreshTunerSettings();
+    refreshReadButtonState();
     signalChainModel.clear();
     rebuildSignalChainView();
     setReverbUnavailable();
@@ -2587,6 +3134,14 @@ void modernFloorBoard::backendDisconnected()
     patchListModel.setCurrentPatch(0, 0, QString());
 }
 
+void modernFloorBoard::backendActivityChanged(int status)
+{
+    SysxIO *sysxIO = SysxIO::Instance();
+    if (status == 1 && sysxIO->deviceReady())
+        readRequestInFlight = false;
+    refreshReadButtonState();
+}
+
 void modernFloorBoard::patchNameResolved(int bank, int patch, QString name)
 {
     patchListModel.setPatchName(bank, patch, name);
@@ -2595,8 +3150,11 @@ void modernFloorBoard::patchNameResolved(int bank, int patch, QString name)
 void modernFloorBoard::refreshReverbState()
 {
     SysxIO *sysxIO = SysxIO::Instance();
+    readRequestInFlight = false;
+    refreshReadButtonState();
     if (backendIsConnected && sysxIO->isConnected() && sysxIO->isDevice())
         backendHasPatchData = true;
+    refreshReadButtonState();
 
     if (backendHasPatchData) {
         const int bank = sysxIO->getLoadedBank();
@@ -2606,6 +3164,9 @@ void modernFloorBoard::refreshReverbState()
         patchName->setText(name.isEmpty() ? QString::fromUtf8("—") : name);
         patchListModel.setCurrentPatch(bank, patch, name);
     }
+
+    refreshTempoHeader();
+    refreshPatchLevelHeader();
 
     requestOutputSystemData();
     refreshOutputSelectHeader();
@@ -2653,6 +3214,126 @@ void modernFloorBoard::refreshReverbState()
     refreshPedalFx();
     refreshNoiseSuppressors();
     refreshSendReturn();
+}
+
+void modernFloorBoard::readCurrentPatch()
+{
+    SysxIO *sysxIO = SysxIO::Instance();
+    if (readRequestInFlight || writeRequestInFlight || !backendIsConnected
+        || !sysxIO->isConnected() || !sysxIO->deviceReady())
+        return;
+
+    readRequestInFlight = true;
+    refreshReadButtonState();
+    emit readCurrentPatchRequested();
+}
+
+void modernFloorBoard::writeCurrentPatch()
+{
+    SysxIO *sysxIO = SysxIO::Instance();
+    if (readRequestInFlight || writeRequestInFlight || !backendIsConnected
+        || !sysxIO->isConnected() || !sysxIO->deviceReady())
+        return;
+
+    const int capturedBank = sysxIO->getLoadedBank();
+    const int capturedPatch = sysxIO->getLoadedPatch();
+    if (capturedBank < 1 || capturedBank > bankTotalUser
+        || capturedPatch < 1 || capturedPatch > patchPerBank)
+        return;
+
+    const QString target = patchListModel.patchNumber(capturedBank,
+                                                       capturedPatch);
+    QString currentName = sysxIO->getCurrentPatchName().trimmed();
+    if (currentName.isEmpty())
+        currentName = QString::fromUtf8("—");
+
+    ModernMessageDialog confirmation(
+        ModernDialogIcon::Warning, tr("OVERWRITE PATCH"),
+        tr("%1 — %2").arg(target, currentName),
+        tr("This will replace the patch stored in GT-10 User memory."),
+        QString(), this);
+    if (!confirmation.addWriteConfirmation())
+        return;
+
+    // The confirmed destination is immutable. Revalidate after the modal so
+    // navigation or connection changes can never redirect a persistent WRITE.
+    if (!backendIsConnected || !sysxIO->isConnected()
+        || !sysxIO->deviceReady()
+        || sysxIO->getLoadedBank() != capturedBank
+        || sysxIO->getLoadedPatch() != capturedPatch
+        || capturedBank < 1 || capturedBank > bankTotalUser) {
+        ModernMessageDialog changed(
+            ModernDialogIcon::Warning, tr("WRITE NOT STARTED"), target,
+            tr("The confirmed User patch changed. Nothing was written."),
+            QString(), this);
+        changed.addOkButton();
+        refreshReadButtonState();
+        return;
+    }
+
+    writeRequestInFlight = true;
+    refreshReadButtonState();
+    emit writeCurrentPatchRequested(capturedBank, capturedPatch);
+}
+
+void modernFloorBoard::persistentWriteFinished(int result, int bank, int patch,
+                                               QString verifiedName,
+                                               QString detail)
+{
+    writeRequestInFlight = false;
+    refreshReadButtonState();
+    const QString target = patchListModel.patchNumber(bank, patch);
+    if (result == 0) {
+        if (!verifiedName.trimmed().isEmpty())
+            patchListModel.setPatchName(bank, patch, verifiedName);
+        ModernMessageDialog saved(
+            ModernDialogIcon::Success, tr("PATCH SAVED"), target,
+            tr("Written and verified successfully."), QString(), this);
+        saved.addOkButton();
+    } else if (result == 1) {
+        ModernMessageDialog mismatch(
+            ModernDialogIcon::Error, tr("VERIFICATION FAILED"), target,
+            tr("The patch was sent, but the data read back from this "
+               "GT-10 User memory does not match the written patch."),
+            detail, this);
+        mismatch.addOkButton();
+    } else if (result == 2) {
+        ModernMessageDialog incomplete(
+            ModernDialogIcon::Warning, tr("VERIFICATION INCOMPLETE"), target,
+            tr("The patch was sent, but GT Lab Editor could not verify "
+               "the result."), detail, this);
+        incomplete.addOkButton();
+    } else {
+        ModernMessageDialog notWritten(
+            ModernDialogIcon::Error, tr("WRITE NOT STARTED"), target,
+            tr("Nothing was written."), detail, this);
+        notWritten.addOkButton();
+    }
+}
+
+void modernFloorBoard::refreshReadButtonState()
+{
+    if (!readButton)
+        return;
+
+    SysxIO *sysxIO = SysxIO::Instance();
+    readButton->setEnabled(backendIsConnected
+                           && sysxIO->isConnected()
+                           && sysxIO->deviceReady()
+                           && !readRequestInFlight
+                           && !writeRequestInFlight);
+    if (writeButton) {
+        const int bank = sysxIO->getLoadedBank();
+        const int patch = sysxIO->getLoadedPatch();
+        writeButton->setEnabled(backendIsConnected
+                                && sysxIO->isConnected()
+                                && sysxIO->deviceReady()
+                                && backendHasPatchData
+                                && bank >= 1 && bank <= bankTotalUser
+                                && patch >= 1 && patch <= patchPerBank
+                                && !readRequestInFlight
+                                && !writeRequestInFlight);
+    }
 }
 
 void modernFloorBoard::refreshCompState()
