@@ -419,6 +419,11 @@ public:
         return QString();
     }
 
+    void focusForNavigation()
+    {
+        field->setFocus(Qt::OtherFocusReason);
+    }
+
     std::function<void(int)> functionSelected;
 
 protected:
@@ -1305,6 +1310,7 @@ void ModernControlAssignEditor::selectAssign(int index)
     if (detailTargetControl)
         detailTargetControl->cancelPreview();
     selectedAssign = index;
+    updateAssignList();
     updateAssignDetail();
     emit summaryChanged();
 }
@@ -1565,6 +1571,8 @@ void ModernControlAssignEditor::updateAssignList()
 {
     for (int index = 0; index < assignButtons.size(); ++index) {
         QPushButton *button = assignButtons.at(index);
+        if (index == selectedAssign && !button->isChecked())
+            button->setChecked(true);
         if (!assignModel.isAvailable()) {
             button->setText(QString("ASSIGN %1\n—").arg(index + 1));
             button->setEnabled(false);
@@ -1828,4 +1836,15 @@ int ModernControlAssignEditor::selectedAssignIndex() const
 void ModernControlAssignEditor::selectAssignForNavigation(int index)
 {
     selectAssign(index);
+}
+
+void ModernControlAssignEditor::focusDirectControl(const QString &address)
+{
+    for (const DirectControlBinding &binding : bindings) {
+        if (binding.address.compare(address, Qt::CaseInsensitive) == 0
+            && binding.control) {
+            binding.control->focusForNavigation();
+            return;
+        }
+    }
 }

@@ -37,6 +37,8 @@ enum class NoiseSuppressorSlot;
 class ModernFxEditor;
 class ModernPedalFxEditor;
 class ModernControlAssignEditor;
+class ModernExpressionEditor;
+class ModernPedalboardEditor;
 class ModernNoiseSuppressorEditor;
 class ModernSendReturnEditor;
 class PatchSidebar;
@@ -83,6 +85,8 @@ private slots:
     void showPedalFxEditor();
     void showFootVolumeEditor();
     void showControlAssignEditor();
+    void showExpressionEditor();
+    void showPedalboardEditor();
     void showNs1Editor();
     void showNs2Editor();
     void showSendReturnEditor();
@@ -221,6 +225,10 @@ private:
     void refreshPedalFx();
     void refreshControlAssign();
     void refreshControlAssignSummary();
+    void refreshExpression();
+    void refreshExpressionSummary();
+    void refreshPedalboard();
+    void refreshPedalboardSummary();
     void pedalFxActivityChanged(bool available, bool pedalFxActive,
                                 bool footVolumeActive);
     void clearPedalSelection();
@@ -320,6 +328,8 @@ private:
     ModernFxEditor *fx2Editor = nullptr;
     ModernPedalFxEditor *pedalFxEditor = nullptr;
     ModernControlAssignEditor *controlAssignEditor = nullptr;
+    ModernExpressionEditor *expressionEditor = nullptr;
+    ModernPedalboardEditor *pedalboardEditor = nullptr;
     ModernNoiseSuppressorEditor *ns1Editor = nullptr;
     ModernNoiseSuppressorEditor *ns2Editor = nullptr;
     ModernSendReturnEditor *sendReturnEditor = nullptr;

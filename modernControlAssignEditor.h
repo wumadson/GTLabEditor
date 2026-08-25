@@ -36,6 +36,7 @@ public:
     QVector<bool> assignStateSummary() const;
     int selectedAssignIndex() const;
     void selectAssignForNavigation(int index);
+    void focusDirectControl(const QString &address);
 
 signals:
     void summaryChanged();

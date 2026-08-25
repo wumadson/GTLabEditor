@@ -1,6 +1,8 @@
 #ifndef MODERNWIDGETS_H
 #define MODERNWIDGETS_H
 
+#include "modernPedalboardModel.h"
+
 #include <QAbstractButton>
 #include <QColor>
 #include <QDial>
@@ -78,6 +80,16 @@ public:
     explicit BottomControlStrip(QWidget *parent = nullptr);
     QComboBox *tunerReferenceComboBox() const;
     QComboBox *tunerOutputComboBox() const;
+    void setExpressionActivated(const std::function<void()> &callback);
+    void setExpressionAssignActivated(const std::function<void(int)> &callback);
+    void setExpressionSummary(bool available,
+                              const QString &exp1,
+                              const QString &expSwitch,
+                              const QString &exp2,
+                              const QList<int> &assigns);
+    void setPedalboardActivated(const std::function<void()> &callback);
+    void setPedalboardSummary(
+        const QVector<ModernPedalboardModel::LogicalState> &states);
     void setControlAssignActivated(const std::function<void()> &callback);
     void setAssignActivated(const std::function<void(int)> &callback);
     void setControlAssignSummary(bool available,
@@ -89,6 +101,11 @@ public:
 private:
     QComboBox *tunerReference = nullptr;
     QComboBox *tunerOutput = nullptr;
+    QWidget *expressionRegion = nullptr;
+    QVector<QLabel *> expressionValues;
+    QVector<QPushButton *> expressionBadges;
+    QWidget *pedalboardRegion = nullptr;
+    QVector<QWidget *> pedalboardFoots;
     QWidget *controlAssignRegion = nullptr;
     QVector<QLabel *> controlAssignValues;
     QVector<QPushButton *> controlAssignBadges;

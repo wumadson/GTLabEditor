@@ -9,6 +9,8 @@
 #include "modernFxEditor.h"
 #include "modernPedalFxEditor.h"
 #include "modernControlAssignEditor.h"
+#include "modernExpressionEditor.h"
+#include "modernPedalboardEditor.h"
 #include "modernNoiseSuppressorEditor.h"
 #include "modernSendReturnEditor.h"
 #include "modernSignalChainMutationController.h"
@@ -1774,6 +1776,32 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     effectEditorStack->addWidget(controlAssignEditor->widget());
     connect(controlAssignEditor, &ModernControlAssignEditor::summaryChanged,
             this, &modernFloorBoard::refreshControlAssignSummary);
+    connect(controlAssignEditor, &ModernControlAssignEditor::summaryChanged,
+            this, &modernFloorBoard::refreshPedalboard);
+    expressionEditor = new ModernExpressionEditor(this);
+    effectEditorStack->addWidget(expressionEditor->widget());
+    connect(expressionEditor, &ModernExpressionEditor::summaryChanged,
+            this, &modernFloorBoard::refreshExpressionSummary);
+    connect(expressionEditor,
+            &ModernExpressionEditor::openControlAssignRequested,
+            this, [this](int index) {
+        if (index >= 0 && controlAssignEditor)
+            controlAssignEditor->selectAssignForNavigation(index);
+        showControlAssignEditor();
+    });
+    connect(expressionEditor, &ModernExpressionEditor::openPedalFxRequested,
+            this, &modernFloorBoard::showPedalFxEditor);
+    pedalboardEditor = new ModernPedalboardEditor(this);
+    effectEditorStack->addWidget(pedalboardEditor->widget());
+    connect(pedalboardEditor, &ModernPedalboardEditor::summaryChanged,
+            this, &modernFloorBoard::refreshPedalboardSummary);
+    connect(pedalboardEditor,
+            &ModernPedalboardEditor::openControlAssignRequested,
+            this, [this](const QString &address) {
+        showControlAssignEditor();
+        if (controlAssignEditor)
+            controlAssignEditor->focusDirectControl(address);
+    });
     ns1Editor = new ModernNoiseSuppressorEditor(
         NoiseSuppressorSlot::NS1, this);
     effectEditorStack->addWidget(ns1Editor->widget());
@@ -1796,6 +1824,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
             this, [this](bool available, bool on) {
         if (sendReturnCard)
             sendReturnCard->setEffectState(available, on);
+        refreshPedalboard();
     });
 
     mainLayout->addWidget(effectEditorStack, 1);
@@ -1805,6 +1834,15 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     tunerOutputCombo = bottomControlStrip->tunerOutputComboBox();
     bottomControlStrip->setControlAssignActivated(
         [this]() { showControlAssignEditor(); });
+    bottomControlStrip->setExpressionActivated(
+        [this]() { showExpressionEditor(); });
+    bottomControlStrip->setExpressionAssignActivated([this](int index) {
+        if (controlAssignEditor)
+            controlAssignEditor->selectAssignForNavigation(index);
+        showControlAssignEditor();
+    });
+    bottomControlStrip->setPedalboardActivated(
+        [this]() { showPedalboardEditor(); });
     bottomControlStrip->setAssignActivated([this](int index) {
         if (!controlAssignEditor)
             return;
@@ -3077,6 +3115,8 @@ void modernFloorBoard::pollOutputSystemData()
             && hasSourceValue("System", "00", "00", "31");
         refreshOutputSelectHeader();
         refreshTunerSettings();
+        refreshExpression();
+        refreshPedalboard();
         return;
     }
 
@@ -3109,6 +3149,8 @@ void modernFloorBoard::backendConnected()
     refreshFx(FxSlot::FX2);
     refreshPedalFx();
     refreshControlAssign();
+    refreshExpression();
+    refreshPedalboard();
     refreshNoiseSuppressors();
     refreshSendReturn();
 }
@@ -3142,6 +3184,8 @@ void modernFloorBoard::backendDisconnected()
     refreshFx(FxSlot::FX2);
     refreshPedalFx();
     refreshControlAssign();
+    refreshExpression();
+    refreshPedalboard();
     refreshNoiseSuppressors();
     refreshSendReturn();
     patchNumber->setText(QString::fromUtf8("—"));
@@ -3204,6 +3248,8 @@ void modernFloorBoard::refreshReverbState()
         refreshFx(FxSlot::FX2);
         refreshPedalFx();
         refreshControlAssign();
+        refreshExpression();
+        refreshPedalboard();
         refreshNoiseSuppressors();
         refreshSendReturn();
         return;
@@ -3229,6 +3275,8 @@ void modernFloorBoard::refreshReverbState()
     refreshFx(FxSlot::FX2);
     refreshPedalFx();
     refreshControlAssign();
+    refreshExpression();
+    refreshPedalboard();
     refreshNoiseSuppressors();
     refreshSendReturn();
 }
@@ -4665,12 +4713,14 @@ void modernFloorBoard::fx1StateChanged(bool available, bool on)
 {
     if (fx1Card)
         fx1Card->setEffectState(available, on);
+    refreshPedalboard();
 }
 
 void modernFloorBoard::fx2StateChanged(bool available, bool on)
 {
     if (fx2Card)
         fx2Card->setEffectState(available, on);
+    refreshPedalboard();
 }
 
 void modernFloorBoard::showPedalFxEditor()
@@ -4768,6 +4818,68 @@ void modernFloorBoard::refreshControlAssignSummary()
         controlAssignEditor->selectedAssignIndex());
 }
 
+void modernFloorBoard::showExpressionEditor()
+{
+    if (!expressionEditor)
+        return;
+    selectedEditor = "EXPRESSION";
+    refreshExpression();
+    if (effectEditorStack)
+        effectEditorStack->setCurrentWidget(expressionEditor->widget());
+    if (splitJunction)
+        splitJunction->setSelected(false);
+    clearPedalSelection();
+    clearNoiseSuppressorSelection();
+    clearSendReturnSelection();
+}
+
+void modernFloorBoard::refreshExpression()
+{
+    if (expressionEditor)
+        expressionEditor->refresh(backendIsConnected, backendHasPatchData);
+}
+
+void modernFloorBoard::refreshExpressionSummary()
+{
+    if (!bottomControlStrip || !expressionEditor)
+        return;
+    bottomControlStrip->setExpressionSummary(
+        expressionEditor->summaryAvailable(),
+        expressionEditor->exp1Summary(),
+        expressionEditor->expSwitchSummary(),
+        expressionEditor->exp2Summary(),
+        expressionEditor->expressionAssigns());
+}
+
+void modernFloorBoard::showPedalboardEditor()
+{
+    if (!pedalboardEditor)
+        return;
+    selectedEditor = "PEDALBOARD";
+    refreshPedalboard();
+    if (effectEditorStack)
+        effectEditorStack->setCurrentWidget(pedalboardEditor->widget());
+    if (splitJunction)
+        splitJunction->setSelected(false);
+    clearPedalSelection();
+    clearNoiseSuppressorSelection();
+    clearSendReturnSelection();
+}
+
+void modernFloorBoard::refreshPedalboard()
+{
+    if (pedalboardEditor)
+        pedalboardEditor->refresh(backendIsConnected, backendHasPatchData);
+}
+
+void modernFloorBoard::refreshPedalboardSummary()
+{
+    if (!bottomControlStrip || !pedalboardEditor)
+        return;
+    bottomControlStrip->setPedalboardSummary(
+        pedalboardEditor->summaryStates());
+}
+
 void modernFloorBoard::pedalFxActivityChanged(
     bool available, bool pedalFxActive, bool footVolumeActive)
 {
@@ -4775,6 +4887,7 @@ void modernFloorBoard::pedalFxActivityChanged(
         pedalFxCard->setEffectState(available, pedalFxActive);
     if (footVolumeCard)
         footVolumeCard->setEffectState(available, footVolumeActive);
+    refreshPedalboard();
 }
 
 void modernFloorBoard::clearPedalSelection()
@@ -5348,12 +5461,14 @@ void modernFloorBoard::preampToggleChanged()
         return;
     if (toggle->property("preampGlobalState").toBool()) {
         setPreampGlobalState(toggle->isChecked());
+        refreshPedalboard();
         return;
     }
     const PreampChannel channel = toggle->property("preampChannel").toInt()
         == 0 ? PreampChannel::A : PreampChannel::B;
     setPreampValue(channel, toggle->property("preampOffset").toInt(),
                    toggle->isChecked() ? 1 : 0);
+    refreshPedalboard();
 }
 
 void modernFloorBoard::updateCompParameterControls(bool available)
@@ -5641,6 +5756,7 @@ void modernFloorBoard::oddsToggleChanged()
         "Structure", "00", "00", address) != 1;
     setOddsValue(address, newState ? 1 : 0);
     refreshOddsState();
+    refreshPedalboard();
 }
 
 void modernFloorBoard::updateDelayPageForType(int type)
@@ -5969,6 +6085,7 @@ void modernFloorBoard::toggleChorus()
         return;
     setChorusValue("20", chorusOnOff->isChecked() ? 1 : 0);
     refreshChorus();
+    refreshPedalboard();
 }
 
 void modernFloorBoard::updateEqParameterControls(bool available)
@@ -6143,6 +6260,7 @@ void modernFloorBoard::toggleEq()
         "Structure", "01", "00", "70") != 1;
     setEqValue("70", newState ? 1 : 0);
     refreshEq();
+    refreshPedalboard();
 }
 
 void modernFloorBoard::delayToggleChanged()
@@ -6155,6 +6273,7 @@ void modernFloorBoard::delayToggleChanged()
         "Structure", "0A", "00", address) != 1;
     setDelayValue(address, newState ? 1 : 0);
     refreshDelayState();
+    refreshPedalboard();
 }
 
 void modernFloorBoard::toggleComp()
@@ -6166,6 +6285,7 @@ void modernFloorBoard::toggleComp()
         "Structure", "00", "00", "40") != 1;
     setCompValue("40", newState ? 1 : 0);
     refreshCompState();
+    refreshPedalboard();
 }
 
 void modernFloorBoard::toggleReverb()

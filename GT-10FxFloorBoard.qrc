@@ -98,5 +98,8 @@
         <file>assets/effects/fx2.png</file>
         <file>assets/effects/preamp_a.png</file>
         <file>assets/effects/preamp_b.png</file>
+        <file>assets/pedals/expression_pedal.png</file>
+        <file>assets/pedalboard/gt10_footswitch.png</file>
+        <file>assets/pedalboard/bossgt10.png</file>
     </qresource>
 </RCC>
