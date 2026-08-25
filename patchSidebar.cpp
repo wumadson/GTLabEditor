@@ -2,11 +2,14 @@
 #include "modernPatchListModel.h"
 
 #include <QEvent>
+#include <QAction>
+#include <QContextMenuEvent>
 #include <QFont>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMouseEvent>
+#include <QMenu>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QStyle>
@@ -78,6 +81,13 @@ void PatchListItem::mouseReleaseEvent(QMouseEvent *event)
     if (event->button() == Qt::LeftButton)
         emit activated(patchBank, patchIndex, patchName());
     QFrame::mouseReleaseEvent(event);
+}
+
+void PatchListItem::contextMenuEvent(QContextMenuEvent *event)
+{
+    emit contextMenuRequested(patchBank, patchIndex, patchName(),
+                              event->globalPos());
+    event->accept();
 }
 
 PatchBankSection::PatchBankSection(int bank, const QString &label, QWidget *parent)
@@ -194,6 +204,8 @@ PatchSidebar::PatchSidebar(ModernPatchListModel *model, QWidget *parent)
         }
         PatchListItem *item = new PatchListItem(patch.bank, patch.patch, patch.number);
         connect(item, SIGNAL(activated(int,int,QString)), this, SLOT(activatePatch(int,int,QString)));
+        connect(item, SIGNAL(contextMenuRequested(int,int,QString,QPoint)),
+                this, SLOT(showPatchContextMenu(int,int,QString,QPoint)));
         items.insert(patchKey(patch.bank, patch.patch), item);
         section->addPatch(item);
     }
@@ -212,6 +224,53 @@ PatchSidebar::PatchSidebar(ModernPatchListModel *model, QWidget *parent)
 
     connect(patchModel, SIGNAL(patchUpdated(int,int)), this, SLOT(updatePatch(int,int)));
     connect(patchModel, SIGNAL(currentPatchChanged(int,int)), this, SLOT(setCurrentPatch(int,int)));
+}
+
+void PatchSidebar::showPatchContextMenu(int bank, int patch, QString name,
+                                        QPoint globalPosition)
+{
+    const bool userPatch = bank >= 1 && bank <= 50;
+    const bool hasCopy = copiedBank > 0 && copiedPatch > 0;
+    const bool samePatch = copiedBank == bank && copiedPatch == patch;
+
+    QMenu menu(this);
+    menu.setObjectName("PatchContextMenu");
+    menu.setStyleSheet(
+        "QMenu#PatchContextMenu { color:#E5E9ED; background:#111820;"
+        " border:1px solid #33404D; border-radius:6px; padding:5px; }"
+        "QMenu#PatchContextMenu::item { min-width:150px; padding:7px 18px;"
+        " border-radius:4px; }"
+        "QMenu#PatchContextMenu::item:selected { color:#F2F4F6;"
+        " background:#123347; }"
+        "QMenu#PatchContextMenu::item:disabled { color:#59636E;"
+        " background:transparent; }"
+        "QMenu#PatchContextMenu::separator { height:1px;"
+        " background:#29343E; margin:4px 8px; }");
+
+    QAction *rename = menu.addAction(tr("Rename Patch"));
+    QAction *copy = menu.addAction(tr("Copy Patch"));
+    QAction *paste = menu.addAction(tr("Paste Patch"));
+    rename->setEnabled(userPatch);
+    copy->setEnabled(bank >= 1 && bank <= 100);
+    paste->setEnabled(userPatch && hasCopy && !samePatch);
+
+    connect(rename, &QAction::triggered, this, [this, bank, patch]() {
+        emit renamePatchRequested(bank, patch);
+    });
+    connect(copy, &QAction::triggered, this,
+            [this, bank, patch, name]() {
+        copiedBank = bank;
+        copiedPatch = patch;
+        copiedNumber = patchModel->patchNumber(bank, patch);
+        copiedName = name.trimmed();
+    });
+    connect(paste, &QAction::triggered, this,
+            [this, bank, patch, name]() {
+        emit pastePatchRequested(copiedBank, copiedPatch,
+                                 copiedNumber, copiedName,
+                                 bank, patch, name.trimmed());
+    });
+    menu.exec(globalPosition);
 }
 
 QSize PatchSidebar::sizeHint() const

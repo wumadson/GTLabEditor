@@ -91,6 +91,7 @@ linux-g++-64 {
 }
 macx {
 	LIBS += -framework CoreMidi -framework CoreAudio -framework CoreFoundation
+	QMAKE_INFO_PLIST = $$PWD/GT-10FxFloorBoard-Info.plist
 	message("X-Code LIBRARIES SHOULD BE INSTALLED or ERROR will Occur") 
 	message("Please install the X-Code Audio System packages if not present") 
 	 HEADERS += 
@@ -119,7 +120,9 @@ SOURCES += modernFloorBoard.cpp modernTheme.cpp modernWidgets.cpp modernSignalCh
            effectArtworkWidget.cpp effectModelBrowser.cpp parameterBar.cpp \
            modernPatchListModel.cpp patchSidebar.cpp modernEqGraph.cpp modernFxEditor.cpp \
            modernPedalFxEditor.cpp modernAssignModel.cpp modernControlAssignEditor.cpp assignTargetBrowser.cpp assignTargetValueEditor.cpp modernNoiseSuppressorEditor.cpp \
-           modernSendReturnEditor.cpp modernExpressionEditor.cpp modernPedalboardEditor.cpp modernPedalboardModel.cpp
+           modernSendReturnEditor.cpp modernExpressionEditor.cpp modernPedalboardEditor.cpp modernPedalboardModel.cpp \
+           modernGlobalEqPopover.cpp modernInputPopover.cpp
+SOURCES += modernAboutDialog.cpp modernSettingsDialog.cpp
 HEADERS += modernFloorBoard.h modernTheme.h modernWidgets.h modernSignalChainModel.h \
            modernSignalChainMutationController.h modernSignalChainSerializer.h \
            signalChainHardwareValidation.h \
@@ -127,7 +130,9 @@ HEADERS += modernFloorBoard.h modernTheme.h modernWidgets.h modernSignalChainMod
            effectArtworkWidget.h effectModelBrowser.h parameterBar.h \
            modernPatchListModel.h patchSidebar.h modernEqGraph.h modernFxEditor.h \
            modernPedalFxEditor.h modernAssignModel.h modernControlAssignEditor.h assignTargetBrowser.h assignTargetValueEditor.h modernNoiseSuppressorEditor.h \
-           modernSendReturnEditor.h modernExpressionEditor.h modernPedalboardEditor.h modernPedalboardModel.h
+           modernSendReturnEditor.h modernExpressionEditor.h modernPedalboardEditor.h modernPedalboardModel.h \
+           modernGlobalEqPopover.h modernInputPopover.h
+HEADERS += modernAboutDialog.h modernSettingsDialog.h
 
 # Explicit local harness. It replaces the application entry point only when
 # qmake is invoked with CONFIG+=signalchain_domain_tests.

@@ -2,6 +2,7 @@
 #define PATCHTRANSFERCODEC_H
 
 #include <QMap>
+#include <QByteArray>
 #include <QString>
 #include <QStringList>
 
@@ -29,6 +30,16 @@ public:
                                          int targetBank,
                                          int targetPatch,
                                          QString *error = nullptr);
+    static QByteArray encodePatchName16(const QString &name,
+                                        QString *error = nullptr);
+    static QString buildUserNameWriteMessage(int targetBank,
+                                             int targetPatch,
+                                             const QByteArray &encodedName16,
+                                             QString *error = nullptr);
+    static QString buildUserCopyWriteMessage(const DecodedPatch &source,
+                                             int targetBank,
+                                             int targetPatch,
+                                             QString *error = nullptr);
     static QString buildLegacyWriteMessage(const SysxData &source,
                                            int bank,
                                            int patch,

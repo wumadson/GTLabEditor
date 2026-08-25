@@ -212,7 +212,8 @@ void floorBoard::reloadCurrentPatch()
 void floorBoard::writeCurrentPatchToUser(int targetBank, int targetPatch)
 {
         SysxIO *sysxIO = SysxIO::Instance();
-        if (persistentWriteInFlight || !sysxIO->isConnected()
+        if (persistentWriteInFlight || patchManagementInFlight
+            || !sysxIO->isConnected()
             || !sysxIO->deviceReady()
             || targetBank < 1 || targetBank > bankTotalUser
             || targetPatch < 1 || targetPatch > patchPerBank
@@ -252,6 +253,228 @@ void floorBoard::writeCurrentPatchToUser(int targetBank, int targetPatch)
                          SLOT(writeTransmissionReply(QString)),
                          Qt::UniqueConnection);
         sysxIO->sendSysx(writeMessage);
+}
+
+void floorBoard::requestUserPatchNameForRename(int bank, int patch)
+{
+        SysxIO *sysxIO = SysxIO::Instance();
+        if (persistentWriteInFlight || patchManagementInFlight
+            || !sysxIO->isConnected() || !sysxIO->deviceReady()
+            || bank < 1 || bank > bankTotalUser
+            || patch < 1 || patch > patchPerBank) {
+                emit renameNameReady(bank, patch, QString(), false);
+                return;
+        }
+        patchManagementInFlight = true;
+        patchManagementTargetBank = bank;
+        patchManagementTargetPatch = patch;
+        sysxIO->setDeviceReady(false);
+        QObject::connect(sysxIO, SIGNAL(patchName(QString)), this,
+                         SLOT(renameNameLookupReply(QString)),
+                         Qt::UniqueConnection);
+        sysxIO->requestPatchName(bank, patch);
+}
+
+void floorBoard::renameNameLookupReply(QString name)
+{
+        SysxIO *sysxIO = SysxIO::Instance();
+        QObject::disconnect(sysxIO, SIGNAL(patchName(QString)), this,
+                            SLOT(renameNameLookupReply(QString)));
+        const int bank = patchManagementTargetBank;
+        const int patch = patchManagementTargetPatch;
+        const QString resolved = name.trimmed();
+        const bool valid = !resolved.isEmpty() && resolved != "no reply"
+            && resolved != "bad data";
+        patchManagementInFlight = false;
+        patchManagementTargetBank = 0;
+        patchManagementTargetPatch = 0;
+        sysxIO->setDeviceReady(true);
+        emit renameNameReady(bank, patch, resolved, valid);
+}
+
+void floorBoard::renameUserPatch(int bank, int patch, QString name)
+{
+        SysxIO *sysxIO = SysxIO::Instance();
+        if (persistentWriteInFlight || patchManagementInFlight
+            || !sysxIO->isConnected() || !sysxIO->deviceReady()) {
+                emit renameVerificationFinished(2, bank, patch, QString(),
+                                                tr("RENAME backend is busy."));
+                return;
+        }
+        QString error;
+        const QByteArray encoded = PatchTransferCodec::encodePatchName16(
+                name, &error);
+        const QString message = PatchTransferCodec::buildUserNameWriteMessage(
+                bank, patch, encoded, &error);
+        if (message.isEmpty()) {
+                emit renameVerificationFinished(2, bank, patch, QString(), error);
+                return;
+        }
+        patchManagementInFlight = true;
+        patchManagementTargetBank = bank;
+        patchManagementTargetPatch = patch;
+        patchManagementExpectedName = name.trimmed();
+        sysxIO->setDeviceReady(false);
+        sysxIO->emitStatusSymbol(2);
+        sysxIO->emitStatusMessage(tr("RENAMING PATCH"));
+        QObject::connect(sysxIO, SIGNAL(sysxReply(QString)), this,
+                         SLOT(renameTransmissionReply(QString)),
+                         Qt::UniqueConnection);
+        sysxIO->sendSysx(message);
+}
+
+void floorBoard::renameTransmissionReply(QString replyMsg)
+{
+        Q_UNUSED(replyMsg);
+        SysxIO *sysxIO = SysxIO::Instance();
+        QObject::disconnect(sysxIO, SIGNAL(sysxReply(QString)), this,
+                            SLOT(renameTransmissionReply(QString)));
+        if (!patchManagementInFlight)
+                return;
+        sysxIO->emitStatusSymbol(3);
+        sysxIO->emitStatusMessage(tr("VERIFYING RENAME"));
+        QObject::connect(sysxIO, SIGNAL(patchName(QString)), this,
+                         SLOT(verifyPersistentRename(QString)),
+                         Qt::UniqueConnection);
+        sysxIO->requestPatchName(patchManagementTargetBank,
+                                 patchManagementTargetPatch);
+}
+
+void floorBoard::verifyPersistentRename(QString name)
+{
+        SysxIO *sysxIO = SysxIO::Instance();
+        QObject::disconnect(sysxIO, SIGNAL(patchName(QString)), this,
+                            SLOT(verifyPersistentRename(QString)));
+        const int bank = patchManagementTargetBank;
+        const int patch = patchManagementTargetPatch;
+        const QString expected = patchManagementExpectedName;
+        const QString verified = name.trimmed();
+        patchManagementInFlight = false;
+        patchManagementTargetBank = 0;
+        patchManagementTargetPatch = 0;
+        patchManagementExpectedName.clear();
+        sysxIO->setDeviceReady(true);
+        sysxIO->emitStatusProgress(0);
+        sysxIO->emitStatusSymbol(1);
+        if (verified.isEmpty() || verified == "no reply" || verified == "bad data") {
+                sysxIO->emitStatusMessage(tr("RENAME FAILED"));
+                emit renameVerificationFinished(2, bank, patch, QString(),
+                                                tr("Patch-name readback failed."));
+        } else if (verified != expected) {
+                sysxIO->emitStatusMessage(tr("RENAME MISMATCH"));
+                emit renameVerificationFinished(1, bank, patch, verified,
+                                                tr("Readback name does not match."));
+        } else {
+                sysxIO->emitStatusMessage(tr("RENAME VERIFIED"));
+                emit renameVerificationFinished(0, bank, patch, verified, QString());
+        }
+}
+
+void floorBoard::copyPatchToUser(int sourceBank, int sourcePatch,
+                                 int targetBank, int targetPatch)
+{
+        SysxIO *sysxIO = SysxIO::Instance();
+        if (persistentWriteInFlight || patchManagementInFlight
+            || !sysxIO->isConnected() || !sysxIO->deviceReady()
+            || sourceBank < 1 || sourceBank > bankTotalAll
+            || sourcePatch < 1 || sourcePatch > patchPerBank
+            || targetBank < 1 || targetBank > bankTotalUser
+            || targetPatch < 1 || targetPatch > patchPerBank
+            || (sourceBank == targetBank && sourcePatch == targetPatch)) {
+                emit copyVerificationFinished(2, targetBank, targetPatch,
+                                              QString(), tr("COPY request is invalid."));
+                return;
+        }
+        patchManagementInFlight = true;
+        patchManagementSourceBank = sourceBank;
+        patchManagementSourcePatch = sourcePatch;
+        patchManagementTargetBank = targetBank;
+        patchManagementTargetPatch = targetPatch;
+        sysxIO->setDeviceReady(false);
+        sysxIO->emitStatusSymbol(3);
+        sysxIO->emitStatusMessage(tr("READING COPY SOURCE"));
+        QObject::connect(sysxIO, SIGNAL(sysxReply(QString)), this,
+                         SLOT(copySourceReply(QString)), Qt::UniqueConnection);
+        sysxIO->requestPatch(sourceBank, sourcePatch);
+}
+
+void floorBoard::copySourceReply(QString replyMsg)
+{
+        SysxIO *sysxIO = SysxIO::Instance();
+        QObject::disconnect(sysxIO, SIGNAL(sysxReply(QString)), this,
+                            SLOT(copySourceReply(QString)));
+        const DecodedPatch decoded = PatchTransferCodec::decodePatchReply(replyMsg);
+        QString error;
+        const QString message = PatchTransferCodec::buildUserCopyWriteMessage(
+                decoded, patchManagementTargetBank,
+                patchManagementTargetPatch, &error);
+        if (!decoded.valid || message.isEmpty()) {
+                const int bank = patchManagementTargetBank;
+                const int patch = patchManagementTargetPatch;
+                patchManagementInFlight = false;
+                sysxIO->setDeviceReady(true);
+                sysxIO->emitStatusSymbol(1);
+                emit copyVerificationFinished(2, bank, patch, QString(),
+                                              !error.isEmpty() ? error : decoded.error);
+                return;
+        }
+        patchManagementSnapshot = decoded.logicalBlocks00To0C;
+        sysxIO->emitStatusSymbol(2);
+        sysxIO->emitStatusMessage(tr("COPYING PATCH"));
+        QObject::connect(sysxIO, SIGNAL(sysxReply(QString)), this,
+                         SLOT(copyTransmissionReply(QString)),
+                         Qt::UniqueConnection);
+        sysxIO->sendSysx(message);
+}
+
+void floorBoard::copyTransmissionReply(QString replyMsg)
+{
+        Q_UNUSED(replyMsg);
+        SysxIO *sysxIO = SysxIO::Instance();
+        QObject::disconnect(sysxIO, SIGNAL(sysxReply(QString)), this,
+                            SLOT(copyTransmissionReply(QString)));
+        if (!patchManagementInFlight)
+                return;
+        sysxIO->emitStatusSymbol(3);
+        sysxIO->emitStatusMessage(tr("VERIFYING COPY"));
+        QObject::connect(sysxIO, SIGNAL(sysxReply(QString)), this,
+                         SLOT(verifyPersistentCopy(QString)),
+                         Qt::UniqueConnection);
+        sysxIO->requestPatch(patchManagementTargetBank,
+                             patchManagementTargetPatch);
+}
+
+void floorBoard::verifyPersistentCopy(QString replyMsg)
+{
+        SysxIO *sysxIO = SysxIO::Instance();
+        QObject::disconnect(sysxIO, SIGNAL(sysxReply(QString)), this,
+                            SLOT(verifyPersistentCopy(QString)));
+        const int bank = patchManagementTargetBank;
+        const int patch = patchManagementTargetPatch;
+        const QMap<QString, QString> expected = patchManagementSnapshot;
+        const DecodedPatch decoded = PatchTransferCodec::decodePatchReply(replyMsg);
+        patchManagementInFlight = false;
+        patchManagementSourceBank = 0;
+        patchManagementSourcePatch = 0;
+        patchManagementTargetBank = 0;
+        patchManagementTargetPatch = 0;
+        patchManagementSnapshot.clear();
+        sysxIO->setDeviceReady(true);
+        sysxIO->emitStatusProgress(0);
+        sysxIO->emitStatusSymbol(1);
+        if (!decoded.valid) {
+                sysxIO->emitStatusMessage(tr("COPY FAILED"));
+                emit copyVerificationFinished(2, bank, patch, QString(), decoded.error);
+        } else if (decoded.logicalBlocks00To0C != expected) {
+                sysxIO->emitStatusMessage(tr("COPY MISMATCH"));
+                emit copyVerificationFinished(1, bank, patch,
+                                              decoded.verifiedName,
+                                              tr("Destination blocks 00-0C differ."));
+        } else {
+                sysxIO->emitStatusMessage(tr("COPY VERIFIED"));
+                emit copyVerificationFinished(0, bank, patch,
+                                              decoded.verifiedName, QString());
+        }
 }
 
 void floorBoard::writeTransmissionReply(QString replyMsg)

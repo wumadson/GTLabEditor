@@ -72,6 +72,8 @@ public slots:
         void donate();
         void manual();
         void license();
+        void thirdParty();
+        void sourceCode();
         void about();
 
 private:
@@ -106,8 +108,9 @@ private:
         QAction *donationAct;
         QAction *manualAct;
         QAction *licenseAct;
+        QAction *thirdPartyAct;
+        QAction *sourceCodeAct;
         QAction *aboutAct;
-        QAction *aboutQtAct;
 
         sysxWriter file;
         floorBoard *legacyFloorBoard;

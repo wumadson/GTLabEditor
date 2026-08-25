@@ -64,6 +64,16 @@ public slots:
 	void writeCurrentPatchToUser(int targetBank, int targetPatch);
 	void writeTransmissionReply(QString replyMsg);
 	void verifyPersistentWrite(QString replyMsg);
+	void requestUserPatchNameForRename(int bank, int patch);
+	void renameUserPatch(int bank, int patch, QString name);
+	void copyPatchToUser(int sourceBank, int sourcePatch,
+	                     int targetBank, int targetPatch);
+	void renameNameLookupReply(QString name);
+	void renameTransmissionReply(QString replyMsg);
+	void verifyPersistentRename(QString name);
+	void copySourceReply(QString replyMsg);
+	void copyTransmissionReply(QString replyMsg);
+	void verifyPersistentCopy(QString replyMsg);
 	//void stompbox_button(bool value);
 
 signals:
@@ -82,6 +92,11 @@ signals:
 	void patchNameResolved(int bank, int patch, QString name);
 	void writeVerificationFinished(int result, int bank, int patch,
 	                              QString verifiedName, QString detail);
+	void renameNameReady(int bank, int patch, QString name, bool valid);
+	void renameVerificationFinished(int result, int bank, int patch,
+	                               QString verifiedName, QString detail);
+	void copyVerificationFinished(int result, int bank, int patch,
+	                             QString verifiedName, QString detail);
 	void pathUpdateSignal();
 	void ch_mode_buttonSignal(bool value);
 	void preamp1_buttonSignal(bool value);
@@ -151,6 +166,13 @@ private:
 	int persistentWriteBank = 0;
 	int persistentWritePatch = 0;
 	QMap<QString, QString> persistentWriteSnapshot;
+	bool patchManagementInFlight = false;
+	int patchManagementSourceBank = 0;
+	int patchManagementSourcePatch = 0;
+	int patchManagementTargetBank = 0;
+	int patchManagementTargetPatch = 0;
+	QString patchManagementExpectedName;
+	QMap<QString, QString> patchManagementSnapshot;
 };
 
 #endif // FLOORBOARD_H

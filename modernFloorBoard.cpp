@@ -13,6 +13,8 @@
 #include "modernPedalboardEditor.h"
 #include "modernNoiseSuppressorEditor.h"
 #include "modernSendReturnEditor.h"
+#include "modernGlobalEqPopover.h"
+#include "modernInputPopover.h"
 #include "modernSignalChainMutationController.h"
 #include "modernSignalChainSerializer.h"
 #include "parameterBar.h"
@@ -31,6 +33,7 @@
 #include <QHBoxLayout>
 #include <QIconEngine>
 #include <QLabel>
+#include <QLineEdit>
 #include <QPainter>
 #include <QPainterPath>
 #include <QPaintEvent>
@@ -217,6 +220,22 @@ public:
         return exec() == QDialog::Accepted;
     }
 
+    bool addCopyConfirmation()
+    {
+        auto *cancel = new QPushButton(tr("Cancel"), this);
+        auto *copy = new QPushButton(tr("Copy"), this);
+        copy->setObjectName("PrimaryDialogButton");
+        cancel->setDefault(true);
+        cancel->setAutoDefault(true);
+        copy->setAutoDefault(true);
+        connect(cancel, &QPushButton::clicked, this, &QDialog::reject);
+        connect(copy, &QPushButton::clicked, this, &QDialog::accept);
+        buttonRow->addWidget(cancel);
+        buttonRow->addWidget(copy);
+        cancel->setFocus(Qt::OtherFocusReason);
+        return exec() == QDialog::Accepted;
+    }
+
     void addOkButton()
     {
         auto *ok = new QPushButton(tr("OK"), this);
@@ -230,6 +249,78 @@ public:
 
 private:
     QHBoxLayout *buttonRow = nullptr;
+};
+
+class ModernRenamePatchDialog final : public QDialog
+{
+public:
+    ModernRenamePatchDialog(const QString &number, const QString &currentName,
+                            QWidget *parent)
+        : QDialog(parent)
+    {
+        setWindowTitle(tr("RENAME PATCH"));
+        setModal(true);
+        setFixedWidth(390);
+        setStyleSheet(QStringLiteral(
+            "QDialog{background:%1;color:%2;border:1px solid %3;"
+            "border-radius:6px;}"
+            "QLabel#RenameTitle{color:%2;font-size:12px;font-weight:700;"
+            "letter-spacing:1px;}"
+            "QLabel#RenamePatch{color:%2;font-size:15px;font-weight:600;}"
+            "QLabel#RenameLabel{color:%4;font-size:9px;font-weight:600;"
+            "letter-spacing:.5px;}"
+            "QLineEdit{min-height:32px;padding:0 9px;color:%2;"
+            "background:%5;border:1px solid %3;border-radius:5px;"
+            "selection-background-color:#244B66;}"
+            "QLineEdit:focus{border-color:%6;}"
+            "QPushButton{min-width:82px;min-height:29px;color:%2;"
+            "background:%5;border:1px solid %3;border-radius:5px;}"
+            "QPushButton:hover{border-color:%6;}"
+            "QPushButton#RenamePrimary{background:#123347;border-color:%6;}"
+        ).arg(ModernTheme::color(ModernTheme::ElevatedPanel),
+              ModernTheme::color(ModernTheme::PrimaryText),
+              ModernTheme::color(ModernTheme::Border),
+              ModernTheme::color(ModernTheme::SecondaryText),
+              ModernTheme::color(ModernTheme::Panel),
+              ModernTheme::color(ModernTheme::AccentCyan)));
+        auto *root = new QVBoxLayout(this);
+        root->setContentsMargins(20, 18, 20, 16);
+        root->setSpacing(10);
+        auto *title = new QLabel(tr("RENAME PATCH"), this);
+        title->setObjectName("RenameTitle");
+        auto *patch = new QLabel(number + " — " + currentName, this);
+        patch->setObjectName("RenamePatch");
+        auto *label = new QLabel(tr("NEW NAME"), this);
+        label->setObjectName("RenameLabel");
+        edit = new QLineEdit(currentName, this);
+        edit->setMaxLength(16);
+        edit->selectAll();
+        auto *buttons = new QHBoxLayout;
+        buttons->addStretch(1);
+        auto *cancel = new QPushButton(tr("Cancel"), this);
+        auto *rename = new QPushButton(tr("Rename"), this);
+        rename->setObjectName("RenamePrimary");
+        cancel->setDefault(true);
+        rename->setAutoDefault(true);
+        connect(cancel, &QPushButton::clicked, this, &QDialog::reject);
+        connect(rename, &QPushButton::clicked, this, [this]() {
+            if (!edit->text().trimmed().isEmpty())
+                accept();
+        });
+        buttons->addWidget(cancel);
+        buttons->addWidget(rename);
+        root->addWidget(title);
+        root->addWidget(patch);
+        root->addSpacing(4);
+        root->addWidget(label);
+        root->addWidget(edit);
+        root->addLayout(buttons);
+    }
+
+    QString requestedName() const { return edit->text(); }
+
+private:
+    QLineEdit *edit = nullptr;
 };
 
 class GtLabBrandWidget final : public QWidget
@@ -1156,6 +1247,47 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     connect(writeButton, &QPushButton::clicked,
             this, &modernFloorBoard::writeCurrentPatch);
 
+    inputButton = new QPushButton("INPUT");
+    inputButton->setObjectName("HeaderInputButton");
+    inputButton->setFixedSize(58, headerValueHeight);
+    inputButton->setEnabled(false);
+    inputButton->setToolTip("Open GT-10 Input Settings");
+    inputButton->setStyleSheet(
+        "QPushButton#HeaderInputButton { color: #D8E1EA; "
+        "background: #11171D; border: 1px solid #35414D; "
+        "border-radius: 4px; font-size: 10px; font-weight: 600; }"
+        "QPushButton#HeaderInputButton:hover { background: #151D26; "
+        "border-color: #258DB5; }"
+        "QPushButton#HeaderInputButton:pressed { background: #0B1015; "
+        "border-color: #258DB5; }"
+        "QPushButton#HeaderInputButton:disabled { color: #59636E; "
+        "background: #0B1015; border-color: #27313A; }"
+    );
+    connect(inputButton, &QPushButton::clicked,
+            this, &modernFloorBoard::toggleInputPopover);
+    inputPopover = new ModernInputPopover(this);
+
+    globalEqButton = new QPushButton("GLOBAL EQ");
+    globalEqButton->setObjectName("HeaderGlobalEqButton");
+    globalEqButton->setFixedSize(84, headerValueHeight);
+    globalEqButton->setEnabled(false);
+    globalEqButton->setToolTip("Open GT-10 Global Equalizer");
+    globalEqButton->setStyleSheet(
+        "QPushButton#HeaderGlobalEqButton { color: #D8E1EA; "
+        "background: #11171D; border: 1px solid #35414D; "
+        "border-radius: 4px; font-size: 10px; font-weight: 600; }"
+        "QPushButton#HeaderGlobalEqButton:hover { background: #151D26; "
+        "border-color: #258DB5; }"
+        "QPushButton#HeaderGlobalEqButton:pressed { background: #0B1015; "
+        "border-color: #258DB5; }"
+        "QPushButton#HeaderGlobalEqButton:disabled { color: #59636E; "
+        "background: #0B1015; border-color: #27313A; }"
+    );
+    connect(globalEqButton, &QPushButton::clicked,
+            this, &modernFloorBoard::toggleGlobalEqPopover);
+
+    globalEqPopover = new ModernGlobalEqPopover(this);
+
     QWidget *headerActions = new QWidget;
     headerActions->setFixedHeight(headerBlockHeight);
     headerActions->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -1170,15 +1302,41 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     headerActionRow->addWidget(writeButton);
     headerActionsLayout->addLayout(headerActionRow);
 
+    QWidget *globalEqHeader = new QWidget;
+    globalEqHeader->setFixedHeight(headerBlockHeight);
+    globalEqHeader->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    QVBoxLayout *globalEqHeaderLayout = new QVBoxLayout(globalEqHeader);
+    globalEqHeaderLayout->setContentsMargins(0, 0, 0, 0);
+    globalEqHeaderLayout->setSpacing(1);
+    globalEqHeaderLayout->addSpacing(headerCaptionHeight);
+    globalEqHeaderLayout->addWidget(globalEqButton);
+
+    QWidget *inputHeader = new QWidget;
+    inputHeader->setFixedHeight(headerBlockHeight);
+    inputHeader->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    QVBoxLayout *inputHeaderLayout = new QVBoxLayout(inputHeader);
+    inputHeaderLayout->setContentsMargins(0, 0, 0, 0);
+    inputHeaderLayout->setSpacing(1);
+    inputHeaderLayout->addSpacing(headerCaptionHeight);
+    inputHeaderLayout->addWidget(inputButton);
+
+    QWidget *headerUtilities = new QWidget;
+    headerUtilities->setFixedHeight(headerBlockHeight);
+    headerUtilities->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    QHBoxLayout *headerUtilitiesLayout = new QHBoxLayout(headerUtilities);
+    headerUtilitiesLayout->setContentsMargins(0, 0, 0, 0);
+    headerUtilitiesLayout->setSpacing(14);
+    headerUtilitiesLayout->addWidget(inputHeader, 0, Qt::AlignVCenter);
+    headerUtilitiesLayout->addWidget(globalEqHeader, 0, Qt::AlignVCenter);
+    headerUtilitiesLayout->addWidget(tempoHeader, 0, Qt::AlignVCenter);
+    headerUtilitiesLayout->addWidget(patchLevelHeader, 0, Qt::AlignVCenter);
+    headerUtilitiesLayout->addWidget(outputSelectHeader, 0, Qt::AlignVCenter);
+
     headerLayout->addWidget(patchIdentity, 1, Qt::AlignVCenter);
-    headerLayout->addSpacing(18);
+    headerLayout->addSpacing(14);
     headerLayout->addWidget(headerActions, 0, Qt::AlignVCenter);
-    headerLayout->addSpacing(18);
-    headerLayout->addWidget(tempoHeader, 0, Qt::AlignVCenter);
-    headerLayout->addSpacing(18);
-    headerLayout->addWidget(patchLevelHeader, 0, Qt::AlignVCenter);
-    headerLayout->addSpacing(18);
-    headerLayout->addWidget(outputSelectHeader, 0, Qt::AlignVCenter);
+    headerLayout->addSpacing(14);
+    headerLayout->addWidget(headerUtilities, 0, Qt::AlignVCenter);
 
     root->addWidget(header);
 
@@ -1191,6 +1349,12 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
             this, SIGNAL(requestPatchNames(int)));
     connect(patchSidebar, SIGNAL(patchActivated(int,int,QString)),
             this, SIGNAL(selectPatchRequested(int,int,QString)));
+    connect(patchSidebar, SIGNAL(renamePatchRequested(int,int)),
+            this, SLOT(beginPatchRename(int,int)));
+    connect(patchSidebar,
+            SIGNAL(pastePatchRequested(int,int,QString,QString,int,int,QString)),
+            this,
+            SLOT(beginPatchPaste(int,int,QString,QString,int,int,QString)));
     body->addWidget(patchSidebar);
 
     // MAIN AREA
@@ -3080,6 +3244,59 @@ void modernFloorBoard::tunerOutputChanged(int index)
     sysxIO->setFileSource("System", "00", "00", "31", rawHex);
 }
 
+void modernFloorBoard::toggleGlobalEqPopover()
+{
+    if (!globalEqPopover || !globalEqButton
+            || !globalEqSystemDataReady)
+        return;
+
+    if (globalEqPopover->isVisible()) {
+        globalEqPopover->close();
+        return;
+    }
+    globalEqPopover->showAnchoredTo(globalEqButton);
+}
+
+void modernFloorBoard::toggleInputPopover()
+{
+    if (!inputPopover || !inputButton || !inputSystemDataReady)
+        return;
+
+    if (inputPopover->isVisible()) {
+        inputPopover->close();
+        return;
+    }
+    inputPopover->showAnchoredTo(inputButton);
+}
+
+void modernFloorBoard::refreshInputSettings()
+{
+    if (!inputButton || !inputPopover)
+        return;
+
+    const bool available = backendIsConnected
+        && SysxIO::Instance()->isConnected()
+        && inputSystemDataReady;
+    inputButton->setEnabled(available);
+    inputPopover->setSystemDataReady(available);
+    if (!available && inputPopover->isVisible())
+        inputPopover->close();
+}
+
+void modernFloorBoard::refreshGlobalEq()
+{
+    if (!globalEqButton || !globalEqPopover)
+        return;
+
+    const bool available = backendIsConnected
+        && SysxIO::Instance()->isConnected()
+        && globalEqSystemDataReady;
+    globalEqButton->setEnabled(available);
+    globalEqPopover->setSystemDataReady(available);
+    if (!available && globalEqPopover->isVisible())
+        globalEqPopover->close();
+}
+
 void modernFloorBoard::requestOutputSystemData()
 {
     SysxIO *sysxIO = SysxIO::Instance();
@@ -3096,6 +3313,10 @@ void modernFloorBoard::requestOutputSystemData()
     outputSystemDataRequested = true;
     outputSystemDataReady = false;
     tunerSystemDataReady = false;
+    globalEqSystemDataReady = false;
+    inputSystemDataReady = false;
+    refreshInputSettings();
+    refreshGlobalEq();
     sysxIO->systemDataRequest();
     QTimer::singleShot(200, this, &modernFloorBoard::pollOutputSystemData);
 }
@@ -3113,8 +3334,26 @@ void modernFloorBoard::pollOutputSystemData()
         tunerSystemDataReady =
             hasSourceValue("System", "00", "00", "30")
             && hasSourceValue("System", "00", "00", "31");
+        globalEqSystemDataReady =
+            hasSourceValue("System", "00", "00", "48")
+            && hasSourceValue("System", "00", "00", "49")
+            && hasSourceValue("System", "00", "00", "4A")
+            && hasSourceValue("System", "00", "00", "4B")
+            && hasSourceValue("System", "00", "00", "4C");
+        inputSystemDataReady =
+            hasSourceValue("System", "00", "00", "40")
+            && hasSourceValue("System", "00", "00", "41")
+            && hasSourceValue("System", "00", "00", "42")
+            && hasSourceValue("System", "00", "00", "43")
+            && hasSourceValue("System", "00", "00", "44")
+            && hasSourceValue("System", "00", "00", "45")
+            && hasSourceValue("System", "00", "00", "46")
+            && hasSourceValue("System", "00", "00", "47")
+            && hasSourceValue("System", "00", "00", "4D");
         refreshOutputSelectHeader();
         refreshTunerSettings();
+        refreshInputSettings();
+        refreshGlobalEq();
         refreshExpression();
         refreshPedalboard();
         return;
@@ -3130,11 +3369,15 @@ void modernFloorBoard::backendConnected()
     outputSystemDataRequested = false;
     outputSystemDataReady = false;
     tunerSystemDataReady = false;
+    globalEqSystemDataReady = false;
+    inputSystemDataReady = false;
     emit connectionStateChanged(true);
     refreshTempoHeader();
     refreshPatchLevelHeader();
     refreshOutputSelectHeader();
     refreshTunerSettings();
+    refreshInputSettings();
+    refreshGlobalEq();
     refreshReadButtonState();
     requestOutputSystemData();
     setReverbUnavailable();
@@ -3162,6 +3405,8 @@ void modernFloorBoard::backendDisconnected()
     outputSystemDataRequested = false;
     outputSystemDataReady = false;
     tunerSystemDataReady = false;
+    globalEqSystemDataReady = false;
+    inputSystemDataReady = false;
     readRequestInFlight = false;
     writeRequestInFlight = false;
     emit connectionStateChanged(false);
@@ -3169,6 +3414,8 @@ void modernFloorBoard::backendDisconnected()
     refreshPatchLevelHeader();
     refreshOutputSelectHeader();
     refreshTunerSettings();
+    refreshInputSettings();
+    refreshGlobalEq();
     refreshReadButtonState();
     signalChainModel.clear();
     rebuildSignalChainView();
@@ -3230,6 +3477,8 @@ void modernFloorBoard::refreshReverbState()
     requestOutputSystemData();
     refreshOutputSelectHeader();
     refreshTunerSettings();
+    refreshInputSettings();
+    refreshGlobalEq();
 
     refreshSignalChainModel();
 
@@ -3284,7 +3533,8 @@ void modernFloorBoard::refreshReverbState()
 void modernFloorBoard::readCurrentPatch()
 {
     SysxIO *sysxIO = SysxIO::Instance();
-    if (readRequestInFlight || writeRequestInFlight || !backendIsConnected
+    if (readRequestInFlight || writeRequestInFlight || patchManagementInFlight
+        || !backendIsConnected
         || !sysxIO->isConnected() || !sysxIO->deviceReady())
         return;
 
@@ -3296,7 +3546,8 @@ void modernFloorBoard::readCurrentPatch()
 void modernFloorBoard::writeCurrentPatch()
 {
     SysxIO *sysxIO = SysxIO::Instance();
-    if (readRequestInFlight || writeRequestInFlight || !backendIsConnected
+    if (readRequestInFlight || writeRequestInFlight || patchManagementInFlight
+        || !backendIsConnected
         || !sysxIO->isConnected() || !sysxIO->deviceReady())
         return;
 
@@ -3339,6 +3590,131 @@ void modernFloorBoard::writeCurrentPatch()
     writeRequestInFlight = true;
     refreshReadButtonState();
     emit writeCurrentPatchRequested(capturedBank, capturedPatch);
+}
+
+void modernFloorBoard::beginPatchRename(int bank, int patch)
+{
+    SysxIO *sysxIO = SysxIO::Instance();
+    if (patchManagementInFlight || readRequestInFlight || writeRequestInFlight
+        || !backendIsConnected || !sysxIO->isConnected()
+        || !sysxIO->deviceReady() || bank < 1 || bank > bankTotalUser
+        || patch < 1 || patch > patchPerBank)
+        return;
+    patchManagementInFlight = true;
+    refreshReadButtonState();
+    emit requestRenamePatchName(bank, patch);
+}
+
+void modernFloorBoard::renameNameReady(int bank, int patch, QString name,
+                                       bool valid)
+{
+    patchManagementInFlight = false;
+    refreshReadButtonState();
+    if (!valid) {
+        ModernMessageDialog failed(
+            ModernDialogIcon::Error, tr("RENAME FAILED"),
+            patchListModel.patchNumber(bank, patch),
+            tr("The current patch name could not be read. Nothing was written."),
+            QString(), this);
+        failed.addOkButton();
+        return;
+    }
+    ModernRenamePatchDialog dialog(patchListModel.patchNumber(bank, patch),
+                                   name, this);
+    if (dialog.exec() != QDialog::Accepted)
+        return;
+    const QString requested = dialog.requestedName();
+    if (requested == name)
+        return;
+    patchManagementInFlight = true;
+    refreshReadButtonState();
+    emit renameUserPatchRequested(bank, patch, requested);
+}
+
+void modernFloorBoard::beginPatchPaste(int sourceBank, int sourcePatch,
+                                       QString sourceNumber,
+                                       QString sourceName, int targetBank,
+                                       int targetPatch, QString targetName)
+{
+    SysxIO *sysxIO = SysxIO::Instance();
+    if (patchManagementInFlight || readRequestInFlight || writeRequestInFlight
+        || !backendIsConnected || !sysxIO->isConnected()
+        || !sysxIO->deviceReady() || targetBank < 1
+        || targetBank > bankTotalUser || sourceBank < 1
+        || sourceBank > bankTotalAll
+        || (sourceBank == targetBank && sourcePatch == targetPatch))
+        return;
+    if (sourceName.trimmed().isEmpty())
+        sourceName = QString::fromUtf8("—");
+    if (targetName.trimmed().isEmpty())
+        targetName = QString::fromUtf8("—");
+    const QString destination = patchListModel.patchNumber(targetBank,
+                                                            targetPatch);
+    ModernMessageDialog confirmation(
+        ModernDialogIcon::Warning, tr("COPY PATCH"),
+        tr("%1 — %2\n→\n%3 — %4")
+            .arg(sourceNumber, sourceName, destination, targetName),
+        tr("This will overwrite the destination patch."), QString(), this);
+    if (!confirmation.addCopyConfirmation())
+        return;
+    patchManagementInFlight = true;
+    refreshReadButtonState();
+    emit copyPatchRequested(sourceBank, sourcePatch, targetBank, targetPatch);
+}
+
+void modernFloorBoard::persistentRenameFinished(int result, int bank,
+                                                int patch,
+                                                QString verifiedName,
+                                                QString detail)
+{
+    patchManagementInFlight = false;
+    refreshReadButtonState();
+    const QString target = patchListModel.patchNumber(bank, patch);
+    if (result == 0) {
+        patchListModel.setPatchName(bank, patch, verifiedName);
+        SysxIO *sysxIO = SysxIO::Instance();
+        if (sysxIO->getLoadedBank() == bank
+            && sysxIO->getLoadedPatch() == patch) {
+            sysxIO->setCurrentPatchName(verifiedName);
+            patchName->setText(verifiedName);
+        }
+        ModernMessageDialog verified(
+            ModernDialogIcon::Success, tr("RENAME VERIFIED"), target,
+            tr("The patch name was written and read back successfully."),
+            QString(), this);
+        verified.addOkButton();
+    } else {
+        ModernMessageDialog failed(
+            ModernDialogIcon::Error,
+            result == 1 ? tr("RENAME MISMATCH") : tr("RENAME FAILED"),
+            target, tr("The patch-name readback did not confirm the change."),
+            detail, this);
+        failed.addOkButton();
+    }
+}
+
+void modernFloorBoard::persistentCopyFinished(int result, int bank, int patch,
+                                              QString verifiedName,
+                                              QString detail)
+{
+    patchManagementInFlight = false;
+    refreshReadButtonState();
+    const QString target = patchListModel.patchNumber(bank, patch);
+    if (result == 0) {
+        patchListModel.setPatchName(bank, patch, verifiedName);
+        ModernMessageDialog verified(
+            ModernDialogIcon::Success, tr("COPY VERIFIED"), target,
+            tr("Authoritative patch blocks 00-0C were copied and verified."),
+            tr("Block 0D is the legacy synthetic, non-verifiable block."), this);
+        verified.addOkButton();
+    } else {
+        ModernMessageDialog failed(
+            ModernDialogIcon::Error,
+            result == 1 ? tr("COPY MISMATCH") : tr("COPY FAILED"),
+            target, tr("Destination readback did not confirm the copy."),
+            detail, this);
+        failed.addOkButton();
+    }
 }
 
 void modernFloorBoard::persistentWriteFinished(int result, int bank, int patch,
@@ -3386,7 +3762,8 @@ void modernFloorBoard::refreshReadButtonState()
                            && sysxIO->isConnected()
                            && sysxIO->deviceReady()
                            && !readRequestInFlight
-                           && !writeRequestInFlight);
+                           && !writeRequestInFlight
+                           && !patchManagementInFlight);
     if (writeButton) {
         const int bank = sysxIO->getLoadedBank();
         const int patch = sysxIO->getLoadedPatch();
@@ -3397,7 +3774,8 @@ void modernFloorBoard::refreshReadButtonState()
                                 && bank >= 1 && bank <= bankTotalUser
                                 && patch >= 1 && patch <= patchPerBank
                                 && !readRequestInFlight
-                                && !writeRequestInFlight);
+                                && !writeRequestInFlight
+                                && !patchManagementInFlight);
     }
 }
 

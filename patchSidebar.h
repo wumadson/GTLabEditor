@@ -8,6 +8,7 @@ class QLabel;
 class QLineEdit;
 class QPushButton;
 class QVBoxLayout;
+class QContextMenuEvent;
 class ModernPatchListModel;
 class PatchBankSection;
 
@@ -22,8 +23,11 @@ public:
     QString patchName() const;
 signals:
     void activated(int bank, int patch, QString name);
+    void contextMenuRequested(int bank, int patch, QString name,
+                              QPoint globalPosition);
 protected:
     void mouseReleaseEvent(QMouseEvent *event) override;
+    void contextMenuEvent(QContextMenuEvent *event) override;
 private:
     void refreshStyle();
     int patchBank;
@@ -63,6 +67,11 @@ public:
 signals:
     void patchActivated(int bank, int patch, QString name);
     void bankExpanded(int bank);
+    void renamePatchRequested(int bank, int patch);
+    void pastePatchRequested(int sourceBank, int sourcePatch,
+                             QString sourceNumber, QString sourceName,
+                             int targetBank, int targetPatch,
+                             QString targetName);
 public slots:
     void updatePatch(int bank, int patch);
     void setCurrentPatch(int bank, int patch);
@@ -70,11 +79,17 @@ private slots:
     void applyFilter(const QString &text);
     void activatePatch(int bank, int patch, QString name);
     void expandBank(int bank);
+    void showPatchContextMenu(int bank, int patch, QString name,
+                              QPoint globalPosition);
 private:
     ModernPatchListModel *patchModel;
     QMap<QString, PatchListItem *> items;
     QMap<int, PatchBankSection *> bankSections;
     QList<PatchBankSection *> banks;
+    int copiedBank = 0;
+    int copiedPatch = 0;
+    QString copiedNumber;
+    QString copiedName;
 };
 
 #endif

@@ -41,6 +41,8 @@ class ModernExpressionEditor;
 class ModernPedalboardEditor;
 class ModernNoiseSuppressorEditor;
 class ModernSendReturnEditor;
+class ModernGlobalEqPopover;
+class ModernInputPopover;
 class PatchSidebar;
 class BottomControlStrip;
 
@@ -59,12 +61,21 @@ public slots:
     void patchNameResolved(int bank, int patch, QString name);
     void persistentWriteFinished(int result, int bank, int patch,
                                  QString verifiedName, QString detail);
+    void renameNameReady(int bank, int patch, QString name, bool valid);
+    void persistentRenameFinished(int result, int bank, int patch,
+                                  QString verifiedName, QString detail);
+    void persistentCopyFinished(int result, int bank, int patch,
+                                QString verifiedName, QString detail);
 
 signals:
     void requestPatchNames(int bank);
     void selectPatchRequested(int bank, int patch, QString name);
     void readCurrentPatchRequested();
     void writeCurrentPatchRequested(int bank, int patch);
+    void requestRenamePatchName(int bank, int patch);
+    void renameUserPatchRequested(int bank, int patch, QString name);
+    void copyPatchRequested(int sourceBank, int sourcePatch,
+                            int targetBank, int targetPatch);
     void connectionStateChanged(bool connected);
 
 private slots:
@@ -121,6 +132,12 @@ private slots:
     void tunerOutputChanged(int index);
     void readCurrentPatch();
     void writeCurrentPatch();
+    void toggleGlobalEqPopover();
+    void beginPatchRename(int bank, int patch);
+    void beginPatchPaste(int sourceBank, int sourcePatch,
+                         QString sourceNumber, QString sourceName,
+                         int targetBank, int targetPatch,
+                         QString targetName);
 
 private:
     EffectModule *createEffectBlock(const QString &name, bool available);
@@ -254,6 +271,9 @@ private:
     void commitTempoEdit();
     void commitPatchLevelEdit();
     void refreshTunerSettings();
+    void refreshGlobalEq();
+    void toggleInputPopover();
+    void refreshInputSettings();
     void requestOutputSystemData();
     void pollOutputSystemData();
     bool hasSourceValue(const QString &area,
@@ -286,6 +306,10 @@ private:
     QLabel *patchName;
     QPushButton *readButton = nullptr;
     QPushButton *writeButton = nullptr;
+    QPushButton *globalEqButton = nullptr;
+    ModernGlobalEqPopover *globalEqPopover = nullptr;
+    QPushButton *inputButton = nullptr;
+    ModernInputPopover *inputPopover = nullptr;
     QWidget *tempoControl = nullptr;
     QSpinBox *tempoValue = nullptr;
     QWidget *patchLevelControl = nullptr;
@@ -297,6 +321,8 @@ private:
     bool outputSystemDataRequested = false;
     bool outputSystemDataReady = false;
     bool tunerSystemDataReady = false;
+    bool globalEqSystemDataReady = false;
+    bool inputSystemDataReady = false;
     PatchSidebar *patchSidebar = nullptr;
 
     SignalChainModule *reverbCard = nullptr;
@@ -389,6 +415,7 @@ private:
     bool backendHasPatchData = false;
     bool readRequestInFlight = false;
     bool writeRequestInFlight = false;
+    bool patchManagementInFlight = false;
     modernSignalChainModel signalChainModel;
     ModernPatchListModel patchListModel;
     SignalChainPanel *signalChainPanel = nullptr;

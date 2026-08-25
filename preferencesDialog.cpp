@@ -77,7 +77,7 @@ preferencesDialog::preferencesDialog()
 	mainLayout->addLayout(buttonsLayout);
 	setLayout(mainLayout);
 
-	setWindowTitle(tr("GT LAB Editor - Preferences"));
+	setWindowTitle(tr("GT Lab Editor - Settings"));
 };
 
 void preferencesDialog::createIcons()

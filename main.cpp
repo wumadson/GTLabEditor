@@ -33,7 +33,7 @@
 int main(int argc, char **argv)
 {
 	QApplication app(argc, argv);
-	app.setApplicationDisplayName("GT LAB Editor");
+	app.setApplicationDisplayName("GT Lab Editor");
 
 	 Preferences *preferences = Preferences::Instance(); // Load the preferences.
   QString lang = preferences->getPreferences("Language", "Locale", "select");
@@ -189,7 +189,7 @@ int main(int argc, char **argv)
 
 	/* PREVIEW WARNING 
 	QMessageBox *msgBox = new QMessageBox();
-	msgBox->setWindowTitle(QObject::tr("               GT-10FxFloorBoard beta version!"));
+	msgBox->setWindowTitle(QObject::tr("               GT Lab Editor beta version!"));
 	msgBox->setIcon(QMessageBox::Warning);
 	msgBox->setTextFormat(Qt::RichText);
 	QString msgText;
