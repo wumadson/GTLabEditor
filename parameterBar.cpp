@@ -20,7 +20,8 @@ ParameterBar::ParameterBar(const QString &label, QWidget *parent)
       segmentedMappingEnabled(false),
       segmentedContinuousMaximum(0),
       segmentedSplitRatio(0.5),
-      dragging(false)
+      dragging(false),
+      valueReadoutFollowsHandle(false)
 {
     setObjectName("ParameterBar");
     setOrientation(Qt::Horizontal);
@@ -126,6 +127,14 @@ void ParameterBar::clearSegmentedMapping()
 bool ParameterBar::hasSegmentedMapping() const
 {
     return segmentedMappingEnabled;
+}
+
+void ParameterBar::setValueReadoutFollowsHandle(bool enabled)
+{
+    if (valueReadoutFollowsHandle == enabled)
+        return;
+    valueReadoutFollowsHandle = enabled;
+    update();
 }
 
 QSize ParameterBar::sizeHint() const
@@ -285,7 +294,8 @@ void ParameterBar::paintEvent(QPaintEvent *)
     painter.setFont(labelFont);
     painter.setPen(QColor(ModernTheme::color(
         enabled ? ModernTheme::PrimaryText : ModernTheme::DisabledText)));
-    painter.drawText(QRectF(4, 1, width() - 72, 20),
+    painter.drawText(QRectF(4, 1, width() - 72,
+                            valueReadoutFollowsHandle ? 15 : 20),
                      Qt::AlignLeft | Qt::AlignVCenter, parameterLabel);
 
     QFont valueFont = labelFont;
@@ -293,8 +303,21 @@ void ParameterBar::paintEvent(QPaintEvent *)
     painter.setFont(valueFont);
     painter.setPen(enabled ? parameterAccent.lighter(116)
         : QColor(ModernTheme::color(ModernTheme::DisabledText)));
-    painter.drawText(QRectF(width() - 84, 1, 80, 20),
-                     Qt::AlignRight | Qt::AlignVCenter, presentedValue);
+    if (valueReadoutFollowsHandle) {
+        const QRectF track = trackRect();
+        const qreal markerCenter = positionForValue(value());
+        const QFontMetricsF metrics(valueFont);
+        const qreal textWidth = metrics.horizontalAdvance(presentedValue);
+        const qreal readoutWidth = qMin(track.width(), textWidth + 8.0);
+        const qreal readoutLeft = qBound(track.left(),
+                                         markerCenter - readoutWidth / 2.0,
+                                         track.right() - readoutWidth);
+        painter.drawText(QRectF(readoutLeft, 16, readoutWidth, 15),
+                         Qt::AlignCenter, presentedValue);
+    } else {
+        painter.drawText(QRectF(width() - 84, 1, 80, 20),
+                         Qt::AlignRight | Qt::AlignVCenter, presentedValue);
+    }
 
     const QRectF track = trackRect();
     painter.setPen(Qt::NoPen);

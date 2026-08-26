@@ -32,6 +32,7 @@ public:
                              qreal splitRatio = 0.5);
     void clearSegmentedMapping();
     bool hasSegmentedMapping() const;
+    void setValueReadoutFollowsHandle(bool enabled);
 
     QSize sizeHint() const override;
     QSize minimumSizeHint() const override;
@@ -61,6 +62,7 @@ private:
     QVector<int> segmentedDiscreteValues;
     qreal segmentedSplitRatio;
     bool dragging;
+    bool valueReadoutFollowsHandle;
 };
 
 #endif

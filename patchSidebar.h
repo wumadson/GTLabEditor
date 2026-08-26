@@ -52,6 +52,7 @@ private slots:
     void toggleExpanded();
 private:
     int bankNumber;
+    QString bankLabel;
     QPushButton *header;
     QWidget *content;
     QVBoxLayout *contentLayout;

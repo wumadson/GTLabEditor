@@ -23,6 +23,7 @@
 
 #include <QList>
 #include <QVector>
+#include <QDebug>
 
 #include "dragBar.h"
 #include "bankTreeList.h"
@@ -202,17 +203,31 @@ void floorBoard::selectModernPatch(int bank, int patch, QString name)
 void floorBoard::reloadCurrentPatch()
 {
         SysxIO *sysxIO = SysxIO::Instance();
-        if (!sysxIO->isConnected() || !sysxIO->deviceReady())
+        if (exclusiveMemoryOperationActive
+            || !sysxIO->isConnected() || !sysxIO->deviceReady())
                 return;
 
         sysxIO->setDeviceReady(false);
         bankList->reloadCurrentPatch();
 }
 
+bool floorBoard::canStartExclusiveMemoryOperation() const
+{
+        return !exclusiveMemoryOperationActive
+            && !persistentWriteInFlight && !patchManagementInFlight;
+}
+
+void floorBoard::setExclusiveMemoryOperation(bool active)
+{
+        exclusiveMemoryOperationActive = active;
+        bankList->setExclusiveMemoryOperation(active);
+}
+
 void floorBoard::writeCurrentPatchToUser(int targetBank, int targetPatch)
 {
         SysxIO *sysxIO = SysxIO::Instance();
-        if (persistentWriteInFlight || patchManagementInFlight
+        if (exclusiveMemoryOperationActive
+            || persistentWriteInFlight || patchManagementInFlight
             || !sysxIO->isConnected()
             || !sysxIO->deviceReady()
             || targetBank < 1 || targetBank > bankTotalUser
@@ -258,7 +273,8 @@ void floorBoard::writeCurrentPatchToUser(int targetBank, int targetPatch)
 void floorBoard::requestUserPatchNameForRename(int bank, int patch)
 {
         SysxIO *sysxIO = SysxIO::Instance();
-        if (persistentWriteInFlight || patchManagementInFlight
+        if (exclusiveMemoryOperationActive
+            || persistentWriteInFlight || patchManagementInFlight
             || !sysxIO->isConnected() || !sysxIO->deviceReady()
             || bank < 1 || bank > bankTotalUser
             || patch < 1 || patch > patchPerBank) {
@@ -295,7 +311,8 @@ void floorBoard::renameNameLookupReply(QString name)
 void floorBoard::renameUserPatch(int bank, int patch, QString name)
 {
         SysxIO *sysxIO = SysxIO::Instance();
-        if (persistentWriteInFlight || patchManagementInFlight
+        if (exclusiveMemoryOperationActive
+            || persistentWriteInFlight || patchManagementInFlight
             || !sysxIO->isConnected() || !sysxIO->deviceReady()) {
                 emit renameVerificationFinished(2, bank, patch, QString(),
                                                 tr("RENAME backend is busy."));
@@ -310,6 +327,15 @@ void floorBoard::renameUserPatch(int bank, int patch, QString name)
                 emit renameVerificationFinished(2, bank, patch, QString(), error);
                 return;
         }
+        qInfo().noquote()
+            << QString("[RENAME] target=U%1-%2 address=%3 payload=%4 "
+                       "dt1Bytes=%5 checksum=%6")
+                   .arg(bank, 2, 10, QChar('0')).arg(patch)
+                   .arg(message.mid(14, 8))
+                   .arg(QString::fromLatin1(encoded.toHex()).toUpper())
+                   .arg(message.size() / 2)
+                   .arg(message.mid(message.size() - 4, 2));
+        qInfo().noquote() << "[RENAME] DT1=" + message;
         patchManagementInFlight = true;
         patchManagementTargetBank = bank;
         patchManagementTargetPatch = patch;
@@ -325,19 +351,40 @@ void floorBoard::renameUserPatch(int bank, int patch, QString name)
 
 void floorBoard::renameTransmissionReply(QString replyMsg)
 {
-        Q_UNUSED(replyMsg);
         SysxIO *sysxIO = SysxIO::Instance();
         QObject::disconnect(sysxIO, SIGNAL(sysxReply(QString)), this,
                             SLOT(renameTransmissionReply(QString)));
         if (!patchManagementInFlight)
                 return;
+        qInfo().noquote()
+            << QString("[RENAME] transmission completion bytes=%1 reply=%2")
+                   .arg(replyMsg.size() / 2)
+                   .arg(replyMsg.isEmpty() ? QString("<empty>") : replyMsg);
         sysxIO->emitStatusSymbol(3);
         sysxIO->emitStatusMessage(tr("VERIFYING RENAME"));
+        QObject::connect(sysxIO, SIGNAL(sysxReply(QString)), this,
+                         SLOT(renameReadbackRaw(QString)),
+                         Qt::UniqueConnection);
         QObject::connect(sysxIO, SIGNAL(patchName(QString)), this,
                          SLOT(verifyPersistentRename(QString)),
                          Qt::UniqueConnection);
+        qInfo().noquote()
+            << QString("[RENAME] requestPatchName start target=U%1-%2")
+                   .arg(patchManagementTargetBank, 2, 10, QChar('0'))
+                   .arg(patchManagementTargetPatch);
         sysxIO->requestPatchName(patchManagementTargetBank,
                                  patchManagementTargetPatch);
+}
+
+void floorBoard::renameReadbackRaw(QString replyMsg)
+{
+        SysxIO *sysxIO = SysxIO::Instance();
+        QObject::disconnect(sysxIO, SIGNAL(sysxReply(QString)), this,
+                            SLOT(renameReadbackRaw(QString)));
+        qInfo().noquote()
+            << QString("[RENAME] readback raw bytes=%1 data=%2")
+                   .arg(replyMsg.size() / 2)
+                   .arg(replyMsg.isEmpty() ? QString("<empty>") : replyMsg);
 }
 
 void floorBoard::verifyPersistentRename(QString name)
@@ -349,6 +396,13 @@ void floorBoard::verifyPersistentRename(QString name)
         const int patch = patchManagementTargetPatch;
         const QString expected = patchManagementExpectedName;
         const QString verified = name.trimmed();
+        qInfo().noquote()
+            << QString("[RENAME] compare target=U%1-%2 requested=\"%3\" "
+                       "readback=\"%4\" result=%5")
+                   .arg(bank, 2, 10, QChar('0')).arg(patch)
+                   .arg(expected, verified,
+                        verified == expected ? QString("MATCH")
+                                             : QString("MISMATCH"));
         patchManagementInFlight = false;
         patchManagementTargetBank = 0;
         patchManagementTargetPatch = 0;
@@ -365,6 +419,28 @@ void floorBoard::verifyPersistentRename(QString name)
                 emit renameVerificationFinished(1, bank, patch, verified,
                                                 tr("Readback name does not match."));
         } else {
+                if (sysxIO->getLoadedBank() == bank
+                    && sysxIO->getLoadedPatch() == patch) {
+                        QString encodingError;
+                        const QByteArray encodedName =
+                            PatchTransferCodec::encodePatchName16(
+                                verified, &encodingError);
+                        if (encodedName.size() == nameLength) {
+                                QList<QString> nameBytes;
+                                nameBytes.reserve(nameLength);
+                                for (unsigned char byte : encodedName) {
+                                        nameBytes.append(QString("%1").arg(
+                                            byte, 2, 16, QChar('0')).toUpper());
+                                }
+                                // Persistent memory has passed readback.
+                                // Synchronize only the loaded Temporary Buffer
+                                // name so the GT-10 LCD reflects the verified
+                                // rename without a Program Change.
+                                sysxIO->setFileSource(
+                                    "Structure", nameAddress,
+                                    "00", "00", nameBytes);
+                        }
+                }
                 sysxIO->emitStatusMessage(tr("RENAME VERIFIED"));
                 emit renameVerificationFinished(0, bank, patch, verified, QString());
         }
@@ -374,7 +450,8 @@ void floorBoard::copyPatchToUser(int sourceBank, int sourcePatch,
                                  int targetBank, int targetPatch)
 {
         SysxIO *sysxIO = SysxIO::Instance();
-        if (persistentWriteInFlight || patchManagementInFlight
+        if (exclusiveMemoryOperationActive
+            || persistentWriteInFlight || patchManagementInFlight
             || !sysxIO->isConnected() || !sysxIO->deviceReady()
             || sourceBank < 1 || sourceBank > bankTotalAll
             || sourcePatch < 1 || sourcePatch > patchPerBank

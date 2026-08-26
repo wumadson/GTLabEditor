@@ -6,6 +6,7 @@
 class ParameterBar;
 class QComboBox;
 class QKeyEvent;
+class QPaintEvent;
 class QWidget;
 
 class ModernGlobalEqPopover final : public QFrame
@@ -22,6 +23,7 @@ public:
 
 protected:
     void keyPressEvent(QKeyEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
 
 private slots:
     void gainChanged(int value);

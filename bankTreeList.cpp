@@ -873,6 +873,9 @@ void bankTreeList::shortMidiMessageReceived(int status, int data1, int data2)
         if (bank < 1 || bank > bankTotalAll || patch < 1 || patch > patchPerBank)
                 return;
 
+        if (exclusiveMemoryOperationActive)
+                return;
+
         if (localPatchChangePending
             && bank == localPatchChangeBank
             && patch == localPatchChangePatch)
@@ -885,6 +888,13 @@ void bankTreeList::shortMidiMessageReceived(int status, int data1, int data2)
                 return;
 
         requestPhysicalPatchReadback(bank, patch);
+}
+
+void bankTreeList::setExclusiveMemoryOperation(bool active)
+{
+        exclusiveMemoryOperationActive = active;
+        queuedPhysicalBank = 0;
+        queuedPhysicalPatch = 0;
 }
 
 void bankTreeList::requestPhysicalPatchReadback(int bank, int patch)

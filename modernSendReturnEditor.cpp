@@ -3,6 +3,7 @@
 #include "MidiTable.h"
 #include "SysxIO.h"
 #include "globalVariables.h"
+#include "effectArtworkWidget.h"
 #include "modernTheme.h"
 #include "modernWidgets.h"
 #include "parameterBar.h"
@@ -44,50 +45,12 @@ void ModernSendReturnEditor::buildEditor()
     editor->typeLabel()->hide();
     editor->setRightPanelTitle("LOOP MODE");
 
-    QFrame *visual = new QFrame;
-    visual->setObjectName("SendReturnVisual");
-    visual->setStyleSheet(QString(
-        "QFrame#SendReturnVisual{background:%1;border:1px solid %2;"
-        "border-radius:10px;}"
-        "QLabel#SendReturnMark{color:%3;font-size:30px;font-weight:700;"
-        "letter-spacing:2px;}"
-        "QLabel#SendReturnName{color:%4;font-size:11px;font-weight:700;"
-        "letter-spacing:1px;}"
-        "QLabel#SendReturnPort{color:%4;font-size:10px;font-weight:600;}"
-        "QFrame#SendReturnLine{background:%3;border:0;}")
-        .arg(ModernTheme::color(ModernTheme::ControlBackground),
-             ModernTheme::color(ModernTheme::Border), accent.name(),
-             ModernTheme::color(ModernTheme::SecondaryText)));
-    QVBoxLayout *visualLayout = new QVBoxLayout(visual);
-    visualLayout->setContentsMargins(18, 18, 18, 18);
-    visualLayout->setSpacing(8);
-    QLabel *mark = new QLabel("S/R");
-    mark->setObjectName("SendReturnMark");
-    mark->setAlignment(Qt::AlignCenter);
-    QLabel *description = new QLabel("EXTERNAL LOOP");
-    description->setObjectName("SendReturnName");
-    description->setAlignment(Qt::AlignCenter);
-    QWidget *ports = new QWidget;
-    QHBoxLayout *portsLayout = new QHBoxLayout(ports);
-    portsLayout->setContentsMargins(8, 0, 8, 0);
-    portsLayout->setSpacing(8);
-    QLabel *send = new QLabel("SEND");
-    send->setObjectName("SendReturnPort");
-    QFrame *line = new QFrame;
-    line->setObjectName("SendReturnLine");
-    line->setFixedHeight(1);
-    QLabel *receive = new QLabel("RETURN");
-    receive->setObjectName("SendReturnPort");
-    portsLayout->addWidget(send);
-    portsLayout->addWidget(line, 1);
-    portsLayout->addWidget(receive);
-    visualLayout->addStretch(2);
-    visualLayout->addWidget(mark);
-    visualLayout->addWidget(description);
-    visualLayout->addSpacing(8);
-    visualLayout->addWidget(ports);
-    visualLayout->addStretch(3);
-    editor->setArtworkWidget(visual);
+    artwork = new EffectArtworkWidget;
+    artwork->setArtwork(":/assets/effects/pedal_generic.png");
+    artwork->setGenericPedalIdentity(
+        "S/R", QColor(ModernTheme::color(ModernTheme::PrimaryText)),
+        QColor(ModernTheme::effectColor("SEND/RETURN")));
+    editor->setArtworkWidget(artwork);
 
     QVBoxLayout *parameterLayout =
         new QVBoxLayout(editor->parameterArea());
@@ -148,6 +111,7 @@ void ModernSendReturnEditor::buildEditor()
         if (refreshing || !available)
             return;
         setSendReturnValue(kStateAddress, checked ? 1 : 0);
+        artwork->setGenericPedalState(true, checked);
         emit stateChanged(true, checked);
     });
     connect(modeCombo,
@@ -157,8 +121,11 @@ void ModernSendReturnEditor::buildEditor()
             return;
         bool rawOk = false;
         const int raw = modeCombo->itemData(index).toInt(&rawOk);
-        if (rawOk)
+        if (rawOk) {
             setSendReturnValue(kModeAddress, raw);
+            artwork->setTextOverlayText("type",
+                                        modeCombo->itemText(index));
+        }
     });
     connect(sendLevelBar, &QAbstractSlider::valueChanged,
             this, [this](int raw) {
@@ -270,12 +237,15 @@ void ModernSendReturnEditor::refreshSendReturn(
                                       backendHasPatchData);
     updateControls(valid);
     if (!valid) {
+        artwork->setTextOverlayText("type", QString());
+        artwork->setGenericPedalState(false, false);
         refreshing = false;
         emit stateChanged(false, false);
         return;
     }
 
     const bool on = readValue(kStateAddress) == 1;
+    artwork->setGenericPedalState(true, on);
     {
         const QSignalBlocker blocker(stateToggle);
         stateToggle->setChecked(on);
@@ -284,6 +254,9 @@ void ModernSendReturnEditor::refreshSendReturn(
         const int raw = readValue(kModeAddress);
         const QSignalBlocker blocker(modeCombo);
         modeCombo->setCurrentIndex(modeCombo->findData(raw));
+        artwork->setTextOverlayText("type", modeCombo->currentText());
+    } else {
+        artwork->setTextOverlayText("type", QString());
     }
     if (bufferContains(kSendLevelAddress)) {
         const int raw = readValue(kSendLevelAddress);

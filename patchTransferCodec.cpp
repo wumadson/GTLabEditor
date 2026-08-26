@@ -306,6 +306,41 @@ QString PatchTransferCodec::buildUserCopyWriteMessage(
     return buildUserWriteMessage(source, targetBank, targetPatch, error);
 }
 
+QString PatchTransferCodec::buildUserWriteMessage00To0C(
+    const DecodedPatch &decoded, int targetBank, int targetPatch,
+    QString *error)
+{
+    QString address1;
+    QString address2;
+    if (!userPatchAddress(targetBank, targetPatch, &address1, &address2)) {
+        if (error)
+            *error = "Backup restore target is outside GT-10 User memory";
+        return QString();
+    }
+    if (!decoded.valid || decoded.logicalBlocks00To0C.size() != 13) {
+        if (error)
+            *error = "Backup patch does not contain authoritative blocks 00-0C";
+        return QString();
+    }
+
+    QString message;
+    for (int block = 0; block <= 0x0C; ++block) {
+        const QString key = QString("%1%2")
+            .arg(block, 2, 16, QChar('0')).arg(0, 2, 16, QChar('0'))
+            .toUpper();
+        const QString payload = decoded.logicalBlocks00To0C.value(key);
+        if (payload.isEmpty()) {
+            if (error)
+                *error = QString("Backup patch is missing logical block %1").arg(key);
+            return QString();
+        }
+        message += canonicalMessage(address1 + address2, key, payload);
+    }
+    if (error)
+        error->clear();
+    return message;
+}
+
 QString PatchTransferCodec::buildLegacyWriteMessage(const SysxData &source,
                                                      int bank,
                                                      int patch,

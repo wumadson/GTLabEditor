@@ -10,28 +10,49 @@
 #include <QLineEdit>
 #include <QMouseEvent>
 #include <QMenu>
+#include <QPainter>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QStyle>
 #include <QVBoxLayout>
 
-static QString patchKey(int bank, int patch)
+namespace {
+QString patchKey(int bank, int patch)
 {
     return QString("%1:%2").arg(bank).arg(patch);
+}
+
+class PatchNameLabel : public QLabel
+{
+public:
+    using QLabel::QLabel;
+
+protected:
+    void paintEvent(QPaintEvent *) override
+    {
+        QPainter painter(this);
+        painter.setFont(font());
+        painter.setPen(palette().color(foregroundRole()));
+        const QString visibleText = fontMetrics().elidedText(
+            text(), Qt::ElideRight, qMax(0, contentsRect().width()));
+        painter.drawText(contentsRect(), Qt::AlignLeft | Qt::AlignVCenter,
+                         visibleText);
+    }
+};
 }
 
 PatchListItem::PatchListItem(int bank, int patch, const QString &number, QWidget *parent)
     : QFrame(parent), patchBank(bank), patchIndex(patch)
 {
     setCursor(Qt::PointingHandCursor);
-    setFixedHeight(31);
+    setFixedHeight(29);
     QHBoxLayout *layout = new QHBoxLayout(this);
-    layout->setContentsMargins(10, 0, 8, 0);
-    layout->setSpacing(8);
+    layout->setContentsMargins(8, 0, 7, 0);
+    layout->setSpacing(7);
     numberLabel = new QLabel(number);
     numberLabel->setObjectName("PatchItemNumber");
     numberLabel->setFixedWidth(43);
-    nameLabel = new QLabel(QString::fromUtf8("—"));
+    nameLabel = new PatchNameLabel(QString::fromUtf8("—"));
     nameLabel->setObjectName("PatchItemName");
     nameLabel->setTextInteractionFlags(Qt::NoTextInteraction);
     layout->addWidget(numberLabel);
@@ -42,7 +63,9 @@ PatchListItem::PatchListItem(int bank, int patch, const QString &number, QWidget
 
 void PatchListItem::setPatchName(const QString &name)
 {
-    nameLabel->setText(name.isEmpty() ? QString::fromUtf8("—") : name);
+    const QString displayName = name.isEmpty() ? QString::fromUtf8("—") : name;
+    nameLabel->setText(displayName);
+    nameLabel->setToolTip(name.isEmpty() ? QString() : name);
 }
 
 QString PatchListItem::patchName() const
@@ -91,12 +114,12 @@ void PatchListItem::contextMenuEvent(QContextMenuEvent *event)
 }
 
 PatchBankSection::PatchBankSection(int bank, const QString &label, QWidget *parent)
-    : QWidget(parent), bankNumber(bank)
+    : QWidget(parent), bankNumber(bank), bankLabel(label.toUpper())
 {
     QVBoxLayout *layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(1);
-    header = new QPushButton(QString::fromUtf8("▸  ") + label);
+    header = new QPushButton(QString::fromUtf8("›  ") + bankLabel);
     header->setCheckable(true);
     header->setObjectName("PatchBankHeader");
     header->setProperty("expanded", false);
@@ -107,7 +130,7 @@ PatchBankSection::PatchBankSection(int bank, const QString &label, QWidget *pare
     connect(header, SIGNAL(clicked()), this, SLOT(toggleExpanded()));
     content = new QWidget;
     contentLayout = new QVBoxLayout(content);
-    contentLayout->setContentsMargins(5, 1, 0, 4);
+    contentLayout->setContentsMargins(10, 1, 1, 3);
     contentLayout->setSpacing(1);
     content->hide();
     layout->addWidget(header);
@@ -127,8 +150,9 @@ void PatchBankSection::setExpanded(bool expandedState)
     const bool wasExpanded = content->isVisible();
     header->setChecked(expandedState);
     header->setProperty("expanded", expandedState);
-    header->setText((expandedState ? QString::fromUtf8("▾  ") : QString::fromUtf8("▸  "))
-                    + header->text().mid(3));
+    header->setText((expandedState ? QString::fromUtf8("⌄  ")
+                                   : QString::fromUtf8("›  "))
+                    + bankLabel);
     content->setVisible(expandedState);
     header->style()->unpolish(header);
     header->style()->polish(header);
@@ -160,13 +184,16 @@ PatchSidebar::PatchSidebar(ModernPatchListModel *model, QWidget *parent)
     setMaximumWidth(260);
     resize(245, height());
     QVBoxLayout *layout = new QVBoxLayout(this);
-    layout->setContentsMargins(9, 10, 9, 9);
-    layout->setSpacing(7);
+    layout->setContentsMargins(10, 11, 7, 4);
+    layout->setSpacing(6);
     QLabel *title = new QLabel("PATCH LIBRARY");
     title->setObjectName("PatchLibraryTitle");
     QLineEdit *search = new QLineEdit;
     search->setObjectName("PatchSearch");
     search->setPlaceholderText("Search patches...");
+    QPalette searchPalette = search->palette();
+    searchPalette.setColor(QPalette::PlaceholderText, QColor("#666B72"));
+    search->setPalette(searchPalette);
     connect(search, SIGNAL(textChanged(QString)), this, SLOT(applyFilter(QString)));
     layout->addWidget(title);
     layout->addWidget(search);
@@ -177,8 +204,8 @@ PatchSidebar::PatchSidebar(ModernPatchListModel *model, QWidget *parent)
     scroll->setFrameShape(QFrame::NoFrame);
     QWidget *contents = new QWidget;
     QVBoxLayout *bankLayout = new QVBoxLayout(contents);
-    bankLayout->setContentsMargins(0, 2, 0, 2);
-    bankLayout->setSpacing(3);
+    bankLayout->setContentsMargins(0, 1, 0, 0);
+    bankLayout->setSpacing(2);
 
     ModernPatchListModel::Category lastCategory = ModernPatchListModel::Temp;
     PatchBankSection *section = nullptr;
@@ -189,7 +216,8 @@ PatchSidebar::PatchSidebar(ModernPatchListModel *model, QWidget *parent)
         if (patch.category != lastCategory) {
             QLabel *heading = new QLabel(patch.category == ModernPatchListModel::User ? "USER" : "PRESET");
             heading->setObjectName("PatchGroupTitle");
-            bankLayout->addSpacing(5);
+            bankLayout->addSpacing(lastCategory == ModernPatchListModel::Temp
+                                       ? 2 : 8);
             bankLayout->addWidget(heading);
             lastCategory = patch.category;
         }
@@ -212,15 +240,6 @@ PatchSidebar::PatchSidebar(ModernPatchListModel *model, QWidget *parent)
     bankLayout->addStretch();
     scroll->setWidget(contents);
     layout->addWidget(scroll, 1);
-
-    QHBoxLayout *actions = new QHBoxLayout;
-    QPushButton *importButton = new QPushButton("IMPORT");
-    QPushButton *exportButton = new QPushButton("EXPORT");
-    importButton->setEnabled(false);
-    exportButton->setEnabled(false);
-    actions->addWidget(importButton);
-    actions->addWidget(exportButton);
-    layout->addLayout(actions);
 
     connect(patchModel, SIGNAL(patchUpdated(int,int)), this, SLOT(updatePatch(int,int)));
     connect(patchModel, SIGNAL(currentPatchChanged(int,int)), this, SLOT(setCurrentPatch(int,int)));

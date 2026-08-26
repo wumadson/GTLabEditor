@@ -3,6 +3,7 @@
 #include "MidiTable.h"
 #include "SysxIO.h"
 #include "globalVariables.h"
+#include "effectArtworkWidget.h"
 #include "modernTheme.h"
 #include "modernWidgets.h"
 #include "parameterBar.h"
@@ -63,32 +64,13 @@ void ModernNoiseSuppressorEditor::buildEditor()
     editor->typeLabel()->hide();
     editor->setRightPanelTitle("DETECTION SOURCE");
 
-    QFrame *visual = new QFrame;
-    visual->setObjectName("NoiseSuppressorVisual");
-    visual->setStyleSheet(QString(
-        "QFrame#NoiseSuppressorVisual{background:%1;border:1px solid %2;"
-        "border-radius:10px;}"
-        "QLabel#NoiseSuppressorMark{color:%3;font-size:30px;"
-        "font-weight:700;letter-spacing:2px;}"
-        "QLabel#NoiseSuppressorName{color:%4;font-size:11px;"
-        "font-weight:700;letter-spacing:1px;}")
-        .arg(ModernTheme::color(ModernTheme::ControlBackground),
-             ModernTheme::color(ModernTheme::Border), accent.name(),
-             ModernTheme::color(ModernTheme::SecondaryText)));
-    QVBoxLayout *visualLayout = new QVBoxLayout(visual);
-    visualLayout->setContentsMargins(18, 18, 18, 18);
-    visualLayout->setSpacing(6);
-    QLabel *mark = new QLabel(name);
-    mark->setObjectName("NoiseSuppressorMark");
-    mark->setAlignment(Qt::AlignCenter);
-    QLabel *description = new QLabel("NOISE SUPPRESSOR");
-    description->setObjectName("NoiseSuppressorName");
-    description->setAlignment(Qt::AlignCenter);
-    visualLayout->addStretch(2);
-    visualLayout->addWidget(mark);
-    visualLayout->addWidget(description);
-    visualLayout->addStretch(3);
-    editor->setArtworkWidget(visual);
+    artwork = new EffectArtworkWidget;
+    artwork->setArtwork(":/assets/effects/pedal_generic.png");
+    artwork->setGenericPedalIdentity(
+        nsSlot == NoiseSuppressorSlot::NS1 ? "NS1" : "NS2",
+        QColor(ModernTheme::color(ModernTheme::PrimaryText)),
+        QColor(ModernTheme::effectColor(name)));
+    editor->setArtworkWidget(artwork);
 
     QVBoxLayout *parameterLayout =
         new QVBoxLayout(editor->parameterArea());
@@ -156,6 +138,7 @@ void ModernNoiseSuppressorEditor::buildEditor()
         if (refreshing || !available)
             return;
         setNoiseSuppressorValue(0, checked ? 1 : 0);
+        artwork->setGenericPedalState(true, checked);
         emit stateChanged(true, checked);
     });
     connect(thresholdBar, &QAbstractSlider::valueChanged,
@@ -179,8 +162,11 @@ void ModernNoiseSuppressorEditor::buildEditor()
             return;
         bool rawOk = false;
         const int raw = detectCombo->itemData(index).toInt(&rawOk);
-        if (rawOk)
+        if (rawOk) {
             setNoiseSuppressorValue(3, raw);
+            artwork->setTextOverlayText("type",
+                                        detectCombo->itemText(index));
+        }
     });
 
     updateControls(false);
@@ -272,12 +258,15 @@ void ModernNoiseSuppressorEditor::refreshNoiseSuppressor(
                                       backendHasPatchData);
     updateControls(valid);
     if (!valid) {
+        artwork->setTextOverlayText("type", QString());
+        artwork->setGenericPedalState(false, false);
         refreshing = false;
         emit stateChanged(false, false);
         return;
     }
 
     const bool on = readValue(0) == 1;
+    artwork->setGenericPedalState(true, on);
     {
         const QSignalBlocker blocker(stateToggle);
         stateToggle->setChecked(on);
@@ -298,6 +287,9 @@ void ModernNoiseSuppressorEditor::refreshNoiseSuppressor(
         const int raw = readValue(3);
         const QSignalBlocker blocker(detectCombo);
         detectCombo->setCurrentIndex(detectCombo->findData(raw));
+        artwork->setTextOverlayText("type", detectCombo->currentText());
+    } else {
+        artwork->setTextOverlayText("type", QString());
     }
     refreshing = false;
     emit stateChanged(true, on);

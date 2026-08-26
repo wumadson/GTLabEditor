@@ -83,31 +83,38 @@ QString ModernTheme::applicationStyleSheet()
         }
         QLabel#PatchLibraryTitle {
             color: #ECEFF2;
-            font-size: 12px;
-            font-weight: 600;
-            letter-spacing: 1px;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            padding-left: 2px;
         }
         QLabel#PatchGroupTitle {
             color: #8C9198;
             font-size: 9px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            padding: 5px 4px 2px 4px;
+            font-weight: 600;
+            letter-spacing: 1.1px;
+            padding: 4px 6px 2px 6px;
         }
         QLineEdit#PatchSearch {
-            min-height: 34px;
-            padding: 0 9px;
+            min-height: 32px;
+            max-height: 32px;
+            padding: 0 10px;
             color: #ECEFF2;
-            background: #050607;
+            background: #090A0C;
             border: 1px solid #24272C;
-            border-radius: 4px;
+            border-radius: 6px;
             selection-background-color: #16313C;
         }
-        QLineEdit#PatchSearch:focus { border-color: #258DB5; }
+        QLineEdit#PatchSearch:hover { border-color: #30363D; }
+        QLineEdit#PatchSearch:focus {
+            background: #0D0F12;
+            border-color: #258DB5;
+        }
         QLineEdit#PatchSearch:disabled { color: #666B72; }
         QPushButton#PatchBankHeader {
-            min-height: 28px;
-            padding: 0 7px;
+            min-height: 26px;
+            max-height: 26px;
+            padding: 0 6px;
             text-align: left;
             color: #8C9198;
             background: transparent;
@@ -121,7 +128,7 @@ QString ModernTheme::applicationStyleSheet()
         QPushButton#PatchBankHeader[expanded="true"] {
             color: #ECEFF2;
             background: #090A0C;
-            border-left: 2px solid #258DB5;
+            border-left: 2px solid #18536A;
         }
         PatchListItem {
             background: transparent;
@@ -131,12 +138,14 @@ QString ModernTheme::applicationStyleSheet()
         }
         PatchListItem:hover { background: #0D0F12; }
         PatchListItem[current="true"] {
-            background: #16313C;
-            border-left-color: #258DB5;
+            background: #10252F;
+            border: 1px solid #18536A;
+            border-left: 2px solid #258DB5;
         }
         PatchListItem[pending="true"] {
             background: #090A0C;
-            border-left-color: #36A1C8;
+            border: 1px solid #24272C;
+            border-left: 2px solid #36A1C8;
         }
         PatchListItem QLabel#PatchItemNumber {
             color: #36A1C8;
@@ -156,16 +165,16 @@ QString ModernTheme::applicationStyleSheet()
         QScrollArea#PatchScroll { background: transparent; border: none; }
         QScrollArea#PatchScroll > QWidget > QWidget { background: transparent; }
         QScrollArea#PatchScroll QScrollBar:vertical {
-            width: 7px; background: transparent; margin: 0;
+            width: 5px; background: transparent; margin: 0;
         }
         QScrollArea#PatchScroll QScrollBar:horizontal {
-            height: 7px; background: transparent; margin: 0;
+            height: 5px; background: transparent; margin: 0;
         }
         QScrollArea#PatchScroll QScrollBar::handle:vertical,
         QScrollArea#PatchScroll QScrollBar::handle:horizontal {
-            background: #292D32; border: none; border-radius: 2px; min-height: 28px; min-width: 28px;
+            background: #30363D; border: none; border-radius: 2px; min-height: 28px; min-width: 28px;
         }
-        QScrollArea#PatchScroll QScrollBar::handle:hover { background: #3A3F45; }
+        QScrollArea#PatchScroll QScrollBar::handle:hover { background: #48515A; }
         QScrollArea#PatchScroll QScrollBar::handle:pressed { background: #4A5057; }
         QScrollArea#PatchScroll QScrollBar::add-line,
         QScrollArea#PatchScroll QScrollBar::sub-line { width: 0; height: 0; background: transparent; border: none; }

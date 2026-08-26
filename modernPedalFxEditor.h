@@ -5,6 +5,7 @@
 #include <QVector>
 
 class EffectEditorPanel;
+class EffectArtworkWidget;
 class EffectModelBrowser;
 class QLabel;
 class ModernToggleSwitch;
@@ -66,6 +67,7 @@ private:
     void emitActivity();
 
     EffectEditorPanel *editor = nullptr;
+    EffectArtworkWidget *artwork = nullptr;
     EffectModelBrowser *browser = nullptr;
     ModernToggleSwitch *stateToggle = nullptr;
     QStackedWidget *modeStack = nullptr;

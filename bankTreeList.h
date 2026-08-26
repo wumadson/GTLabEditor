@@ -54,6 +54,7 @@ public slots:
 	void requestPatchNamesForBank(int bank);
 	void selectPatch(int bank, int patch, const QString &name);
 	void shortMidiMessageReceived(int status, int data1, int data2);
+	void setExclusiveMemoryOperation(bool active);
 	void setItemClicked(QTreeWidgetItem *item, int column);
 	void setItemDoubleClicked(QTreeWidgetItem *item, int column);
 
@@ -76,6 +77,7 @@ signals:
 private:
 	void requestPhysicalPatchReadback(int bank, int patch);
 	int configuredTransmitChannel() const;
+	bool exclusiveMemoryOperationActive = false;
 	void updateTree(QTreeWidgetItem *item);
 	void closeChildren(QTreeWidgetItem *item);
 	QTreeWidget* newTreeList();

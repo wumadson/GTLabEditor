@@ -2,6 +2,7 @@
 
 #include "MidiTable.h"
 #include "SysxIO.h"
+#include "modernPopoverShell.h"
 #include "modernTheme.h"
 #include "modernWidgets.h"
 #include "parameterBar.h"
@@ -31,6 +32,7 @@ ModernGlobalEqPopover::ModernGlobalEqPopover(QWidget *parent)
     setObjectName("GlobalEqPopover");
     setAttribute(Qt::WA_StyledBackground, true);
     setAttribute(Qt::WA_TranslucentBackground, true);
+    setAutoFillBackground(false);
     setFixedSize(480, 252);
     setFocusPolicy(Qt::StrongFocus);
 
@@ -69,13 +71,11 @@ ModernGlobalEqPopover::ModernGlobalEqPopover(QWidget *parent)
     root->addWidget(selectorRow);
 
     setStyleSheet(QString(
-        "QFrame#GlobalEqPopover { background: %1; border: 1px solid %2; "
-        "border-radius: 9px; }"
-        "QLabel#GlobalEqTitle { color: %3; font-size: 14px; "
+        "QFrame#GlobalEqPopover { background: transparent; border: 0; }"
+        "QLabel#GlobalEqTitle { color: %2; font-size: 14px; "
         "font-weight: 700; letter-spacing: 0.5px; }"
-        "QFrame#GlobalEqDivider { background: %2; border: 0; }"
-    ).arg(ModernTheme::color(ModernTheme::Panel),
-          ModernTheme::color(ModernTheme::Border),
+        "QFrame#GlobalEqDivider { background: %1; border: 0; }"
+    ).arg(ModernTheme::color(ModernTheme::Border),
           ModernTheme::color(ModernTheme::PrimaryText)));
 
     setSystemDataReady(false);
@@ -198,6 +198,12 @@ void ModernGlobalEqPopover::keyPressEvent(QKeyEvent *event)
         return;
     }
     QFrame::keyPressEvent(event);
+}
+
+void ModernGlobalEqPopover::paintEvent(QPaintEvent *event)
+{
+    Q_UNUSED(event);
+    ModernPopoverShell::paint(this);
 }
 
 void ModernGlobalEqPopover::gainChanged(int raw)

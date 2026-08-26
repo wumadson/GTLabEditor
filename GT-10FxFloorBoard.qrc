@@ -96,6 +96,8 @@
         <file>assets/effects/chorus.png</file>
         <file>assets/effects/fx1.png</file>
         <file>assets/effects/fx2.png</file>
+        <file>assets/effects/pedal_generic.png</file>
+        <file>assets/pedals/exp_generic.png</file>
         <file>assets/effects/preamp_a.png</file>
         <file>assets/effects/preamp_b.png</file>
         <file>assets/pedals/expression_pedal.png</file>

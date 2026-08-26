@@ -2,6 +2,7 @@
 
 #include "MidiTable.h"
 #include "SysxIO.h"
+#include "modernPopoverShell.h"
 #include "modernTheme.h"
 #include "parameterBar.h"
 
@@ -32,6 +33,7 @@ ModernInputPopover::ModernInputPopover(QWidget *parent)
     setObjectName("InputPopover");
     setAttribute(Qt::WA_StyledBackground, true);
     setAttribute(Qt::WA_TranslucentBackground, true);
+    setAutoFillBackground(false);
     setFixedSize(440, 244);
     setFocusPolicy(Qt::StrongFocus);
 
@@ -79,6 +81,8 @@ ModernInputPopover::ModernInputPopover(QWidget *parent)
     levelBar = new ParameterBar("LEVEL");
     presBar = new ParameterBar("PRES");
     for (ParameterBar *bar : {levelBar, presBar}) {
+        bar->setMinimumWidth(170);
+        bar->setValueReadoutFollowsHandle(true);
         bar->setRange(0x00, 0x28);
         bar->setCenterValue(0x14);
         bar->setAccentColor(ModernTheme::color(ModernTheme::EditorAccent));
@@ -89,22 +93,20 @@ ModernInputPopover::ModernInputPopover(QWidget *parent)
     root->addWidget(parameterRow);
 
     setStyleSheet(QString(
-        "QFrame#InputPopover { background: %1; border: 1px solid %2; "
-        "border-radius: 9px; }"
-        "QLabel#InputTitle { color: %3; font-size: 14px; "
+        "QFrame#InputPopover { background: transparent; border: 0; }"
+        "QLabel#InputTitle { color: %2; font-size: 14px; "
         "font-weight: 700; letter-spacing: 0.5px; }"
-        "QFrame#InputDivider { background: %2; border: 0; }"
-        "QWidget#InputProfileSelector { background: %4; border: 1px solid %2; "
+        "QFrame#InputDivider { background: %1; border: 0; }"
+        "QWidget#InputProfileSelector { background: %3; border: 1px solid %1; "
         "border-radius: 6px; }"
-        "QPushButton#InputProfileButton { min-height: 30px; color: %5; "
-        "background: transparent; border: 0; border-right: 1px solid %2; "
+        "QPushButton#InputProfileButton { min-height: 30px; color: %4; "
+        "background: transparent; border: 0; border-right: 1px solid %1; "
         "border-radius: 0; font-size: 9px; font-weight: 600; }"
         "QPushButton#InputProfileButton[segment=last] { border-right: 0; }"
-        "QPushButton#InputProfileButton:hover { color: %3; background: %6; }"
-        "QPushButton#InputProfileButton:checked { color: %7; background: %6; }"
+        "QPushButton#InputProfileButton:hover { color: %2; background: %5; }"
+        "QPushButton#InputProfileButton:checked { color: %6; background: %5; }"
         "QPushButton#InputProfileButton:disabled { color: #59636E; }"
-    ).arg(ModernTheme::color(ModernTheme::Panel),
-          ModernTheme::color(ModernTheme::Border),
+    ).arg(ModernTheme::color(ModernTheme::Border),
           ModernTheme::color(ModernTheme::PrimaryText),
           ModernTheme::color(ModernTheme::ControlBackground),
           ModernTheme::color(ModernTheme::SecondaryText),
@@ -169,6 +171,12 @@ void ModernInputPopover::keyPressEvent(QKeyEvent *event)
         return;
     }
     QFrame::keyPressEvent(event);
+}
+
+void ModernInputPopover::paintEvent(QPaintEvent *event)
+{
+    Q_UNUSED(event);
+    ModernPopoverShell::paint(this);
 }
 
 void ModernInputPopover::profileSelected(int profile)

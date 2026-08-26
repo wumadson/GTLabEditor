@@ -39,10 +39,9 @@ class ModernPedalFxEditor;
 class ModernControlAssignEditor;
 class ModernExpressionEditor;
 class ModernPedalboardEditor;
+class ModernSystemEditor;
 class ModernNoiseSuppressorEditor;
 class ModernSendReturnEditor;
-class ModernGlobalEqPopover;
-class ModernInputPopover;
 class PatchSidebar;
 class BottomControlStrip;
 
@@ -98,6 +97,7 @@ private slots:
     void showControlAssignEditor();
     void showExpressionEditor();
     void showPedalboardEditor();
+    void showSystemEditor();
     void showNs1Editor();
     void showNs2Editor();
     void showSendReturnEditor();
@@ -132,7 +132,6 @@ private slots:
     void tunerOutputChanged(int index);
     void readCurrentPatch();
     void writeCurrentPatch();
-    void toggleGlobalEqPopover();
     void beginPatchRename(int bank, int patch);
     void beginPatchPaste(int sourceBank, int sourcePatch,
                          QString sourceNumber, QString sourceName,
@@ -232,6 +231,7 @@ private:
     void updatePreampConditionalSections(PreampChannel channel);
     void updatePreampParameterControls(PreampChannel channel,
                                        bool available);
+    void updatePreampTypeDisplay(PreampChannel channel);
     void refreshPreamp(PreampChannel channel);
     void refreshPreampGlobalState();
     void showFxEditor(FxSlot slot);
@@ -246,6 +246,7 @@ private:
     void refreshExpressionSummary();
     void refreshPedalboard();
     void refreshPedalboardSummary();
+    void refreshSystem();
     void pedalFxActivityChanged(bool available, bool pedalFxActive,
                                 bool footVolumeActive);
     void clearPedalSelection();
@@ -268,12 +269,10 @@ private:
     void refreshTempoHeader();
     void refreshPatchLevelHeader();
     void refreshReadButtonState();
+    void updatePatchHeaderAlignment();
     void commitTempoEdit();
     void commitPatchLevelEdit();
     void refreshTunerSettings();
-    void refreshGlobalEq();
-    void toggleInputPopover();
-    void refreshInputSettings();
     void requestOutputSystemData();
     void pollOutputSystemData();
     bool hasSourceValue(const QString &area,
@@ -304,12 +303,10 @@ private:
 
     QLabel *patchNumber;
     QLabel *patchName;
+    QWidget *headerSidebarRegion = nullptr;
     QPushButton *readButton = nullptr;
     QPushButton *writeButton = nullptr;
-    QPushButton *globalEqButton = nullptr;
-    ModernGlobalEqPopover *globalEqPopover = nullptr;
-    QPushButton *inputButton = nullptr;
-    ModernInputPopover *inputPopover = nullptr;
+    QPushButton *systemButton = nullptr;
     QWidget *tempoControl = nullptr;
     QSpinBox *tempoValue = nullptr;
     QWidget *patchLevelControl = nullptr;
@@ -321,8 +318,6 @@ private:
     bool outputSystemDataRequested = false;
     bool outputSystemDataReady = false;
     bool tunerSystemDataReady = false;
-    bool globalEqSystemDataReady = false;
-    bool inputSystemDataReady = false;
     PatchSidebar *patchSidebar = nullptr;
 
     SignalChainModule *reverbCard = nullptr;
@@ -356,6 +351,7 @@ private:
     ModernControlAssignEditor *controlAssignEditor = nullptr;
     ModernExpressionEditor *expressionEditor = nullptr;
     ModernPedalboardEditor *pedalboardEditor = nullptr;
+    ModernSystemEditor *systemEditor = nullptr;
     ModernNoiseSuppressorEditor *ns1Editor = nullptr;
     ModernNoiseSuppressorEditor *ns2Editor = nullptr;
     ModernSendReturnEditor *sendReturnEditor = nullptr;
@@ -370,6 +366,7 @@ private:
     ParameterBar *dynamicSense = nullptr;
     EffectArtworkWidget *reverbArtwork = nullptr;
     EffectModelBrowser *reverbModelBrowser = nullptr;
+    EffectArtworkWidget *compArtwork = nullptr;
     EffectArtworkWidget *oddsArtwork = nullptr;
     EffectModelBrowser *oddsModelBrowser = nullptr;
     EffectArtworkWidget *delayArtwork = nullptr;

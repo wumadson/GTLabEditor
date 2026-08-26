@@ -33,6 +33,7 @@
 
 class modernFloorBoard;
 class statusBarWidget;
+class BackupCoordinator;
 
 //class mainWindow : public QWidget
 class mainWindow : public QMainWindow
@@ -61,6 +62,8 @@ public slots:
         void systemLoad();
         void bulkSave();
         void bulkLoad();
+        void backupUserPatches();
+        void restoreUserPatches();
         void settings();
         void upload();
         void summaryPage();       
@@ -96,6 +99,8 @@ private:
         QAction *systemSaveAct;
         QAction *bulkLoadAct;
         QAction *bulkSaveAct;
+        QAction *backupUserPatchesAct;
+        QAction *restoreUserPatchesAct;
         QAction *exitAct;
         QAction *settingsAct;
         QAction *uploadAct;
@@ -116,6 +121,7 @@ private:
         floorBoard *legacyFloorBoard;
         modernFloorBoard *modernFloorBoardWidget;
         statusBarWidget *statusInfo;
+        BackupCoordinator *backupCoordinator;
 };
 
 #endif // MAINWINDOW_H

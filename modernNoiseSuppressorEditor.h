@@ -5,6 +5,7 @@
 #include <QString>
 
 class EffectEditorPanel;
+class EffectArtworkWidget;
 class ModernToggleSwitch;
 class ParameterBar;
 class QComboBox;
@@ -43,6 +44,7 @@ private:
 
     NoiseSuppressorSlot nsSlot;
     EffectEditorPanel *editor = nullptr;
+    EffectArtworkWidget *artwork = nullptr;
     ModernToggleSwitch *stateToggle = nullptr;
     ParameterBar *thresholdBar = nullptr;
     ParameterBar *releaseBar = nullptr;

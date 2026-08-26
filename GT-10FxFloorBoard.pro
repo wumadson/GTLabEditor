@@ -121,8 +121,9 @@ SOURCES += modernFloorBoard.cpp modernTheme.cpp modernWidgets.cpp modernSignalCh
            modernPatchListModel.cpp patchSidebar.cpp modernEqGraph.cpp modernFxEditor.cpp \
            modernPedalFxEditor.cpp modernAssignModel.cpp modernControlAssignEditor.cpp assignTargetBrowser.cpp assignTargetValueEditor.cpp modernNoiseSuppressorEditor.cpp \
            modernSendReturnEditor.cpp modernExpressionEditor.cpp modernPedalboardEditor.cpp modernPedalboardModel.cpp \
-           modernGlobalEqPopover.cpp modernInputPopover.cpp
-SOURCES += modernAboutDialog.cpp modernSettingsDialog.cpp
+           modernGlobalEqPopover.cpp modernInputPopover.cpp modernSystemEditor.cpp
+SOURCES += modernAboutDialog.cpp modernSettingsDialog.cpp \
+           backupCoordinator.cpp modernBackupDialog.cpp patchBackupCodec.cpp
 HEADERS += modernFloorBoard.h modernTheme.h modernWidgets.h modernSignalChainModel.h \
            modernSignalChainMutationController.h modernSignalChainSerializer.h \
            signalChainHardwareValidation.h \
@@ -131,8 +132,9 @@ HEADERS += modernFloorBoard.h modernTheme.h modernWidgets.h modernSignalChainMod
            modernPatchListModel.h patchSidebar.h modernEqGraph.h modernFxEditor.h \
            modernPedalFxEditor.h modernAssignModel.h modernControlAssignEditor.h assignTargetBrowser.h assignTargetValueEditor.h modernNoiseSuppressorEditor.h \
            modernSendReturnEditor.h modernExpressionEditor.h modernPedalboardEditor.h modernPedalboardModel.h \
-           modernGlobalEqPopover.h modernInputPopover.h
-HEADERS += modernAboutDialog.h modernSettingsDialog.h
+           modernGlobalEqPopover.h modernInputPopover.h modernSystemEditor.h
+HEADERS += modernAboutDialog.h modernSettingsDialog.h modernPopoverShell.h \
+           backupCoordinator.h modernBackupDialog.h patchBackupCodec.h
 
 # Explicit local harness. It replaces the application entry point only when
 # qmake is invoked with CONFIG+=signalchain_domain_tests.
@@ -159,5 +161,14 @@ contains(CONFIG, patchdecoder_tests) {
     SOURCES -= ./main.cpp
     SOURCES += patchDecoderTests.cpp
     TARGET = patchDecoderTests
+    DESTDIR = $$OUT_PWD
+}
+
+# Offline regression harness for the verified 200-User-patch backup format and
+# the dedicated 00-0C persistent-write encoder.
+contains(CONFIG, patchbackup_tests) {
+    SOURCES -= ./main.cpp
+    SOURCES += patchBackupTests.cpp
+    TARGET = patchBackupTests
     DESTDIR = $$OUT_PWD
 }

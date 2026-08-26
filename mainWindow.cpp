@@ -29,6 +29,9 @@
 #include "modernTheme.h"
 #include "modernAboutDialog.h"
 #include "modernSettingsDialog.h"
+#include "modernBackupDialog.h"
+#include "backupCoordinator.h"
+#include "patchBackupCodec.h"
 #include "Preferences.h"
 #include "statusBarWidget.h"
 #include "SysxIO.h"
@@ -50,6 +53,9 @@ mainWindow::mainWindow()
         legacyFloorBoard->hide();
 
         modernFloorBoardWidget = new modernFloorBoard(this);
+        backupCoordinator = new BackupCoordinator(legacyFloorBoard, this);
+        QObject::connect(backupCoordinator, SIGNAL(patchVerified(int,int,QString)),
+                         modernFloorBoardWidget, SLOT(patchNameResolved(int,int,QString)));
 
         QObject::connect(legacyFloorBoard, SIGNAL(connectedSignal()),
                          modernFloorBoardWidget, SLOT(backendConnected()));
@@ -101,9 +107,6 @@ mainWindow::mainWindow()
                          SLOT(persistentCopyFinished(int,int,int,QString,QString)));
         QObject::connect(SysxIO::Instance(), SIGNAL(setStatusSymbol(int)),
                          modernFloorBoardWidget, SLOT(backendActivityChanged(int)));
-
-
-
         /* Loads the stylesheet for the current platform if present */
 #ifdef Q_OS_WIN
         /* This set the floorboard default style to the "plastique" style,
@@ -251,6 +254,18 @@ void mainWindow::createActions()
         bulkSaveAct->setWhatsThis(tr("Save Bulk Data to File"));
         connect(bulkSaveAct, SIGNAL(triggered()), this, SLOT(bulkSave()));
 
+        backupUserPatchesAct = new QAction(
+            style()->standardIcon(QStyle::SP_DialogSaveButton),
+            tr("&User Patches…"), this);
+        connect(backupUserPatchesAct, SIGNAL(triggered()),
+                this, SLOT(backupUserPatches()));
+
+        restoreUserPatchesAct = new QAction(
+            style()->standardIcon(QStyle::SP_DialogOpenButton),
+            tr("&User Patches…"), this);
+        connect(restoreUserPatchesAct, SIGNAL(triggered()),
+                this, SLOT(restoreUserPatches()));
+
         exitAct = new QAction(style()->standardIcon(QStyle::SP_DialogCloseButton),tr("&Quit GT Lab Editor"), this);
         exitAct->setShortcut(tr("Ctrl+Q"));
         exitAct->setWhatsThis(tr("Exit the application"));
@@ -324,6 +339,11 @@ void mainWindow::createMenus()
         fileMenu = menuBar()->addMenu(tr("&File"));
         //QMenu *fileMenu = new QMenu(tr("&File"));
         fileMenu->addAction(openAct);
+
+        QMenu *backupMenu = fileMenu->addMenu(tr("&Backup"));
+        backupMenu->addAction(backupUserPatchesAct);
+        QMenu *restoreMenu = fileMenu->addMenu(tr("&Restore"));
+        restoreMenu->addAction(restoreUserPatchesAct);
 
         QMenu *exportMenu = fileMenu->addMenu(tr("&Export Patch"));
         exportMenu->addAction(saveAsAct);
@@ -773,6 +793,80 @@ void mainWindow::settings()
     ModernSettingsDialog dialog(this);
     dialog.exec();
 };
+
+void mainWindow::backupUserPatches()
+{
+    if (backupCoordinator->operation() != BackupCoordinator::Idle) {
+        QMessageBox::information(this, tr("Backup / Restore Busy"),
+                                 tr("Another User-memory operation is already active."));
+        return;
+    }
+    Preferences *preferences = Preferences::Instance();
+    QString fileName = QFileDialog::getSaveFileName(
+        this, tr("Backup 200 User Patches"),
+        preferences->getPreferences("General", "Files", "dir"),
+        tr("GT-10 User Patch Backup (*.syx)"));
+    if (fileName.isEmpty())
+        return;
+    if (!fileName.endsWith(".syx", Qt::CaseInsensitive))
+        fileName += ".syx";
+
+    ModernBackupDialog dialog(backupCoordinator, tr("BACKUP USER PATCHES"), this);
+    if (!backupCoordinator->startUserBackup(fileName)) {
+        QMessageBox::warning(this, tr("Backup unavailable"),
+                             tr("The GT-10 is disconnected or another persistent operation is active."));
+        return;
+    }
+    dialog.exec();
+}
+
+void mainWindow::restoreUserPatches()
+{
+    if (backupCoordinator->operation() != BackupCoordinator::Idle) {
+        QMessageBox::information(this, tr("Backup / Restore Busy"),
+                                 tr("Another User-memory operation is already active."));
+        return;
+    }
+    Preferences *preferences = Preferences::Instance();
+    const QString fileName = QFileDialog::getOpenFileName(
+        this, tr("Restore 200 User Patches"),
+        preferences->getPreferences("General", "Files", "dir"),
+        tr("GT-10 User Patch Backup (*.syx)"));
+    if (fileName.isEmpty())
+        return;
+
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly)) {
+        QMessageBox::warning(this, tr("Restore unavailable"),
+                             tr("The selected backup could not be opened."));
+        return;
+    }
+    QString error;
+    const QVector<DecodedPatch> patches = PatchBackupCodec::parse(file.readAll(), &error);
+    if (patches.size() != 200) {
+        QMessageBox::warning(this, tr("Invalid GT-10 backup"), error);
+        return;
+    }
+
+    QMessageBox confirmation(QMessageBox::Warning, tr("RESTORE USER PATCHES"),
+        tr("This operation will overwrite all 200 User patches.\n\n"
+           "Destination: U01-1 → U50-4"), QMessageBox::NoButton, this);
+    QPushButton *cancel = confirmation.addButton(tr("CANCEL"), QMessageBox::RejectRole);
+    QPushButton *restore = confirmation.addButton(
+        tr("RESTORE 200 PATCHES"), QMessageBox::DestructiveRole);
+    confirmation.setDefaultButton(cancel);
+    confirmation.exec();
+    if (confirmation.clickedButton() != restore)
+        return;
+
+    ModernBackupDialog dialog(backupCoordinator, tr("RESTORE USER PATCHES"), this);
+    if (!backupCoordinator->startUserRestore(patches)) {
+        QMessageBox::warning(this, tr("Restore unavailable"),
+                             tr("The GT-10 is disconnected or another persistent operation is active."));
+        return;
+    }
+    dialog.exec();
+}
 
 /* HELP MENU */
 void mainWindow::help()

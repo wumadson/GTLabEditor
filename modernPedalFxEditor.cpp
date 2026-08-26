@@ -4,6 +4,7 @@
 #include "SysxIO.h"
 #include "effectModelBrowser.h"
 #include "globalVariables.h"
+#include "effectArtworkWidget.h"
 #include "modernTheme.h"
 #include "modernWidgets.h"
 #include "parameterBar.h"
@@ -128,38 +129,9 @@ void ModernPedalFxEditor::buildEditor()
     editor->typeLabel()->hide();
     editor->setRightPanelTitle("P.FX MODES");
 
-    QFrame *visual = new QFrame;
-    visual->setObjectName("PedalExpVisual");
-    visual->setStyleSheet(QString(
-        "QFrame#PedalExpVisual{background:%1;border:1px solid %2;"
-        "border-radius:10px;}"
-        "QLabel#PedalExpMark{color:%3;font-size:22px;font-weight:700;"
-        "letter-spacing:2px;}"
-        "QLabel#PedalExpMode{color:%4;font-size:13px;font-weight:700;}"
-        "QLabel#PedalExpContext{color:%5;font-size:10px;}")
-        .arg(ModernTheme::color(ModernTheme::ControlBackground),
-             ModernTheme::color(ModernTheme::Border), accent.name(),
-             ModernTheme::color(ModernTheme::PrimaryText),
-             ModernTheme::color(ModernTheme::SecondaryText)));
-    QVBoxLayout *visualLayout = new QVBoxLayout(visual);
-    visualLayout->setContentsMargins(18, 18, 18, 18);
-    visualLayout->setSpacing(10);
-    QLabel *mark = new QLabel("PEDAL / EXP");
-    mark->setObjectName("PedalExpMark");
-    mark->setAlignment(Qt::AlignCenter);
-    modeDisplay = new QLabel(QString::fromUtf8("—"));
-    modeDisplay->setObjectName("PedalExpMode");
-    modeDisplay->setAlignment(Qt::AlignCenter);
-    contextMessage = new QLabel;
-    contextMessage->setObjectName("PedalExpContext");
-    contextMessage->setAlignment(Qt::AlignCenter);
-    contextMessage->setWordWrap(true);
-    visualLayout->addStretch(2);
-    visualLayout->addWidget(mark);
-    visualLayout->addWidget(modeDisplay);
-    visualLayout->addWidget(contextMessage);
-    visualLayout->addStretch(3);
-    editor->setArtworkWidget(visual);
+    artwork = new EffectArtworkWidget;
+    artwork->setArtwork(":/assets/pedals/exp_generic.png");
+    editor->setArtworkWidget(artwork);
 
     browser = new EffectModelBrowser;
     browser->setAccentColor(accent);

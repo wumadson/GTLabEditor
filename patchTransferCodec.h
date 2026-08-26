@@ -40,6 +40,10 @@ public:
                                              int targetBank,
                                              int targetPatch,
                                              QString *error = nullptr);
+    static QString buildUserWriteMessage00To0C(const DecodedPatch &source,
+                                               int targetBank,
+                                               int targetPatch,
+                                               QString *error = nullptr);
     static QString buildLegacyWriteMessage(const SysxData &source,
                                            int bank,
                                            int patch,

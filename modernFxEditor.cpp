@@ -345,16 +345,10 @@ void ModernFxEditor::buildEditor()
     editor->setRightPanelTitle(slotName + " TYPES");
 
     artwork = new EffectArtworkWidget;
-    artwork->setArtwork(fxSlot == FxSlot::FX1
-        ? ":/assets/effects/fx1.png"
-        : ":/assets/effects/fx2.png");
-    QFont displayFont;
-    displayFont.setFamily("Menlo");
-    displayFont.setBold(true);
-    displayFont.setStretch(QFont::Condensed);
-    artwork->setTextOverlay(
-        "type", QRectF(0.29, 0.229, 0.42, 0.057), QString(),
-        displayFont, accent.lighter(118), Qt::AlignCenter, 0.50);
+    artwork->setArtwork(":/assets/effects/pedal_generic.png");
+    artwork->setGenericPedalIdentity(
+        slotName, QColor(ModernTheme::color(ModernTheme::PrimaryText)),
+        QColor(ModernTheme::effectColor(slotName)));
     editor->setArtworkWidget(artwork);
 
     browser = new EffectModelBrowser;
@@ -408,6 +402,8 @@ void ModernFxEditor::buildEditor()
         if (refreshing || !available)
             return;
         writeValue(FxAddress::relative(0, "00"), checked ? 1 : 0);
+        if (artwork)
+            artwork->setGenericPedalState(true, checked);
         emit stateChanged(true, checked);
     });
 
@@ -1396,6 +1392,8 @@ void ModernFxEditor::updateControls(bool controlsAvailable)
         hiddenType->setEnabled(controlsAvailable);
 
     if (!controlsAvailable) {
+        if (artwork)
+            artwork->setGenericPedalState(false, false);
         if (stateToggle) {
             const QSignalBlocker blocker(stateToggle);
             stateToggle->setChecked(false);
@@ -1499,6 +1497,8 @@ void ModernFxEditor::refreshFx(bool backendConnected,
         const QSignalBlocker blocker(stateToggle);
         stateToggle->setChecked(on);
     }
+    if (artwork)
+        artwork->setGenericPedalState(true, on);
 
     const int typeRaw = readValue(FxAddress::relative(0, "01"));
     setFxType(typeRaw, false);

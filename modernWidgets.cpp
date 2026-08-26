@@ -1152,6 +1152,12 @@ void ModernToggleSwitch::animateThumb(bool checked)
 
 void ModernToggleSwitch::paintEvent(QPaintEvent *)
 {
+    // Programmatic refreshes intentionally block signals to avoid writes.
+    // Keep the resting thumb position authoritative to the checked state even
+    // when the toggled signal (and therefore the animation) was suppressed.
+    if (thumbAnimation->state() != QAbstractAnimation::Running)
+        thumbPosition = isChecked() ? 1.0 : 0.0;
+
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing, true);
 

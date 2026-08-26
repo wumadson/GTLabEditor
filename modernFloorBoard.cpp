@@ -11,10 +11,9 @@
 #include "modernControlAssignEditor.h"
 #include "modernExpressionEditor.h"
 #include "modernPedalboardEditor.h"
+#include "modernSystemEditor.h"
 #include "modernNoiseSuppressorEditor.h"
 #include "modernSendReturnEditor.h"
-#include "modernGlobalEqPopover.h"
-#include "modernInputPopover.h"
 #include "modernSignalChainMutationController.h"
 #include "modernSignalChainSerializer.h"
 #include "parameterBar.h"
@@ -1018,6 +1017,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
 
     QHBoxLayout *headerLayout = new QHBoxLayout(header);
     headerLayout->setContentsMargins(16, 6, 16, 6);
+    headerLayout->setSpacing(0);
 
     const int headerCaptionHeight = 14;
     const int headerValueHeight = 27;
@@ -1040,15 +1040,36 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     brandLayout->addWidget(title);
     brandLayout->addWidget(subtitle);
 
-    headerLayout->addWidget(brandBlock, 0, Qt::AlignVCenter);
-    headerLayout->addStretch();
+    headerSidebarRegion = new QWidget;
+    headerSidebarRegion->setProperty(
+        "headerLeftInset", headerLayout->contentsMargins().left());
+    headerSidebarRegion->setSizePolicy(QSizePolicy::Fixed,
+                                       QSizePolicy::Fixed);
+    headerSidebarRegion->setFixedHeight(headerBlockHeight);
+    QHBoxLayout *headerSidebarLayout =
+        new QHBoxLayout(headerSidebarRegion);
+    headerSidebarLayout->setContentsMargins(0, 0, 0, 0);
+    headerSidebarLayout->setSpacing(0);
+    headerSidebarLayout->addWidget(brandBlock, 0, Qt::AlignVCenter);
+    headerSidebarLayout->addStretch(1);
+    headerLayout->addWidget(headerSidebarRegion, 0, Qt::AlignVCenter);
 
-    QWidget *patchIdentity = new QWidget;
-    patchIdentity->setFixedHeight(headerBlockHeight);
-    patchIdentity->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    QVBoxLayout *patchIdentityLayout = new QVBoxLayout(patchIdentity);
-    patchIdentityLayout->setContentsMargins(0, 0, 0, 0);
-    patchIdentityLayout->setSpacing(1);
+    QFrame *patchIdentity = new QFrame;
+    patchIdentity->setObjectName("HeaderPatchIdentity");
+    patchIdentity->setFixedHeight(headerBlockHeight + 4);
+    patchIdentity->setMinimumWidth(260);
+    patchIdentity->setMaximumWidth(330);
+    patchIdentity->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    patchIdentity->setStyleSheet(
+        "QFrame#HeaderPatchIdentity { background: rgba(10, 15, 20, 42); "
+        "border: 1px solid #35414D; border-radius: 6px; }");
+    QHBoxLayout *patchIdentityLayout = new QHBoxLayout(patchIdentity);
+    patchIdentityLayout->setContentsMargins(8, 2, 6, 2);
+    patchIdentityLayout->setSpacing(6);
+    QWidget *patchTextBlock = new QWidget;
+    QVBoxLayout *patchTextLayout = new QVBoxLayout(patchTextBlock);
+    patchTextLayout->setContentsMargins(0, 0, 0, 0);
+    patchTextLayout->setSpacing(1);
     QLabel *patchCaption = new QLabel("PATCH");
     patchCaption->setObjectName("PatchCaption");
     patchCaption->setFixedHeight(headerCaptionHeight);
@@ -1058,6 +1079,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     patchNumber->setFixedWidth(58);
     patchName = new ElidingPatchNameLabel("NO PATCH DATA");
     patchName->setObjectName("PatchName");
+    patchName->setToolTip("NO PATCH DATA");
     QWidget *patchIdentityRow = new QWidget;
     patchIdentityRow->setFixedHeight(headerValueHeight);
     QHBoxLayout *patchIdentityRowLayout =
@@ -1066,8 +1088,9 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     patchIdentityRowLayout->setSpacing(10);
     patchIdentityRowLayout->addWidget(patchNumber, 0, Qt::AlignVCenter);
     patchIdentityRowLayout->addWidget(patchName, 1, Qt::AlignVCenter);
-    patchIdentityLayout->addWidget(patchCaption);
-    patchIdentityLayout->addWidget(patchIdentityRow);
+    patchTextLayout->addWidget(patchCaption);
+    patchTextLayout->addWidget(patchIdentityRow);
+    patchIdentityLayout->addWidget(patchTextBlock, 1);
 
     QWidget *tempoHeader = new QWidget;
     tempoHeader->setFixedHeight(headerBlockHeight);
@@ -1247,46 +1270,21 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     connect(writeButton, &QPushButton::clicked,
             this, &modernFloorBoard::writeCurrentPatch);
 
-    inputButton = new QPushButton("INPUT");
-    inputButton->setObjectName("HeaderInputButton");
-    inputButton->setFixedSize(58, headerValueHeight);
-    inputButton->setEnabled(false);
-    inputButton->setToolTip("Open GT-10 Input Settings");
-    inputButton->setStyleSheet(
-        "QPushButton#HeaderInputButton { color: #D8E1EA; "
+    systemButton = new QPushButton("SYSTEM");
+    systemButton->setObjectName("HeaderSystemButton");
+    systemButton->setFixedSize(66, headerValueHeight);
+    systemButton->setToolTip("Open GT-10 System workspace");
+    systemButton->setStyleSheet(
+        "QPushButton#HeaderSystemButton { color: #D8E1EA; "
         "background: #11171D; border: 1px solid #35414D; "
         "border-radius: 4px; font-size: 10px; font-weight: 600; }"
-        "QPushButton#HeaderInputButton:hover { background: #151D26; "
+        "QPushButton#HeaderSystemButton:hover { background: #151D26; "
         "border-color: #258DB5; }"
-        "QPushButton#HeaderInputButton:pressed { background: #0B1015; "
+        "QPushButton#HeaderSystemButton:pressed { background: #0B1015; "
         "border-color: #258DB5; }"
-        "QPushButton#HeaderInputButton:disabled { color: #59636E; "
-        "background: #0B1015; border-color: #27313A; }"
     );
-    connect(inputButton, &QPushButton::clicked,
-            this, &modernFloorBoard::toggleInputPopover);
-    inputPopover = new ModernInputPopover(this);
-
-    globalEqButton = new QPushButton("GLOBAL EQ");
-    globalEqButton->setObjectName("HeaderGlobalEqButton");
-    globalEqButton->setFixedSize(84, headerValueHeight);
-    globalEqButton->setEnabled(false);
-    globalEqButton->setToolTip("Open GT-10 Global Equalizer");
-    globalEqButton->setStyleSheet(
-        "QPushButton#HeaderGlobalEqButton { color: #D8E1EA; "
-        "background: #11171D; border: 1px solid #35414D; "
-        "border-radius: 4px; font-size: 10px; font-weight: 600; }"
-        "QPushButton#HeaderGlobalEqButton:hover { background: #151D26; "
-        "border-color: #258DB5; }"
-        "QPushButton#HeaderGlobalEqButton:pressed { background: #0B1015; "
-        "border-color: #258DB5; }"
-        "QPushButton#HeaderGlobalEqButton:disabled { color: #59636E; "
-        "background: #0B1015; border-color: #27313A; }"
-    );
-    connect(globalEqButton, &QPushButton::clicked,
-            this, &modernFloorBoard::toggleGlobalEqPopover);
-
-    globalEqPopover = new ModernGlobalEqPopover(this);
+    connect(systemButton, &QPushButton::clicked,
+            this, &modernFloorBoard::showSystemEditor);
 
     QWidget *headerActions = new QWidget;
     headerActions->setFixedHeight(headerBlockHeight);
@@ -1302,23 +1300,14 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     headerActionRow->addWidget(writeButton);
     headerActionsLayout->addLayout(headerActionRow);
 
-    QWidget *globalEqHeader = new QWidget;
-    globalEqHeader->setFixedHeight(headerBlockHeight);
-    globalEqHeader->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    QVBoxLayout *globalEqHeaderLayout = new QVBoxLayout(globalEqHeader);
-    globalEqHeaderLayout->setContentsMargins(0, 0, 0, 0);
-    globalEqHeaderLayout->setSpacing(1);
-    globalEqHeaderLayout->addSpacing(headerCaptionHeight);
-    globalEqHeaderLayout->addWidget(globalEqButton);
-
-    QWidget *inputHeader = new QWidget;
-    inputHeader->setFixedHeight(headerBlockHeight);
-    inputHeader->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    QVBoxLayout *inputHeaderLayout = new QVBoxLayout(inputHeader);
-    inputHeaderLayout->setContentsMargins(0, 0, 0, 0);
-    inputHeaderLayout->setSpacing(1);
-    inputHeaderLayout->addSpacing(headerCaptionHeight);
-    inputHeaderLayout->addWidget(inputButton);
+    QWidget *systemHeader = new QWidget;
+    systemHeader->setFixedHeight(headerBlockHeight);
+    systemHeader->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    QVBoxLayout *systemHeaderLayout = new QVBoxLayout(systemHeader);
+    systemHeaderLayout->setContentsMargins(0, 0, 0, 0);
+    systemHeaderLayout->setSpacing(1);
+    systemHeaderLayout->addSpacing(headerCaptionHeight);
+    systemHeaderLayout->addWidget(systemButton);
 
     QWidget *headerUtilities = new QWidget;
     headerUtilities->setFixedHeight(headerBlockHeight);
@@ -1326,13 +1315,13 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     QHBoxLayout *headerUtilitiesLayout = new QHBoxLayout(headerUtilities);
     headerUtilitiesLayout->setContentsMargins(0, 0, 0, 0);
     headerUtilitiesLayout->setSpacing(14);
-    headerUtilitiesLayout->addWidget(inputHeader, 0, Qt::AlignVCenter);
-    headerUtilitiesLayout->addWidget(globalEqHeader, 0, Qt::AlignVCenter);
+    headerUtilitiesLayout->addWidget(systemHeader, 0, Qt::AlignVCenter);
     headerUtilitiesLayout->addWidget(tempoHeader, 0, Qt::AlignVCenter);
     headerUtilitiesLayout->addWidget(patchLevelHeader, 0, Qt::AlignVCenter);
     headerUtilitiesLayout->addWidget(outputSelectHeader, 0, Qt::AlignVCenter);
 
-    headerLayout->addWidget(patchIdentity, 1, Qt::AlignVCenter);
+    headerLayout->addWidget(patchIdentity, 0, Qt::AlignVCenter);
+    headerLayout->addStretch(1);
     headerLayout->addSpacing(14);
     headerLayout->addWidget(headerActions, 0, Qt::AlignVCenter);
     headerLayout->addSpacing(14);
@@ -1345,6 +1334,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     body->setSpacing(0);
 
     patchSidebar = new PatchSidebar(&patchListModel);
+    patchSidebar->installEventFilter(this);
     connect(patchSidebar, SIGNAL(bankExpanded(int)),
             this, SIGNAL(requestPatchNames(int)));
     connect(patchSidebar, SIGNAL(patchActivated(int,int,QString)),
@@ -1356,6 +1346,10 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
             this,
             SLOT(beginPatchPaste(int,int,QString,QString,int,int,QString)));
     body->addWidget(patchSidebar);
+    updatePatchHeaderAlignment();
+    QTimer::singleShot(0, this, [this]() {
+        updatePatchHeaderAlignment();
+    });
 
     // MAIN AREA
     QWidget *mainArea = new QWidget;
@@ -1414,14 +1408,10 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     connect(reverbModelBrowser, &EffectModelBrowser::modelSelected,
             this, &modernFloorBoard::reverbModelSelected);
     reverbArtwork = new EffectArtworkWidget;
-    reverbArtwork->setArtwork(":/assets/effects/reverb.png");
-    QFont reverbDisplayFont;
-    reverbDisplayFont.setFamily("Menlo");
-    reverbDisplayFont.setBold(true);
-    reverbDisplayFont.setStretch(QFont::Condensed);
-    reverbArtwork->setTextOverlay(
-        "type", QRectF(0.30, 0.244, 0.40, 0.064), QString(),
-        reverbDisplayFont, QColor("#35F238"), Qt::AlignCenter, 0.66);
+    reverbArtwork->setArtwork(":/assets/effects/pedal_generic.png");
+    reverbArtwork->setGenericPedalIdentity(
+        "REVERB", QColor(ModernTheme::color(ModernTheme::PrimaryText)),
+        QColor(ModernTheme::effectColor("REVERB")));
     reverbEditor->setArtworkWidget(reverbArtwork);
     QVBoxLayout *parameterLayout = new QVBoxLayout(reverbEditor->parameterArea());
     parameterLayout->setContentsMargins(0, 0, 0, 0);
@@ -1477,8 +1467,17 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     compEditor->setModelBrowserWidget(compModelBrowser);
     connect(compModelBrowser, &EffectModelBrowser::modelSelected,
             this, &modernFloorBoard::compModelSelected);
-    EffectArtworkWidget *compArtwork = new EffectArtworkWidget;
-    compArtwork->setArtwork(":/assets/effects/comp.png");
+    compArtwork = new EffectArtworkWidget;
+    compArtwork->setArtwork(":/assets/effects/pedal_generic.png");
+    QColor compArtworkAccent(ModernTheme::effectColor("COMP"));
+    compArtworkAccent.setHsl(
+        compArtworkAccent.hslHue(),
+        qRound(compArtworkAccent.hslSaturation() * 0.58),
+        compArtworkAccent.lightness(), compArtworkAccent.alpha());
+    compArtwork->setGenericPedalIdentity(
+        "COMP", QColor(ModernTheme::color(ModernTheme::PrimaryText)),
+        compArtworkAccent);
+    compArtwork->setGenericPedalVisualIntensity(0.40);
     compEditor->setArtworkWidget(compArtwork);
 
     QVBoxLayout *compParameterLayout = new QVBoxLayout(compEditor->parameterArea());
@@ -1543,14 +1542,10 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     connect(oddsModelBrowser, &EffectModelBrowser::modelSelected,
             this, &modernFloorBoard::oddsModelSelected);
     oddsArtwork = new EffectArtworkWidget;
-    oddsArtwork->setArtwork(":/assets/effects/od_ds.png");
-    QFont oddsDisplayFont;
-    oddsDisplayFont.setFamily("Menlo");
-    oddsDisplayFont.setBold(true);
-    oddsDisplayFont.setStretch(QFont::Condensed);
-    oddsArtwork->setTextOverlay(
-        "type", QRectF(0.27, 0.245, 0.46, 0.058), QString(),
-        oddsDisplayFont, QColor("#FFC21A"), Qt::AlignCenter, 0.52);
+    oddsArtwork->setArtwork(":/assets/effects/pedal_generic.png");
+    oddsArtwork->setGenericPedalIdentity(
+        "OD/DS", QColor(ModernTheme::color(ModernTheme::PrimaryText)),
+        QColor(ModernTheme::effectColor("OD/DS")));
     oddsEditor->setArtworkWidget(oddsArtwork);
 
     QVBoxLayout *oddsParameterLayout =
@@ -1625,14 +1620,10 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     connect(delayModelBrowser, &EffectModelBrowser::modelSelected,
             this, &modernFloorBoard::delayModelSelected);
     delayArtwork = new EffectArtworkWidget;
-    delayArtwork->setArtwork(":/assets/effects/delay.png");
-    QFont delayDisplayFont;
-    delayDisplayFont.setFamily("Menlo");
-    delayDisplayFont.setBold(true);
-    delayDisplayFont.setStretch(QFont::Condensed);
-    delayArtwork->setTextOverlay(
-        "type", QRectF(0.255, 0.242, 0.49, 0.048), QString(),
-        delayDisplayFont, QColor("#35D8FF"), Qt::AlignCenter, 0.50);
+    delayArtwork->setArtwork(":/assets/effects/pedal_generic.png");
+    delayArtwork->setGenericPedalIdentity(
+        "DELAY", QColor(ModernTheme::color(ModernTheme::PrimaryText)),
+        QColor(ModernTheme::effectColor("DELAY")));
     delayEditor->setArtworkWidget(delayArtwork);
 
     QVBoxLayout *delayParameterLayout =
@@ -1781,14 +1772,10 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     chorusModeBrowser->setModels(chorusModes);
 
     chorusArtwork = new EffectArtworkWidget;
-    chorusArtwork->setArtwork(":/assets/effects/chorus.png");
-    QFont chorusDisplayFont;
-    chorusDisplayFont.setFamily("Menlo");
-    chorusDisplayFont.setBold(true);
-    chorusDisplayFont.setStretch(QFont::Condensed);
-    chorusArtwork->setTextOverlay(
-        "mode", QRectF(0.29, 0.229, 0.42, 0.057), QString(),
-        chorusDisplayFont, QColor("#35D8FF"), Qt::AlignCenter, 0.50);
+    chorusArtwork->setArtwork(":/assets/effects/pedal_generic.png");
+    chorusArtwork->setGenericPedalIdentity(
+        "CHORUS", QColor(ModernTheme::color(ModernTheme::PrimaryText)),
+        QColor(ModernTheme::effectColor("CHORUS")));
     chorusEditor->setArtworkWidget(chorusArtwork);
 
     QVBoxLayout *chorusParameterLayout =
@@ -1966,6 +1953,8 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
         if (controlAssignEditor)
             controlAssignEditor->focusDirectControl(address);
     });
+    systemEditor = new ModernSystemEditor;
+    effectEditorStack->addWidget(systemEditor);
     ns1Editor = new ModernNoiseSuppressorEditor(
         NoiseSuppressorSlot::NS1, this);
     effectEditorStack->addWidget(ns1Editor->widget());
@@ -2058,9 +2047,9 @@ EffectEditorPanel *modernFloorBoard::createPreampEditor(
     const QColor accent(ModernTheme::activeEffectAccent(name));
 
     state.editor = new EffectEditorPanel(name);
-    state.editor->typeLabel()->hide();
     state.browser = new EffectModelBrowser;
     state.browser->setAccentColor(accent);
+    state.browser->setCategoriesCollapsible(true);
     state.browser->setProperty("preampChannel", channelValue);
     state.editor->setModelBrowserWidget(state.browser);
     connect(state.browser, SIGNAL(modelSelected(int)),
@@ -2205,7 +2194,14 @@ QWidget *modernFloorBoard::createPreampCombo(PreampChannel channel,
             ? item.customdesc
             : (!item.desc.isEmpty() ? item.desc : item.name);
         combo->addItem(text);
-        labels.append(text);
+        QString browserLabel = text;
+        if (offset == 0x00) {
+            if (browserLabel.startsWith("(Combo)"))
+                browserLabel.replace(0, 7, "(VOX COMBO)");
+            else if (!browserLabel.trimmed().startsWith('('))
+                browserLabel = QString("(OTHER) %1").arg(browserLabel);
+        }
+        labels.append(browserLabel);
     }
     connect(combo, SIGNAL(currentIndexChanged(int)),
             this, SLOT(preampComboChanged(int)));
@@ -3244,59 +3240,6 @@ void modernFloorBoard::tunerOutputChanged(int index)
     sysxIO->setFileSource("System", "00", "00", "31", rawHex);
 }
 
-void modernFloorBoard::toggleGlobalEqPopover()
-{
-    if (!globalEqPopover || !globalEqButton
-            || !globalEqSystemDataReady)
-        return;
-
-    if (globalEqPopover->isVisible()) {
-        globalEqPopover->close();
-        return;
-    }
-    globalEqPopover->showAnchoredTo(globalEqButton);
-}
-
-void modernFloorBoard::toggleInputPopover()
-{
-    if (!inputPopover || !inputButton || !inputSystemDataReady)
-        return;
-
-    if (inputPopover->isVisible()) {
-        inputPopover->close();
-        return;
-    }
-    inputPopover->showAnchoredTo(inputButton);
-}
-
-void modernFloorBoard::refreshInputSettings()
-{
-    if (!inputButton || !inputPopover)
-        return;
-
-    const bool available = backendIsConnected
-        && SysxIO::Instance()->isConnected()
-        && inputSystemDataReady;
-    inputButton->setEnabled(available);
-    inputPopover->setSystemDataReady(available);
-    if (!available && inputPopover->isVisible())
-        inputPopover->close();
-}
-
-void modernFloorBoard::refreshGlobalEq()
-{
-    if (!globalEqButton || !globalEqPopover)
-        return;
-
-    const bool available = backendIsConnected
-        && SysxIO::Instance()->isConnected()
-        && globalEqSystemDataReady;
-    globalEqButton->setEnabled(available);
-    globalEqPopover->setSystemDataReady(available);
-    if (!available && globalEqPopover->isVisible())
-        globalEqPopover->close();
-}
-
 void modernFloorBoard::requestOutputSystemData()
 {
     SysxIO *sysxIO = SysxIO::Instance();
@@ -3313,10 +3256,6 @@ void modernFloorBoard::requestOutputSystemData()
     outputSystemDataRequested = true;
     outputSystemDataReady = false;
     tunerSystemDataReady = false;
-    globalEqSystemDataReady = false;
-    inputSystemDataReady = false;
-    refreshInputSettings();
-    refreshGlobalEq();
     sysxIO->systemDataRequest();
     QTimer::singleShot(200, this, &modernFloorBoard::pollOutputSystemData);
 }
@@ -3334,28 +3273,11 @@ void modernFloorBoard::pollOutputSystemData()
         tunerSystemDataReady =
             hasSourceValue("System", "00", "00", "30")
             && hasSourceValue("System", "00", "00", "31");
-        globalEqSystemDataReady =
-            hasSourceValue("System", "00", "00", "48")
-            && hasSourceValue("System", "00", "00", "49")
-            && hasSourceValue("System", "00", "00", "4A")
-            && hasSourceValue("System", "00", "00", "4B")
-            && hasSourceValue("System", "00", "00", "4C");
-        inputSystemDataReady =
-            hasSourceValue("System", "00", "00", "40")
-            && hasSourceValue("System", "00", "00", "41")
-            && hasSourceValue("System", "00", "00", "42")
-            && hasSourceValue("System", "00", "00", "43")
-            && hasSourceValue("System", "00", "00", "44")
-            && hasSourceValue("System", "00", "00", "45")
-            && hasSourceValue("System", "00", "00", "46")
-            && hasSourceValue("System", "00", "00", "47")
-            && hasSourceValue("System", "00", "00", "4D");
         refreshOutputSelectHeader();
         refreshTunerSettings();
-        refreshInputSettings();
-        refreshGlobalEq();
         refreshExpression();
         refreshPedalboard();
+        refreshSystem();
         return;
     }
 
@@ -3369,15 +3291,11 @@ void modernFloorBoard::backendConnected()
     outputSystemDataRequested = false;
     outputSystemDataReady = false;
     tunerSystemDataReady = false;
-    globalEqSystemDataReady = false;
-    inputSystemDataReady = false;
     emit connectionStateChanged(true);
     refreshTempoHeader();
     refreshPatchLevelHeader();
     refreshOutputSelectHeader();
     refreshTunerSettings();
-    refreshInputSettings();
-    refreshGlobalEq();
     refreshReadButtonState();
     requestOutputSystemData();
     setReverbUnavailable();
@@ -3394,6 +3312,7 @@ void modernFloorBoard::backendConnected()
     refreshControlAssign();
     refreshExpression();
     refreshPedalboard();
+    refreshSystem();
     refreshNoiseSuppressors();
     refreshSendReturn();
 }
@@ -3405,8 +3324,6 @@ void modernFloorBoard::backendDisconnected()
     outputSystemDataRequested = false;
     outputSystemDataReady = false;
     tunerSystemDataReady = false;
-    globalEqSystemDataReady = false;
-    inputSystemDataReady = false;
     readRequestInFlight = false;
     writeRequestInFlight = false;
     emit connectionStateChanged(false);
@@ -3414,8 +3331,6 @@ void modernFloorBoard::backendDisconnected()
     refreshPatchLevelHeader();
     refreshOutputSelectHeader();
     refreshTunerSettings();
-    refreshInputSettings();
-    refreshGlobalEq();
     refreshReadButtonState();
     signalChainModel.clear();
     rebuildSignalChainView();
@@ -3433,10 +3348,12 @@ void modernFloorBoard::backendDisconnected()
     refreshControlAssign();
     refreshExpression();
     refreshPedalboard();
+    refreshSystem();
     refreshNoiseSuppressors();
     refreshSendReturn();
     patchNumber->setText(QString::fromUtf8("—"));
     patchName->setText("NO PATCH DATA");
+    patchName->setToolTip("NO PATCH DATA");
     patchListModel.setCurrentPatch(0, 0);
 }
 
@@ -3467,7 +3384,10 @@ void modernFloorBoard::refreshReverbState()
         const int patch = sysxIO->getLoadedPatch();
         const QString name = sysxIO->getCurrentPatchName().trimmed();
         patchNumber->setText(patchListModel.patchNumber(bank, patch));
-        patchName->setText(name.isEmpty() ? QString::fromUtf8("—") : name);
+        const QString displayName = name.isEmpty()
+            ? QString::fromUtf8("—") : name;
+        patchName->setText(displayName);
+        patchName->setToolTip(displayName);
         patchListModel.setCurrentPatch(bank, patch);
     }
 
@@ -3477,8 +3397,7 @@ void modernFloorBoard::refreshReverbState()
     requestOutputSystemData();
     refreshOutputSelectHeader();
     refreshTunerSettings();
-    refreshInputSettings();
-    refreshGlobalEq();
+    refreshSystem();
 
     refreshSignalChainModel();
 
@@ -3499,6 +3418,7 @@ void modernFloorBoard::refreshReverbState()
         refreshControlAssign();
         refreshExpression();
         refreshPedalboard();
+        refreshSystem();
         refreshNoiseSuppressors();
         refreshSendReturn();
         return;
@@ -3526,6 +3446,7 @@ void modernFloorBoard::refreshReverbState()
     refreshControlAssign();
     refreshExpression();
     refreshPedalboard();
+    refreshSystem();
     refreshNoiseSuppressors();
     refreshSendReturn();
 }
@@ -3677,6 +3598,7 @@ void modernFloorBoard::persistentRenameFinished(int result, int bank,
             && sysxIO->getLoadedPatch() == patch) {
             sysxIO->setCurrentPatchName(verifiedName);
             patchName->setText(verifiedName);
+            patchName->setToolTip(verifiedName);
         }
         ModernMessageDialog verified(
             ModernDialogIcon::Success, tr("RENAME VERIFIED"), target,
@@ -3777,6 +3699,16 @@ void modernFloorBoard::refreshReadButtonState()
                                 && !writeRequestInFlight
                                 && !patchManagementInFlight);
     }
+}
+
+void modernFloorBoard::updatePatchHeaderAlignment()
+{
+    if (!headerSidebarRegion || !patchSidebar)
+        return;
+    const int leftInset =
+        headerSidebarRegion->property("headerLeftInset").toInt();
+    headerSidebarRegion->setFixedWidth(
+        qMax(0, patchSidebar->width() - leftInset));
 }
 
 void modernFloorBoard::refreshCompState()
@@ -4611,6 +4543,12 @@ void modernFloorBoard::resizeEvent(QResizeEvent *event)
 
 bool modernFloorBoard::eventFilter(QObject *watched, QEvent *event)
 {
+    if (patchSidebar && watched == patchSidebar
+        && event->type() == QEvent::Resize) {
+        QTimer::singleShot(0, this, [this]() {
+            updatePatchHeaderAlignment();
+        });
+    }
     if (signalChainScroll && watched == signalChainScroll->viewport()) {
         if (event->type() == QEvent::Resize) {
             QTimer::singleShot(0, this, [this]() {
@@ -4652,6 +4590,8 @@ void modernFloorBoard::updateReverbParameterControls(bool available)
 
     if (!available)
     {
+        if (reverbArtwork)
+            reverbArtwork->setGenericPedalState(false, false);
         for (QComboBox *combo : combos) {
             if (!combo)
                 continue;
@@ -4667,9 +4607,12 @@ void modernFloorBoard::updateReverbParameterControls(bool available)
 
     SysxIO *sysxIO = SysxIO::Instance();
     MidiTable *midiTable = MidiTable::Instance();
+    const bool reverbEnabled = sysxIO->getSourceValue(
+        "Structure", "0A", "00", "30") == 1;
     if (reverbOnOff)
-        reverbOnOff->setChecked(sysxIO->getSourceValue(
-            "Structure", "0A", "00", "30") == 1);
+        reverbOnOff->setChecked(reverbEnabled);
+    if (reverbArtwork)
+        reverbArtwork->setGenericPedalState(true, reverbEnabled);
     for (QComboBox *combo : combos) {
         if (!combo) continue;
         const QString address = combo->property("address").toString();
@@ -5250,6 +5193,27 @@ void modernFloorBoard::refreshPedalboard()
         pedalboardEditor->refresh(backendIsConnected, backendHasPatchData);
 }
 
+void modernFloorBoard::showSystemEditor()
+{
+    if (!systemEditor)
+        return;
+    selectedEditor = "SYSTEM";
+    refreshSystem();
+    if (effectEditorStack)
+        effectEditorStack->setCurrentWidget(systemEditor);
+    if (splitJunction)
+        splitJunction->setSelected(false);
+    clearPedalSelection();
+    clearNoiseSuppressorSelection();
+    clearSendReturnSelection();
+}
+
+void modernFloorBoard::refreshSystem()
+{
+    if (systemEditor)
+        systemEditor->refresh(backendIsConnected, outputSystemDataReady);
+}
+
 void modernFloorBoard::refreshPedalboardSummary()
 {
     if (!bottomControlStrip || !pedalboardEditor)
@@ -5639,6 +5603,25 @@ void modernFloorBoard::updatePreampConditionalSections(
             preampBrightAvailable(type, customType));
 }
 
+void modernFloorBoard::updatePreampTypeDisplay(PreampChannel channel)
+{
+    PreampEditorState &state = preampState(channel);
+    if (!state.editor)
+        return;
+
+    QString typeName;
+    if (state.type && state.type->currentIndex() >= 0) {
+        typeName = state.type->currentText().trimmed();
+        if (typeName.startsWith('(')) {
+            const int categoryEnd = typeName.indexOf(')');
+            if (categoryEnd >= 0)
+                typeName = typeName.mid(categoryEnd + 1).trimmed();
+        }
+    }
+    state.editor->typeLabel()->setText(
+        typeName.isEmpty() ? QString::fromUtf8("—") : typeName.toUpper());
+}
+
 void modernFloorBoard::updatePreampParameterControls(
     PreampChannel channel, bool available)
 {
@@ -5680,6 +5663,7 @@ void modernFloorBoard::updatePreampParameterControls(
             state.customPreampSection->hide();
         if (state.customSpeakerSection)
             state.customSpeakerSection->hide();
+        updatePreampTypeDisplay(channel);
         return;
     }
 
@@ -5696,6 +5680,7 @@ void modernFloorBoard::updatePreampParameterControls(
 
     if (state.browser && state.type)
         state.browser->setCurrentIndex(state.type->currentIndex());
+    updatePreampTypeDisplay(channel);
 
     for (ModernToggleSwitch *toggle : state.toggles) {
         if (!toggle || toggle->property("preampGlobalState").toBool())
@@ -5784,6 +5769,7 @@ void modernFloorBoard::setPreampType(PreampChannel channel, int index)
     setPreampValue(channel, 0x00, index);
     if (state.browser)
         state.browser->setCurrentIndex(index);
+    updatePreampTypeDisplay(channel);
     updatePreampConditionalSections(channel);
 }
 
@@ -5876,6 +5862,10 @@ void modernFloorBoard::updateCompParameterControls(bool available)
         }
         if (compTypeDisplay)
             compTypeDisplay->setText(QString::fromUtf8("—"));
+        if (compArtwork) {
+            compArtwork->setTextOverlayText("type", QString());
+            compArtwork->setGenericPedalState(false, false);
+        }
         if (compModelBrowser)
             compModelBrowser->setCurrentIndex(-1);
         return;
@@ -5895,9 +5885,14 @@ void modernFloorBoard::updateCompParameterControls(bool available)
         compModelBrowser->setCurrentIndex(type);
     if (compTypeDisplay && compType)
         compTypeDisplay->setText(compType->currentText());
+    const bool compEnabled = sysxIO->getSourceValue(
+        "Structure", "00", "00", "40") == 1;
     if (compOnOff)
-        compOnOff->setChecked(sysxIO->getSourceValue(
-            "Structure", "00", "00", "40") == 1);
+        compOnOff->setChecked(compEnabled);
+    if (compArtwork && compType) {
+        compArtwork->setTextOverlayText("type", compType->currentText());
+        compArtwork->setGenericPedalState(true, compEnabled);
+    }
 
     for (ParameterBar *bar : compBars) {
         if (!bar)
@@ -5939,6 +5934,8 @@ void modernFloorBoard::setCompType(int index)
         compModeStack->setCurrentIndex(index == 1 ? 1 : 0);
     if (compTypeDisplay)
         compTypeDisplay->setText(compType->itemText(index));
+    if (compArtwork)
+        compArtwork->setTextOverlayText("type", compType->itemText(index));
 }
 
 void modernFloorBoard::compTypeChanged(int value)
@@ -6012,6 +6009,8 @@ void modernFloorBoard::updateOddsParameterControls(bool available)
         }
         if (oddsArtwork)
             oddsArtwork->setTextOverlayText("type", QString());
+        if (oddsArtwork)
+            oddsArtwork->setGenericPedalState(false, false);
         if (oddsModelBrowser)
             oddsModelBrowser->setCurrentIndex(-1);
         if (oddsCustomSection)
@@ -6030,9 +6029,12 @@ void modernFloorBoard::updateOddsParameterControls(bool available)
             "Structure", "00", "00", address));
     }
 
+    const bool oddsEnabled = sysxIO->getSourceValue(
+        "Structure", "00", "00", "70") == 1;
     if (oddsOnOff)
-        oddsOnOff->setChecked(sysxIO->getSourceValue(
-            "Structure", "00", "00", "70") == 1);
+        oddsOnOff->setChecked(oddsEnabled);
+    if (oddsArtwork)
+        oddsArtwork->setGenericPedalState(true, oddsEnabled);
     if (oddsSoloSwitch)
         oddsSoloSwitch->setChecked(sysxIO->getSourceValue(
             "Structure", "00", "00", "77") == 1);
@@ -6187,6 +6189,8 @@ void modernFloorBoard::updateDelayParameterControls(bool available)
     }
 
     if (!available) {
+        if (delayArtwork)
+            delayArtwork->setGenericPedalState(false, false);
         for (QComboBox *combo : delayCombos) {
             if (!combo)
                 continue;
@@ -6219,9 +6223,12 @@ void modernFloorBoard::updateDelayParameterControls(bool available)
             "type", delayArtworkType(delayType->currentText()));
     if (delayModelBrowser && delayType)
         delayModelBrowser->setCurrentIndex(delayType->currentIndex());
+    const bool delayEnabled = sysxIO->getSourceValue(
+        "Structure", "0A", "00", "00") == 1;
     if (delayOnOff)
-        delayOnOff->setChecked(sysxIO->getSourceValue(
-            "Structure", "0A", "00", "00") == 1);
+        delayOnOff->setChecked(delayEnabled);
+    if (delayArtwork)
+        delayArtwork->setGenericPedalState(true, delayEnabled);
     if (delayWarpSwitch)
         delayWarpSwitch->setChecked(sysxIO->getSourceValue(
             "Structure", "0A", "00", "11") == 1);
@@ -6324,6 +6331,8 @@ void modernFloorBoard::updateChorusParameterControls(bool available)
 {
     SysxIO *sysxIO = SysxIO::Instance();
     MidiTable *midiTable = MidiTable::Instance();
+    const bool chorusEnabled = available && sysxIO->getSourceValue(
+        "Structure", "0A", "00", "20") == 1;
 
     if (chorusModeBrowser)
         chorusModeBrowser->setEnabled(available);
@@ -6332,9 +6341,10 @@ void modernFloorBoard::updateChorusParameterControls(bool available)
         const QSignalBlocker blocker(chorusOnOff);
         chorusOnOff->setEnabled(available);
         chorusOnOff->setVisible(true);
-        chorusOnOff->setChecked(available && sysxIO->getSourceValue(
-            "Structure", "0A", "00", "20") == 1);
+        chorusOnOff->setChecked(chorusEnabled);
     }
+    if (chorusArtwork)
+        chorusArtwork->setGenericPedalState(available, chorusEnabled);
 
     for (QComboBox *combo : chorusCombos) {
         if (!combo)
@@ -6361,7 +6371,7 @@ void modernFloorBoard::updateChorusParameterControls(bool available)
     }
     if (chorusArtwork) {
         chorusArtwork->setTextOverlayText(
-            "mode", available && chorusMode
+            "type", available && chorusMode
                 ? chorusMode->currentText().toUpper()
                 : QString());
     }
@@ -6418,7 +6428,7 @@ void modernFloorBoard::setChorusMode(int index)
         chorusModeBrowser->setCurrentIndex(index);
     if (chorusArtwork)
         chorusArtwork->setTextOverlayText(
-            "mode", chorusMode->itemText(index).toUpper());
+            "type", chorusMode->itemText(index).toUpper());
 }
 
 void modernFloorBoard::chorusComboChanged(int index)

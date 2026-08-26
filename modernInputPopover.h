@@ -6,6 +6,7 @@
 class ParameterBar;
 class QButtonGroup;
 class QKeyEvent;
+class QPaintEvent;
 class QPushButton;
 class QWidget;
 
@@ -23,6 +24,7 @@ public:
 
 protected:
     void keyPressEvent(QKeyEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
 
 private slots:
     void profileSelected(int profile);

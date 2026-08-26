@@ -53,6 +53,8 @@ public:
 	QPoint getStompPos(int id);
 
 public slots:
+	void setExclusiveMemoryOperation(bool active);
+	bool canStartExclusiveMemoryOperation() const;
 	void setWidth(int dist);
 	void setCollapse();
 	void updateStompBoxes();
@@ -70,6 +72,7 @@ public slots:
 	                     int targetBank, int targetPatch);
 	void renameNameLookupReply(QString name);
 	void renameTransmissionReply(QString replyMsg);
+	void renameReadbackRaw(QString replyMsg);
 	void verifyPersistentRename(QString name);
 	void copySourceReply(QString replyMsg);
 	void copyTransmissionReply(QString replyMsg);
@@ -167,6 +170,7 @@ private:
 	int persistentWritePatch = 0;
 	QMap<QString, QString> persistentWriteSnapshot;
 	bool patchManagementInFlight = false;
+	bool exclusiveMemoryOperationActive = false;
 	int patchManagementSourceBank = 0;
 	int patchManagementSourcePatch = 0;
 	int patchManagementTargetBank = 0;

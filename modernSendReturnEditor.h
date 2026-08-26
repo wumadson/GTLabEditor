@@ -4,6 +4,7 @@
 #include <QObject>
 
 class EffectEditorPanel;
+class EffectArtworkWidget;
 class ModernToggleSwitch;
 class ParameterBar;
 class QComboBox;
@@ -33,6 +34,7 @@ private:
     void updateControls(bool controlsAvailable);
 
     EffectEditorPanel *editor = nullptr;
+    EffectArtworkWidget *artwork = nullptr;
     ModernToggleSwitch *stateToggle = nullptr;
     QComboBox *modeCombo = nullptr;
     ParameterBar *sendLevelBar = nullptr;

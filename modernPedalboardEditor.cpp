@@ -25,7 +25,7 @@ QString stateBadgeText(ModernPedalboardModel::LogicalState state)
 {
     switch (state) {
     case ModernPedalboardModel::LogicalState::Momentary: return "MOMENTARY";
-    case ModernPedalboardModel::LogicalState::Unknown: return "UNKNOWN";
+    case ModernPedalboardModel::LogicalState::Unknown: return QString();
     default: return QString();
     }
 }
