@@ -25,11 +25,11 @@
 TEMPLATE = app
 #ifdef Q_OS_MAC
 CONFIG += release
-TARGET = "GT-10FxFloorBoard"
+TARGET = "GTLabEditor"
 DESTDIR = ./packager
 #else 
 CONFIG += release
-TARGET = "GT-10FxFloorBoard"
+TARGET = "GTLabEditor"
 DESTDIR = ./packager
 #endif
 	OBJECTS_DIR += release
@@ -91,13 +91,14 @@ linux-g++-64 {
 }
 macx {
 	LIBS += -framework CoreMidi -framework CoreAudio -framework CoreFoundation
+	QMAKE_APPLICATION_BUNDLE_NAME = "GT Lab Editor"
 	QMAKE_INFO_PLIST = $$PWD/GT-10FxFloorBoard-Info.plist
 	message("X-Code LIBRARIES SHOULD BE INSTALLED or ERROR will Occur") 
 	message("Please install the X-Code Audio System packages if not present") 
 	 HEADERS += 
 	 SOURCES += ./macosx/RtMidi.cpp 
 	INCLUDEPATH += ./macosx
-	ICON = GT-10FxFloorBoard.icns
+	ICON = GTLabEditor.icns
 	message(Including Mac OS X specific headers and sources...)
 }
 

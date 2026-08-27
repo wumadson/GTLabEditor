@@ -5,6 +5,7 @@
 build/
 build-*/
 dist/staging/
+packager/*.app/
 *.o
 *.obj
 

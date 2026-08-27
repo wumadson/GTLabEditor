@@ -35,6 +35,7 @@
 int main(int argc, char **argv)
 {
 	QApplication app(argc, argv);
+	QCoreApplication::setApplicationName("GT Lab Editor");
 	app.setApplicationDisplayName("GT Lab Editor");
 
 	 Preferences *preferences = Preferences::Instance(); // Load the preferences.
