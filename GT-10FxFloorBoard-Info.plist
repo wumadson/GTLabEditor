@@ -11,13 +11,19 @@
     <key>CFBundleIconFile</key>
     <string>GT-10FxFloorBoard.icns</string>
     <key>CFBundleIdentifier</key>
-    <string>com.yourcompany.GT-10FxFloorBoard</string>
+    <string>com.gtlab.GTLabEditor</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0.0</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleSignature</key>
     <string>????</string>
     <key>LSMinimumSystemVersion</key>
-    <string>10.13</string>
+    <string>11.0</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>
     <key>NSSupportsAutomaticGraphicsSwitching</key>

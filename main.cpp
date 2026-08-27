@@ -107,13 +107,7 @@ int main(int argc, char **argv)
 	app.processEvents();
 
 	splash->showStatusMessage(QObject::tr("Preparing application..."));
-	if(!QFile("license.txt").exists())
-	{
-		splash->showStatusMessage(QObject::tr("Loading application resources..."));
-		QFile file(":license.txt" );
-		file.copy("license.txt");
-		file.close();
-	};
+	splash->showStatusMessage(QObject::tr("Loading application resources..."));
 	
 	app.processEvents();
 
