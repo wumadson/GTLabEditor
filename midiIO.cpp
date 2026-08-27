@@ -28,6 +28,7 @@
 #include "RtMidi.h"
 #include "Preferences.h"
 #include "MidiTable.h"
+#include <QDebug>
 
 int midiIO::bytesTotal = 0;
 int midiIO::bytesReceived = 0;
@@ -46,7 +47,7 @@ QString midiIO::msgType = "name";
 #endif
 
 midiIO::midiIO(QObject *parent)
-    : QThread(parent), shortMidiIn(0)
+    : QThread(parent), expectedReplyPayloadSize(-1), shortMidiIn(0)
 {
         this->midi = false; // Set this to false until required;
         /* Connect signals */
@@ -382,7 +383,10 @@ void midiIO::receiveMsg(QString sysxInMsg, int midiInPort)
         int x = 3;
 #endif
 
-        if (msgType == "patch"){ loopCount = x*200; count = patchReplySize; }
+	if (expectedReplyPayloadSize >= 0) {
+		loopCount = x*20;
+		count = expectedReplyPayloadSize + 13;
+	} else if (msgType == "patch"){ loopCount = x*200; count = patchReplySize; }
    else if(msgType == "system"){ loopCount = x*400; count = systemSize; } // native gt system size, then trimmed later.
    else if (msgType == "name") { loopCount = x*20; count = 29; }
    else if (msgType == "identity") { loopCount = x*100; count = 15; }
@@ -428,6 +432,31 @@ cleanup:
                 midiin->closePort();             // close the midi in port
                 delete midiin;
 };
+
+bool midiIO::explicitReplyMatches() const
+{
+	if (expectedReplyPayloadSize < 0)
+		return false;
+	const QString reply = sysxBuffer.simplified().toUpper().remove(" ");
+	const int expectedBytes = expectedReplyPayloadSize + 13;
+	if (reply.size() / 2 != expectedBytes
+		|| !reply.startsWith("F0410000002F12")
+		|| !reply.endsWith("F7")
+		|| reply.mid(sysxAddressOffset * 2, 8) != expectedReplyAddress)
+		return false;
+
+	bool ok = false;
+	int sum = 0;
+	for (int index = checksumOffset; index < expectedBytes - 2; ++index) {
+		sum += reply.mid(index * 2, 2).toInt(&ok, 16);
+		if (!ok)
+			return false;
+	}
+	const int expectedChecksum = (0x80 - (sum % 0x80)) % 0x80;
+	const int receivedChecksum = reply.mid((expectedBytes - 2) * 2, 2)
+		.toInt(&ok, 16);
+	return ok && receivedChecksum == expectedChecksum;
+}
 
 /**************************** run() **************************************
  * New QThread that processes the sysex or midi message and handles if yes
@@ -508,14 +537,31 @@ void midiIO::run()
       dataReceive = true;
                         receiveMsg(sysxInMsg, midiInPort);
       Preferences *preferences = Preferences::Instance(); // Load the preferences.
-			if((this->sysxBuffer.size()/2 != count) && (repeat<3) && preferences->getPreferences("Midi", "DBug", "bool")!="true")
+			const bool replyMatched = expectedReplyPayloadSize >= 0
+				? explicitReplyMatches()
+				: this->sysxBuffer.size()/2 == count;
+			if (expectedReplyPayloadSize >= 0) {
+				qInfo().noquote() << QStringLiteral(
+					"[QuickSetting RQ1] expected payload=%1 received frame=%2 "
+					"address=%3 matched=%4 attempt=%5")
+					.arg(expectedReplyPayloadSize)
+					.arg(this->sysxBuffer.size() / 2)
+					.arg(expectedReplyAddress)
+					.arg(replyMatched ? QStringLiteral("true") : QStringLiteral("false"))
+					.arg(repeat + 1);
+			}
+			if(!replyMatched && (repeat<3) && preferences->getPreferences("Midi", "DBug", "bool")!="true")
 
       {
         emit setStatusdBugMessage(tr("re-trying data request"));
         repeat = repeat+1;
         goto RECEIVE;
       };
-      emit midiFinished();
+	  if (expectedReplyPayloadSize >= 0)
+		emit setStatusdBugMessage(replyMatched
+			? tr("Quick Setting RQ1 completed by explicit size/address match")
+			: tr("Quick Setting RQ1 completed after retry limit"));
+	  emit midiFinished();
                  }
                 else
                 {
@@ -538,6 +584,8 @@ void midiIO::run()
                 emit replyMsg(sysxInMsg);
                 emit setStatusSymbol(1);
                 emit setStatusProgress(0);
+		expectedReplyPayloadSize = -1;
+		expectedReplyAddress.clear();
                 };
 };
 
@@ -546,6 +594,16 @@ void midiIO::run()
  *************************************************************************/
 void midiIO::sendSysxMsg(QString sysxOutMsg, int midiOutPort, int midiInPort)
 {
+	sendSysxMsg(sysxOutMsg, midiOutPort, midiInPort, -1, QString());
+};
+
+void midiIO::sendSysxMsg(QString sysxOutMsg, int midiOutPort, int midiInPort,
+	                     int explicitExpectedReplyPayloadSize,
+	                     QString explicitExpectedReplyAddress)
+{
+	expectedReplyPayloadSize = explicitExpectedReplyPayloadSize;
+	expectedReplyAddress = explicitExpectedReplyAddress.simplified()
+		.toUpper().remove(" ");
   QString reBuild;
   QString sysxEOF;
   QString hex;
@@ -595,7 +653,10 @@ void midiIO::sendSysxMsg(QString sysxOutMsg, int midiOutPort, int midiInPort)
   if(midiOut!="") {start();} else {
   emit setStatusSymbol(0);
   emit setStatusMessage(tr("no midi device set"));
-  emit replyMsg("");};
+  emit replyMsg("");
+	expectedReplyPayloadSize = -1;
+	expectedReplyAddress.clear();
+  };
 
 };
 

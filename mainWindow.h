@@ -34,6 +34,7 @@
 class modernFloorBoard;
 class statusBarWidget;
 class BackupCoordinator;
+class QuickSettingService;
 
 //class mainWindow : public QWidget
 class mainWindow : public QMainWindow
@@ -122,6 +123,7 @@ private:
         modernFloorBoard *modernFloorBoardWidget;
         statusBarWidget *statusInfo;
         BackupCoordinator *backupCoordinator;
+        QuickSettingService *quickSettingService;
 };
 
 #endif // MAINWINDOW_H

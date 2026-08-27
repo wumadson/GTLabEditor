@@ -2,6 +2,9 @@
 #define MODERNFLOORBOARD_H
 
 #include <QWidget>
+#include <QPointer>
+#include <QElapsedTimer>
+#include <QHash>
 #include "modernSignalChainModel.h"
 #include "modernPatchListModel.h"
 
@@ -44,6 +47,9 @@ class ModernNoiseSuppressorEditor;
 class ModernSendReturnEditor;
 class PatchSidebar;
 class BottomControlStrip;
+class QuickSettingService;
+class ModernQuickSettingDialog;
+enum class QuickSettingEffect;
 
 class modernFloorBoard : public QWidget
 {
@@ -51,6 +57,7 @@ class modernFloorBoard : public QWidget
 
 public:
     explicit modernFloorBoard(QWidget *parent = nullptr);
+    void setQuickSettingService(QuickSettingService *service);
 
 public slots:
     void backendConnected();
@@ -137,6 +144,23 @@ private slots:
                          QString sourceNumber, QString sourceName,
                          int targetBank, int targetPatch,
                          QString targetName);
+    void quickSettingSlotActivated(int index);
+    void loadQuickSetting();
+    void saveQuickSetting();
+    void showQuickSettings();
+    void quickSettingTypeReady(QuickSettingEffect effect, int slot,
+                               int typeRaw, bool valid);
+    void quickSettingIdentityReady(QuickSettingEffect effect, int slot,
+                                   int typeRaw, bool typeValid,
+                                   QString name, bool nameValid);
+    void quickSettingPresentationReady(QuickSettingEffect effect, int slot,
+                                       int typeRaw, bool typeValid,
+                                       QString name, bool nameValid,
+                                       bool success);
+    void quickSettingLoadFinished(QuickSettingEffect effect, int slot,
+                                  bool success, QString detail);
+    void quickSettingSaveFinished(QuickSettingEffect effect, int slot,
+                                  bool verified, QString detail);
 
 private:
     EffectModule *createEffectBlock(const QString &name, bool available);
@@ -211,6 +235,10 @@ private:
         QList<QComboBox *> combos;
         QList<ParameterBar *> bars;
         QList<ModernToggleSwitch *> toggles;
+        QComboBox *quickSlot = nullptr;
+        QLabel *quickType = nullptr;
+        QPushButton *quickLoad = nullptr;
+        QPushButton *quickSave = nullptr;
     };
     PreampEditorState &preampState(PreampChannel channel);
     const PreampEditorState &preampState(PreampChannel channel) const;
@@ -234,6 +262,17 @@ private:
     void updatePreampTypeDisplay(PreampChannel channel);
     void refreshPreamp(PreampChannel channel);
     void refreshPreampGlobalState();
+    void refreshQuickSettingControls();
+    QPushButton *createQuickSettingButton(QuickSettingEffect effect);
+    QComboBox *quickSettingCombo(QuickSettingEffect effect) const;
+    QLabel *quickSettingTypeLabel(QuickSettingEffect effect) const;
+    void startQuickSettingPrefetch(QuickSettingEffect effect);
+    void scheduleNextQuickSettingPrefetch();
+    void cancelQuickSettingPrefetch();
+    void invalidateQuickSettingPresentationCache();
+    void invalidateQuickSettingPresentationSlot(QuickSettingEffect effect,
+                                                int slot);
+    void applyQuickSettingPresentation(QuickSettingEffect effect, int slot);
     void showFxEditor(FxSlot slot);
     void refreshFx(FxSlot slot);
     void fx1StateChanged(bool available, bool on);
@@ -320,22 +359,22 @@ private:
     bool tunerSystemDataReady = false;
     PatchSidebar *patchSidebar = nullptr;
 
-    SignalChainModule *reverbCard = nullptr;
-    SignalChainModule *compCard = nullptr;
-    SignalChainModule *oddsCard = nullptr;
-    SignalChainModule *delayCard = nullptr;
-    SignalChainModule *chorusCard = nullptr;
-    SignalChainModule *eqCard = nullptr;
-    SignalChainModule *preampACard = nullptr;
-    SignalChainModule *preampBCard = nullptr;
-    SignalChainModule *fx1Card = nullptr;
-    SignalChainModule *fx2Card = nullptr;
-    SignalChainModule *pedalFxCard = nullptr;
-    SignalChainModule *footVolumeCard = nullptr;
-    SignalChainModule *ns1Card = nullptr;
-    SignalChainModule *ns2Card = nullptr;
-    SignalChainModule *sendReturnCard = nullptr;
-    SignalJunction *splitJunction = nullptr;
+    QPointer<SignalChainModule> reverbCard;
+    QPointer<SignalChainModule> compCard;
+    QPointer<SignalChainModule> oddsCard;
+    QPointer<SignalChainModule> delayCard;
+    QPointer<SignalChainModule> chorusCard;
+    QPointer<SignalChainModule> eqCard;
+    QPointer<SignalChainModule> preampACard;
+    QPointer<SignalChainModule> preampBCard;
+    QPointer<SignalChainModule> fx1Card;
+    QPointer<SignalChainModule> fx2Card;
+    QPointer<SignalChainModule> pedalFxCard;
+    QPointer<SignalChainModule> footVolumeCard;
+    QPointer<SignalChainModule> ns1Card;
+    QPointer<SignalChainModule> ns2Card;
+    QPointer<SignalChainModule> sendReturnCard;
+    QPointer<SignalJunction> splitJunction;
     QStackedWidget *effectEditorStack = nullptr;
     EffectEditorPanel *reverbEditor = nullptr;
     EffectEditorPanel *compEditor = nullptr;
@@ -376,6 +415,10 @@ private:
     QString selectedEditor = "REVERB";
     QComboBox *reverbType = nullptr;
     QLabel *reverbTypeDisplay = nullptr;
+    QComboBox *reverbQuickSlot = nullptr;
+    QLabel *reverbQuickType = nullptr;
+    QPushButton *reverbQuickLoad = nullptr;
+    QPushButton *reverbQuickSave = nullptr;
     QComboBox *reverbLowCut = nullptr;
     QComboBox *reverbHighCut = nullptr;
     ModernToggleSwitch *reverbOnOff = nullptr;
@@ -383,12 +426,32 @@ private:
     QList<ParameterBar *> reverbBars;
     QComboBox *compType = nullptr;
     QLabel *compTypeDisplay = nullptr;
+    QComboBox *compQuickSlot = nullptr;
+    QLabel *compQuickType = nullptr;
+    QPushButton *compQuickLoad = nullptr;
+    QPushButton *compQuickSave = nullptr;
     ModernToggleSwitch *compOnOff = nullptr;
     QStackedWidget *compModeStack = nullptr;
     EffectModelBrowser *compModelBrowser = nullptr;
     QList<ParameterBar *> compBars;
     QComboBox *oddsType = nullptr;
     QComboBox *oddsCustomType = nullptr;
+    QComboBox *oddsQuickSlot = nullptr;
+    QLabel *oddsQuickType = nullptr;
+    QPushButton *oddsQuickLoad = nullptr;
+    QPushButton *oddsQuickSave = nullptr;
+    QComboBox *delayQuickSlot = nullptr;
+    QLabel *delayQuickType = nullptr;
+    QPushButton *delayQuickLoad = nullptr;
+    QPushButton *delayQuickSave = nullptr;
+    QComboBox *chorusQuickSlot = nullptr;
+    QLabel *chorusQuickType = nullptr;
+    QPushButton *chorusQuickLoad = nullptr;
+    QPushButton *chorusQuickSave = nullptr;
+    QComboBox *sendReturnQuickSlot = nullptr;
+    QLabel *sendReturnQuickMode = nullptr;
+    QPushButton *sendReturnQuickLoad = nullptr;
+    QPushButton *sendReturnQuickSave = nullptr;
     ModernToggleSwitch *oddsOnOff = nullptr;
     ModernToggleSwitch *oddsSoloSwitch = nullptr;
     QWidget *oddsCustomSection = nullptr;
@@ -405,6 +468,9 @@ private:
     QList<QComboBox *> chorusCombos;
     QList<ParameterBar *> chorusBars;
     ModernToggleSwitch *eqOnOff = nullptr;
+    QComboBox *eqQuickSlot = nullptr;
+    QPushButton *eqQuickLoad = nullptr;
+    QPushButton *eqQuickSave = nullptr;
     ModernEqGraph *eqGraph = nullptr;
     QList<QComboBox *> eqCombos;
     QList<ParameterBar *> eqBars;
@@ -428,6 +494,26 @@ private:
     int signalChainAutoScrollDirection = 0;
     bool signalChainTransactionActive = false;
     int pendingSignalChainModuleId = -1;
+    QuickSettingService *quickSettingService = nullptr;
+    ModernQuickSettingDialog *quickSettingDialog = nullptr;
+    enum class QuickPresentationStatus {
+        Empty, Loading, Ready, Failed, Stale
+    };
+    struct QuickPresentationEntry {
+        QuickPresentationStatus status = QuickPresentationStatus::Empty;
+        quint64 generation = 0;
+        QString display;
+        QString originalName;
+        QString typeDisplay;
+        int typeRaw = -1;
+    };
+    QHash<int, QHash<int, QuickPresentationEntry>> quickPresentationCache;
+    quint64 quickPresentationGeneration = 0;
+    bool quickPrefetchActive = false;
+    QuickSettingEffect quickPrefetchEffect;
+    QList<int> quickPrefetchSlots;
+    QElapsedTimer quickPrefetchTimer;
+    quint64 quickPresentationRequestGeneration = 0;
 };
 
 #endif

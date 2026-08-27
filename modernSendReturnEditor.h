@@ -8,6 +8,8 @@ class EffectArtworkWidget;
 class ModernToggleSwitch;
 class ParameterBar;
 class QComboBox;
+class QHBoxLayout;
+class QWidget;
 
 class ModernSendReturnEditor : public QObject
 {
@@ -17,6 +19,7 @@ public:
     explicit ModernSendReturnEditor(QObject *parent = nullptr);
 
     EffectEditorPanel *widget() const;
+    void addStateRowAction(QWidget *action);
     void refreshSendReturn(bool backendConnected,
                            bool backendHasPatchData);
 
@@ -36,6 +39,7 @@ private:
     EffectEditorPanel *editor = nullptr;
     EffectArtworkWidget *artwork = nullptr;
     ModernToggleSwitch *stateToggle = nullptr;
+    QHBoxLayout *stateRowLayout = nullptr;
     QComboBox *modeCombo = nullptr;
     ParameterBar *sendLevelBar = nullptr;
     ParameterBar *returnLevelBar = nullptr;

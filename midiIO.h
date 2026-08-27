@@ -40,6 +40,8 @@ public:
 	~midiIO();
 	void run();
 	void sendSysxMsg(QString sysxOutMsg, int midiOutport, int midiInPort);
+	void sendSysxMsg(QString sysxOutMsg, int midiOutport, int midiInPort,
+	                 int expectedReplyPayloadSize, QString expectedReplyAddress);
 	void sendMidi(QString midiMsg, int midiOutport);
 	void callbackMsg(QString rxData);
 	QList<QString> getMidiOutDevices();
@@ -67,6 +69,7 @@ private:
 	void sendSyxMsg(QString sysxOutMsg, int midiOutport);
 	void sendMidiMsg(QString sysxOutMsg, int midiOutport);
 	void receiveMsg(QString sysxMsg, int midiInPort);
+	bool explicitReplyMatches() const;
 	QList<QString> midiOutDevices;
 	QList<QString> midiInDevices;
 	
@@ -86,6 +89,8 @@ private:
 	QString hex;
 	bool midi;
 	int count;
+	int expectedReplyPayloadSize;
+	QString expectedReplyAddress;
 	RtMidiIn *shortMidiIn;
 };
 

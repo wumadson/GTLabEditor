@@ -117,6 +117,7 @@ SOURCES += modernFloorBoard.cpp modernTheme.cpp modernWidgets.cpp modernSignalCh
            modernSignalChainMutationController.cpp modernSignalChainSerializer.cpp \
            signalChainHardwareValidation.cpp \
            patchTransferCodec.cpp \
+           quickSettingCodec.cpp quickSettingService.cpp modernQuickSettingDialog.cpp \
            effectArtworkWidget.cpp effectModelBrowser.cpp parameterBar.cpp \
            modernPatchListModel.cpp patchSidebar.cpp modernEqGraph.cpp modernFxEditor.cpp \
            modernPedalFxEditor.cpp modernAssignModel.cpp modernControlAssignEditor.cpp assignTargetBrowser.cpp assignTargetValueEditor.cpp modernNoiseSuppressorEditor.cpp \
@@ -128,6 +129,7 @@ HEADERS += modernFloorBoard.h modernTheme.h modernWidgets.h modernSignalChainMod
            modernSignalChainMutationController.h modernSignalChainSerializer.h \
            signalChainHardwareValidation.h \
            patchTransferCodec.h \
+           quickSettingCodec.h quickSettingService.h modernQuickSettingDialog.h \
            effectArtworkWidget.h effectModelBrowser.h parameterBar.h \
            modernPatchListModel.h patchSidebar.h modernEqGraph.h modernFxEditor.h \
            modernPedalFxEditor.h modernAssignModel.h modernControlAssignEditor.h assignTargetBrowser.h assignTargetValueEditor.h modernNoiseSuppressorEditor.h \
@@ -170,5 +172,14 @@ contains(CONFIG, patchbackup_tests) {
     SOURCES -= ./main.cpp
     SOURCES += patchBackupTests.cpp
     TARGET = patchBackupTests
+    DESTDIR = $$OUT_PWD
+}
+
+# Offline regression harness for native PREAMP A/B Quick Settings. No MIDI
+# device is opened and no DT1 is transmitted by this target.
+contains(CONFIG, quicksetting_tests) {
+    SOURCES -= ./main.cpp
+    SOURCES += quickSettingCodecTests.cpp
+    TARGET = quickSettingCodecTests
     DESTDIR = $$OUT_PWD
 }

@@ -32,6 +32,7 @@
 #include "modernBackupDialog.h"
 #include "backupCoordinator.h"
 #include "patchBackupCodec.h"
+#include "quickSettingService.h"
 #include "Preferences.h"
 #include "statusBarWidget.h"
 #include "SysxIO.h"
@@ -53,6 +54,8 @@ mainWindow::mainWindow()
         legacyFloorBoard->hide();
 
         modernFloorBoardWidget = new modernFloorBoard(this);
+        quickSettingService = new QuickSettingService(legacyFloorBoard, this);
+        modernFloorBoardWidget->setQuickSettingService(quickSettingService);
         backupCoordinator = new BackupCoordinator(legacyFloorBoard, this);
         QObject::connect(backupCoordinator, SIGNAL(patchVerified(int,int,QString)),
                          modernFloorBoardWidget, SLOT(patchNameResolved(int,int,QString)));
@@ -208,7 +211,7 @@ void mainWindow::updateSize(QSize floorSize, QSize oldFloorSize)
 
 void mainWindow::createActions()
 {
-        openAct = new QAction(style()->standardIcon(QStyle::SP_DialogOpenButton), tr("&Import Patch..."), this);
+        openAct = new QAction(style()->standardIcon(QStyle::SP_DialogOpenButton), tr("&Load Patch File... (*.syx, *.mid, *.gxg *.gxb)"), this);
         openAct->setShortcut(tr("Ctrl+O"));
         openAct->setWhatsThis(tr("Open an existing file"));
         connect(openAct, SIGNAL(triggered()), this, SLOT(open()));
@@ -219,17 +222,17 @@ void mainWindow::createActions()
         saveAct->setWhatsThis(tr("Save the document to disk"));
         connect(saveAct, SIGNAL(triggered()), this, SLOT(save()));
 
-        saveAsAct = new QAction(style()->standardIcon(QStyle::SP_DialogSaveButton), tr("&SysEx Patch (.syx)"), this);
+        saveAsAct = new QAction(style()->standardIcon(QStyle::SP_DialogSaveButton), tr("Save &As Patch...  (*.syx)"), this);
         saveAsAct->setShortcut(tr("Ctrl+Shift+S"));
         saveAsAct->setWhatsThis(tr("Save the document under a new name"));
         connect(saveAsAct, SIGNAL(triggered()), this, SLOT(saveAs()));
 
-        exportSMFAct = new QAction(style()->standardIcon(QStyle::SP_DialogSaveButton), tr("&MIDI File (.mid)"), this);
+        exportSMFAct = new QAction(style()->standardIcon(QStyle::SP_DialogSaveButton), tr("Save As &SMF Patch... (*.mid)"), this);
         exportSMFAct->setShortcut(tr("Ctrl+Shift+E"));
         exportSMFAct->setWhatsThis(tr("Export as a Standard Midi File"));
         connect(exportSMFAct, SIGNAL(triggered()), this, SLOT(exportSMF()));
 
-        saveGXGAct = new QAction(style()->standardIcon(QStyle::SP_DialogSaveButton), tr("&BOSS Librarian (.gxg)"), this);
+        saveGXGAct = new QAction(style()->standardIcon(QStyle::SP_DialogSaveButton), tr("Save As GXG Patch... (*.gxg)"), this);
         saveGXGAct->setShortcut(tr("Ctrl+Shift+G"));
         saveGXGAct->setWhatsThis(tr("Export as a Boss Librarian File"));
         connect(saveGXGAct, SIGNAL(triggered()), this, SLOT(saveGXG()));
@@ -266,7 +269,7 @@ void mainWindow::createActions()
         connect(restoreUserPatchesAct, SIGNAL(triggered()),
                 this, SLOT(restoreUserPatches()));
 
-        exitAct = new QAction(style()->standardIcon(QStyle::SP_DialogCloseButton),tr("&Quit GT Lab Editor"), this);
+        exitAct = new QAction(style()->standardIcon(QStyle::SP_DialogCloseButton),tr("E&xit"), this);
         exitAct->setShortcut(tr("Ctrl+Q"));
         exitAct->setWhatsThis(tr("Exit the application"));
         exitAct->setMenuRole(QAction::QuitRole);
@@ -340,23 +343,16 @@ void mainWindow::createMenus()
         //QMenu *fileMenu = new QMenu(tr("&File"));
         fileMenu->addAction(openAct);
 
-        QMenu *backupMenu = fileMenu->addMenu(tr("&Backup"));
-        backupMenu->addAction(backupUserPatchesAct);
-        QMenu *restoreMenu = fileMenu->addMenu(tr("&Restore"));
-        restoreMenu->addAction(restoreUserPatchesAct);
-
-        QMenu *exportMenu = fileMenu->addMenu(tr("&Export Patch"));
-        exportMenu->addAction(saveAsAct);
-        exportMenu->addAction(exportSMFAct);
-        exportMenu->addAction(saveGXGAct);
-
         fileMenu->addSeparator();
-        QMenu *legacyFileMenu = fileMenu->addMenu(tr("Legacy / &Bulk Operations"));
-        legacyFileMenu->addAction(bulkLoadAct);
-        legacyFileMenu->addAction(bulkSaveAct);
-        legacyFileMenu->addSeparator();
-        legacyFileMenu->addAction(systemLoadAct);
-        legacyFileMenu->addAction(systemSaveAct);
+        fileMenu->addAction(saveAsAct);
+        fileMenu->addAction(exportSMFAct);
+        fileMenu->addAction(saveGXGAct);
+        fileMenu->addSeparator();
+        fileMenu->addAction(bulkLoadAct);
+        fileMenu->addAction(bulkSaveAct);
+        fileMenu->addSeparator();
+        fileMenu->addAction(systemLoadAct);
+        fileMenu->addAction(systemSaveAct);
         fileMenu->addSeparator();
         fileMenu->addAction(exitAct);
         fileMenu->setWhatsThis(tr("File Saving and Loading,<br> and application Exit."));

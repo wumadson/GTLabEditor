@@ -14,6 +14,7 @@ class ModernToggleSwitch;
 class ParameterBar;
 class QComboBox;
 class QStackedWidget;
+class QHBoxLayout;
 class QWidget;
 
 namespace FxPresentation {
@@ -85,6 +86,7 @@ public:
     EffectEditorPanel *widget() const;
     FxSlot slot() const;
     QString translatedBank(int relativeBank) const;
+    void addStateRowAction(QWidget *action);
     void refreshFx(bool backendConnected, bool backendHasPatchData);
 
 signals:
@@ -147,6 +149,7 @@ private:
     EffectEditorPanel *editor = nullptr;
     EffectModelBrowser *browser = nullptr;
     ModernToggleSwitch *stateToggle = nullptr;
+    QHBoxLayout *stateRowLayout = nullptr;
     QComboBox *hiddenType = nullptr;
     QStackedWidget *algorithmStack = nullptr;
     EffectArtworkWidget *artwork = nullptr;

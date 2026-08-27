@@ -907,6 +907,12 @@ void SysxIO::checkPatchChange(QString name)
 *****************************************************************************/
 void SysxIO::sendSysx(QString sysxMsg)
 {
+	sendSysx(sysxMsg, -1, QString());
+};
+
+void SysxIO::sendSysx(QString sysxMsg, int expectedReplyPayloadSize,
+	                  QString expectedReplyAddress)
+{
 	Preferences *preferences = Preferences::Instance();  bool ok;
 	int midiOutPort = preferences->getPreferences("Midi", "MidiOut", "device").toInt(&ok, 10);	// Get midi out device from preferences.
 	int midiInPort = preferences->getPreferences("Midi", "MidiIn", "device").toInt(&ok, 10);	// Get midi in device from preferences.
@@ -922,7 +928,8 @@ void SysxIO::sendSysx(QString sysxMsg)
     {
       midiOutPort = midiOutDevices.indexOf("BOSS GT-10");
     };  
-	midi->sendSysxMsg(sysxMsg, midiOutPort, midiInPort);
+	midi->sendSysxMsg(sysxMsg, midiOutPort, midiInPort,
+	                 expectedReplyPayloadSize, expectedReplyAddress);
 			 /*DeBugGING OUTPUT */
 	if(preferences->getPreferences("Midi", "DBug", "bool")=="true")
 	{

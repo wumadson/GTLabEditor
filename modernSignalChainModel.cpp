@@ -48,6 +48,7 @@ QString joinedNames(const QList<modernSignalChainModel::Entry> &entries)
 void modernSignalChainModel::clear()
 {
     valid = false;
+    currentSourceState = SourceState::Unavailable;
     error.clear();
     mode = UnknownMode;
     selectedChannel = -1;
@@ -68,9 +69,15 @@ bool modernSignalChainModel::refreshFromLegacyBackend()
     const SysxData source = sysxIO->getFileSource();
     const int chainAddressIndex = source.address.indexOf("0B00");
     const int modeAddressIndex = source.address.indexOf("0100");
+    const bool deviceConfirmed =
+        sysxIO->isConnected() && sysxIO->isDevice();
+    const QString sourceFileName = sysxIO->getFileName();
+    const bool temporaryBuffer = !sysxIO->isDevice()
+        && !sourceFileName.isEmpty()
+        && sourceFileName != ":default.syx";
 
-    if (!sysxIO->isConnected() || !sysxIO->isDevice()) {
-        error = "legacy backend has no connected GT-10 patch";
+    if (!deviceConfirmed && !temporaryBuffer) {
+        error = "legacy backend has no displayable GT-10 patch source";
         return false;
     }
     if (chainAddressIndex < 0 || chainAddressIndex >= source.hex.size()) {
@@ -207,8 +214,10 @@ bool modernSignalChainModel::refreshFromLegacyBackend()
     parsed.split.region = ChainRegion::CommonPrefix;
     parsed.merge.region = ChainRegion::CommonSuffix;
     parsed.revision = nextRevision;
-    parsed.patchIdentity = QString("%1:%2")
-        .arg(sysxIO->getLoadedBank()).arg(sysxIO->getLoadedPatch());
+    parsed.patchIdentity = deviceConfirmed
+        ? QString("%1:%2")
+              .arg(sysxIO->getLoadedBank()).arg(sysxIO->getLoadedPatch())
+        : QString();
     parsed.channelMode = mode;
     parsed.channelSelect = selectedChannel;
 
@@ -223,6 +232,8 @@ bool modernSignalChainModel::refreshFromLegacyBackend()
         return false;
     }
     applySnapshot(parsed);
+    currentSourceState = deviceConfirmed
+        ? SourceState::DeviceConfirmed : SourceState::TemporaryBuffer;
     return true;
 }
 
@@ -386,6 +397,9 @@ void modernSignalChainModel::logInterpretedChain() const
     }
 
     qInfo().noquote() << "[Modern Signal Chain] 18 bytes from Structure 0B 00 00";
+    qInfo().noquote() << "  SOURCE:"
+                      << (currentSourceState == SourceState::DeviceConfirmed
+                              ? "DEVICE CONFIRMED" : "TEMPORARY BUFFER");
     qInfo().noquote() << "  MODE:" << channelModeName(mode)
                       << "| CHANNEL SELECT:"
                       << (selectedChannel == 0 ? "A" : selectedChannel == 1 ? "B" : "N/A");
@@ -409,6 +423,10 @@ void modernSignalChainModel::logInterpretedChain() const
 }
 
 bool modernSignalChainModel::isValid() const { return valid; }
+modernSignalChainModel::SourceState modernSignalChainModel::sourceState() const
+{ return currentSourceState; }
+bool modernSignalChainModel::isDeviceConfirmed() const
+{ return currentSourceState == SourceState::DeviceConfirmed; }
 QString modernSignalChainModel::errorString() const { return error; }
 modernSignalChainModel::ChannelMode modernSignalChainModel::channelMode() const { return mode; }
 int modernSignalChainModel::channelSelect() const { return selectedChannel; }

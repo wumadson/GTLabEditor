@@ -361,14 +361,14 @@ void ModernFxEditor::buildEditor()
     layout->setSpacing(8);
 
     QWidget *stateRow = new QWidget;
-    QHBoxLayout *stateLayout = new QHBoxLayout(stateRow);
-    stateLayout->setContentsMargins(0, 0, 0, 0);
-    stateLayout->setSpacing(0);
+    stateRowLayout = new QHBoxLayout(stateRow);
+    stateRowLayout->setContentsMargins(0, 0, 0, 0);
+    stateRowLayout->setSpacing(0);
     EffectToggleControl *stateControl = new EffectToggleControl("State");
     stateToggle = stateControl->toggle();
     stateToggle->setAccentColor(accent);
-    stateLayout->addWidget(stateControl, 0, Qt::AlignTop);
-    stateLayout->addStretch(1);
+    stateRowLayout->addWidget(stateControl, 0, Qt::AlignTop);
+    stateRowLayout->addStretch(1);
     layout->addWidget(stateRow);
 
     ParameterCombo *hiddenTypeControl = new ParameterCombo("Type");
@@ -408,6 +408,12 @@ void ModernFxEditor::buildEditor()
     });
 
     updateControls(false);
+}
+
+void ModernFxEditor::addStateRowAction(QWidget *action)
+{
+    if (action && stateRowLayout)
+        stateRowLayout->addWidget(action, 0, Qt::AlignTop);
 }
 
 void ModernFxEditor::buildTypes()

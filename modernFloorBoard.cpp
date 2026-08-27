@@ -19,12 +19,15 @@
 #include "parameterBar.h"
 #include "patchSidebar.h"
 #include "signalChainHardwareValidation.h"
+#include "quickSettingService.h"
+#include "modernQuickSettingDialog.h"
 
 #include <QComboBox>
 #include <QButtonGroup>
 #include <QDebug>
 #include <QDial>
 #include <QDialog>
+#include <QDialogButtonBox>
 #include <QFrame>
 #include <QFontMetrics>
 #include <QGridLayout>
@@ -843,6 +846,55 @@ QString preampDisplayText(const QString &value, int offset)
     return numeric ? value.trimmed() + " cm" : value;
 }
 
+QString quickSettingTypeDisplay(QuickSettingEffect effect, int raw)
+{
+    if (raw < 0 || raw > 0x7F)
+        return QString();
+    if (effect == QuickSettingEffect::SendReturn) {
+        switch (raw) {
+        case 0: return QStringLiteral("NORMAL");
+        case 1: return QStringLiteral("DIRECT MIX");
+        case 2: return QStringLiteral("BRANCH OUT");
+        default: return QString();
+        }
+    }
+    const bool odds = effect == QuickSettingEffect::OverdriveDistortion;
+    const bool delay = effect == QuickSettingEffect::Delay;
+    const bool chorus = effect == QuickSettingEffect::Chorus;
+    const bool reverb = effect == QuickSettingEffect::Reverb;
+    const bool comp = effect == QuickSettingEffect::Compressor;
+    const bool fx1 = effect == QuickSettingEffect::Fx1;
+    const QString bank = (odds || comp) ? QStringLiteral("00")
+        : ((delay || chorus || reverb) ? QStringLiteral("0A")
+            : (fx1 ? QStringLiteral("02") : QStringLiteral("01")));
+    const QString address = comp ? QStringLiteral("41")
+        : (odds ? QStringLiteral("71")
+        : (fx1 ? QStringLiteral("01")
+        : (delay ? QStringLiteral("01")
+        : (chorus ? QStringLiteral("21")
+        : (reverb ? QStringLiteral("31")
+        : (effect == QuickSettingEffect::PreampA
+               ? QStringLiteral("10") : QStringLiteral("30")))))));
+    const Midi parameter = MidiTable::Instance()->getMidiMap(
+        QStringLiteral("Structure"), bank, QStringLiteral("00"), address);
+    const QString rawHex = QStringLiteral("%1").arg(
+        raw, 2, 16, QChar('0')).toUpper();
+    for (const Midi &item : parameter.level) {
+        if (item.value.compare(rawHex, Qt::CaseInsensitive) != 0)
+            continue;
+        QString display = !item.customdesc.isEmpty()
+            ? item.customdesc
+            : (!item.desc.isEmpty() ? item.desc : item.name);
+        if (display.startsWith('(')) {
+            const int closing = display.indexOf(')');
+            if (closing >= 0)
+                display = display.mid(closing + 1).trimmed();
+        }
+        return display;
+    }
+    return QString();
+}
+
 class EqBandArea : public QWidget
 {
 public:
@@ -1005,6 +1057,9 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     setMinimumSize(1280, 800);
 
     setStyleSheet(ModernTheme::applicationStyleSheet());
+    quickSettingDialog = new ModernQuickSettingDialog(this);
+    connect(quickSettingDialog, &QDialog::finished, this,
+            [this](int) { cancelQuickSettingPrefetch(); });
 
     QVBoxLayout *root = new QVBoxLayout(this);
     root->setContentsMargins(0, 0, 0, 0);
@@ -1429,7 +1484,42 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     connect(reverbOnOff, SIGNAL(clicked()), this, SLOT(toggleReverb()));
     reverbPrimaryLayout->addWidget(reverbToggle, 0, Qt::AlignTop);
     reverbPrimaryLayout->addStretch(1);
+    reverbPrimaryLayout->addWidget(createQuickSettingButton(
+        QuickSettingEffect::Reverb), 0, Qt::AlignTop);
     parameterLayout->addWidget(reverbPrimaryControls);
+
+    QWidget *reverbQuickPanel = new QWidget;
+    QGridLayout *reverbQuickLayout = new QGridLayout(reverbQuickPanel);
+    reverbQuickLayout->setContentsMargins(0, 0, 0, 0);
+    reverbQuickLayout->setHorizontalSpacing(8);
+    reverbQuickLayout->setVerticalSpacing(5);
+    reverbQuickType = new QLabel(QString::fromUtf8("—"));
+    reverbQuickType->setObjectName("ParameterLabel");
+    reverbQuickType->setTextInteractionFlags(Qt::NoTextInteraction);
+    reverbQuickLayout->addWidget(reverbQuickType, 0, 1, 1, 2);
+    reverbQuickSlot = new QComboBox;
+    reverbQuickSlot->setProperty("quickSettingEffect",
+        static_cast<int>(QuickSettingEffect::Reverb));
+    for (int slot = 1; slot <= 10; ++slot)
+        reverbQuickSlot->addItem(QStringLiteral("U%1").arg(
+            slot, 2, 10, QChar('0')), slot);
+    reverbQuickLayout->addWidget(reverbQuickSlot, 1, 0);
+    reverbQuickLoad = new QPushButton("LOAD");
+    reverbQuickSave = new QPushButton("SAVE");
+    for (QPushButton *button : {reverbQuickLoad, reverbQuickSave}) {
+        button->setProperty("quickSettingEffect",
+            static_cast<int>(QuickSettingEffect::Reverb));
+        button->setFixedHeight(28);
+    }
+    reverbQuickLayout->addWidget(reverbQuickLoad, 1, 1);
+    reverbQuickLayout->addWidget(reverbQuickSave, 1, 2);
+    reverbQuickLayout->setColumnStretch(0, 1);
+    connect(reverbQuickSlot, SIGNAL(activated(int)),
+            this, SLOT(quickSettingSlotActivated(int)));
+    connect(reverbQuickLoad, SIGNAL(clicked()), this, SLOT(loadQuickSetting()));
+    connect(reverbQuickSave, SIGNAL(clicked()), this, SLOT(saveQuickSetting()));
+    quickSettingDialog->addEffectPage(
+        QuickSettingEffect::Reverb, "REVERB", reverbQuickPanel);
 
     QWidget *reverbTypeControl = createReverbCombo("Type", "31");
     reverbTypeControl->setParent(reverbEditor->parameterArea());
@@ -1495,7 +1585,43 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     connect(compOnOff, SIGNAL(clicked()), this, SLOT(toggleComp()));
     compPrimaryLayout->addWidget(compToggle, 0, Qt::AlignTop);
     compPrimaryLayout->addStretch(1);
+    compPrimaryLayout->addWidget(createQuickSettingButton(
+        QuickSettingEffect::Compressor), 0, Qt::AlignTop);
     compParameterLayout->addWidget(compPrimaryControls);
+
+    QWidget *compQuickPanel = new QWidget;
+    QGridLayout *compQuickLayout = new QGridLayout(compQuickPanel);
+    compQuickLayout->setContentsMargins(0, 0, 0, 0);
+    compQuickLayout->setHorizontalSpacing(8);
+    compQuickLayout->setVerticalSpacing(5);
+    compQuickType = new QLabel(QString::fromUtf8("—"));
+    compQuickType->setObjectName("ParameterLabel");
+    compQuickType->setTextInteractionFlags(Qt::NoTextInteraction);
+    compQuickLayout->addWidget(compQuickType, 0, 1, 1, 2);
+    compQuickSlot = new QComboBox;
+    compQuickSlot->setProperty("quickSettingEffect",
+        static_cast<int>(QuickSettingEffect::Compressor));
+    for (int slot = 1; slot <= 10; ++slot)
+        compQuickSlot->addItem(QStringLiteral("U%1").arg(
+            slot, 2, 10, QChar('0')), slot);
+    compQuickLayout->addWidget(compQuickSlot, 1, 0);
+    compQuickLoad = new QPushButton("LOAD");
+    compQuickSave = new QPushButton("SAVE");
+    for (QPushButton *button : {compQuickLoad, compQuickSave}) {
+        button->setProperty("quickSettingEffect",
+            static_cast<int>(QuickSettingEffect::Compressor));
+        button->setFixedHeight(28);
+    }
+    compQuickLayout->addWidget(compQuickLoad, 1, 1);
+    compQuickLayout->addWidget(compQuickSave, 1, 2);
+    compQuickLayout->setColumnStretch(0, 1);
+    connect(compQuickSlot, SIGNAL(activated(int)),
+            this, SLOT(quickSettingSlotActivated(int)));
+    connect(compQuickLoad, SIGNAL(clicked()), this, SLOT(loadQuickSetting()));
+    connect(compQuickSave, SIGNAL(clicked()), this, SLOT(saveQuickSetting()));
+    quickSettingDialog->addEffectPage(
+        QuickSettingEffect::Compressor, "COMP", compQuickPanel);
+
     QWidget *compTypeControl = createCompCombo("Type", "41");
     compTypeControl->setParent(compEditor->parameterArea());
     compTypeControl->hide();
@@ -1565,7 +1691,50 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     connect(oddsOnOff, SIGNAL(clicked()), this, SLOT(oddsToggleChanged()));
     oddsPrimaryLayout->addWidget(oddsToggle, 0, Qt::AlignTop);
     oddsPrimaryLayout->addStretch(1);
+    oddsPrimaryLayout->addWidget(createQuickSettingButton(
+        QuickSettingEffect::OverdriveDistortion), 0, Qt::AlignTop);
     oddsParameterLayout->addWidget(oddsPrimaryControls);
+
+    QWidget *oddsQuickPanel = new QWidget;
+    QGridLayout *oddsQuickLayout = new QGridLayout(oddsQuickPanel);
+    oddsQuickLayout->setContentsMargins(0, 0, 0, 0);
+    oddsQuickLayout->setHorizontalSpacing(8);
+    oddsQuickLayout->setVerticalSpacing(5);
+    oddsQuickType = new QLabel(QString::fromUtf8("—"));
+    oddsQuickType->setObjectName("ParameterLabel");
+    oddsQuickType->setTextInteractionFlags(Qt::NoTextInteraction);
+    oddsQuickLayout->addWidget(oddsQuickType, 0, 1, 1, 2);
+    oddsQuickSlot = new QComboBox;
+    oddsQuickSlot->setProperty("quickSettingEffect",
+                               static_cast<int>(QuickSettingEffect::OverdriveDistortion));
+    for (int slot = 1; slot <= 10; ++slot)
+        oddsQuickSlot->addItem(QStringLiteral("U%1").arg(
+            slot, 2, 10, QChar('0')), slot);
+    oddsQuickLayout->addWidget(oddsQuickSlot, 1, 0);
+    oddsQuickLoad = new QPushButton("LOAD");
+    oddsQuickSave = new QPushButton("SAVE");
+    for (QPushButton *button : {oddsQuickLoad, oddsQuickSave}) {
+        button->setProperty("quickSettingEffect",
+                            static_cast<int>(QuickSettingEffect::OverdriveDistortion));
+        button->setFixedHeight(28);
+        button->setStyleSheet(QStringLiteral(
+            "QPushButton { color: #C9D1D8; background: #11161B; "
+            "border: 1px solid #2B3945; border-radius: 5px; padding: 0 12px; "
+            "font-size: 10px; font-weight: 600; }"
+            "QPushButton:hover { border-color: %1; color: #F2F6F8; }"
+            "QPushButton:pressed { background: #0A0D10; }"
+            "QPushButton:disabled { color: #596169; border-color: #242A30; }")
+            .arg(ModernTheme::color(ModernTheme::AccentCyan)));
+    }
+    oddsQuickLayout->addWidget(oddsQuickLoad, 1, 1);
+    oddsQuickLayout->addWidget(oddsQuickSave, 1, 2);
+    oddsQuickLayout->setColumnStretch(0, 1);
+    connect(oddsQuickSlot, SIGNAL(activated(int)),
+            this, SLOT(quickSettingSlotActivated(int)));
+    connect(oddsQuickLoad, SIGNAL(clicked()), this, SLOT(loadQuickSetting()));
+    connect(oddsQuickSave, SIGNAL(clicked()), this, SLOT(saveQuickSetting()));
+    quickSettingDialog->addEffectPage(
+        QuickSettingEffect::OverdriveDistortion, "OD/DS", oddsQuickPanel);
 
     QWidget *oddsTypeControl = createOddsCombo("Type", "71");
     oddsTypeControl->setParent(oddsEditor->parameterArea());
@@ -1643,7 +1812,42 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     connect(delayOnOff, SIGNAL(clicked()), this, SLOT(delayToggleChanged()));
     delayPrimaryLayout->addWidget(delayToggle, 0, Qt::AlignTop);
     delayPrimaryLayout->addStretch(1);
+    delayPrimaryLayout->addWidget(createQuickSettingButton(
+        QuickSettingEffect::Delay), 0, Qt::AlignTop);
     delayParameterLayout->addWidget(delayPrimaryControls);
+
+    QWidget *delayQuickPanel = new QWidget;
+    QGridLayout *delayQuickLayout = new QGridLayout(delayQuickPanel);
+    delayQuickLayout->setContentsMargins(0, 0, 0, 0);
+    delayQuickLayout->setHorizontalSpacing(8);
+    delayQuickLayout->setVerticalSpacing(5);
+    delayQuickType = new QLabel(QString::fromUtf8("—"));
+    delayQuickType->setObjectName("ParameterLabel");
+    delayQuickType->setTextInteractionFlags(Qt::NoTextInteraction);
+    delayQuickLayout->addWidget(delayQuickType, 0, 1, 1, 2);
+    delayQuickSlot = new QComboBox;
+    delayQuickSlot->setProperty("quickSettingEffect",
+        static_cast<int>(QuickSettingEffect::Delay));
+    for (int slot = 1; slot <= 10; ++slot)
+        delayQuickSlot->addItem(QStringLiteral("U%1").arg(
+            slot, 2, 10, QChar('0')), slot);
+    delayQuickLayout->addWidget(delayQuickSlot, 1, 0);
+    delayQuickLoad = new QPushButton("LOAD");
+    delayQuickSave = new QPushButton("SAVE");
+    for (QPushButton *button : {delayQuickLoad, delayQuickSave}) {
+        button->setProperty("quickSettingEffect",
+            static_cast<int>(QuickSettingEffect::Delay));
+        button->setFixedHeight(28);
+    }
+    delayQuickLayout->addWidget(delayQuickLoad, 1, 1);
+    delayQuickLayout->addWidget(delayQuickSave, 1, 2);
+    delayQuickLayout->setColumnStretch(0, 1);
+    connect(delayQuickSlot, SIGNAL(activated(int)),
+            this, SLOT(quickSettingSlotActivated(int)));
+    connect(delayQuickLoad, SIGNAL(clicked()), this, SLOT(loadQuickSetting()));
+    connect(delayQuickSave, SIGNAL(clicked()), this, SLOT(saveQuickSetting()));
+    quickSettingDialog->addEffectPage(
+        QuickSettingEffect::Delay, "DELAY", delayQuickPanel);
 
     QWidget *delayTypeControl = createDelayCombo("Type", "01");
     delayTypeControl->setParent(delayEditor->parameterArea());
@@ -1795,7 +1999,42 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     connect(chorusOnOff, SIGNAL(clicked()), this, SLOT(toggleChorus()));
     chorusPrimaryLayout->addWidget(chorusToggle, 0, Qt::AlignTop);
     chorusPrimaryLayout->addStretch(1);
+    chorusPrimaryLayout->addWidget(createQuickSettingButton(
+        QuickSettingEffect::Chorus), 0, Qt::AlignTop);
     chorusParameterLayout->addWidget(chorusPrimaryControls);
+
+    QWidget *chorusQuickPanel = new QWidget;
+    QGridLayout *chorusQuickLayout = new QGridLayout(chorusQuickPanel);
+    chorusQuickLayout->setContentsMargins(0, 0, 0, 0);
+    chorusQuickLayout->setHorizontalSpacing(8);
+    chorusQuickLayout->setVerticalSpacing(5);
+    chorusQuickType = new QLabel(QString::fromUtf8("—"));
+    chorusQuickType->setObjectName("ParameterLabel");
+    chorusQuickType->setTextInteractionFlags(Qt::NoTextInteraction);
+    chorusQuickLayout->addWidget(chorusQuickType, 0, 1, 1, 2);
+    chorusQuickSlot = new QComboBox;
+    chorusQuickSlot->setProperty("quickSettingEffect",
+        static_cast<int>(QuickSettingEffect::Chorus));
+    for (int slot = 1; slot <= 10; ++slot)
+        chorusQuickSlot->addItem(QStringLiteral("U%1").arg(
+            slot, 2, 10, QChar('0')), slot);
+    chorusQuickLayout->addWidget(chorusQuickSlot, 1, 0);
+    chorusQuickLoad = new QPushButton("LOAD");
+    chorusQuickSave = new QPushButton("SAVE");
+    for (QPushButton *button : {chorusQuickLoad, chorusQuickSave}) {
+        button->setProperty("quickSettingEffect",
+            static_cast<int>(QuickSettingEffect::Chorus));
+        button->setFixedHeight(28);
+    }
+    chorusQuickLayout->addWidget(chorusQuickLoad, 1, 1);
+    chorusQuickLayout->addWidget(chorusQuickSave, 1, 2);
+    chorusQuickLayout->setColumnStretch(0, 1);
+    connect(chorusQuickSlot, SIGNAL(activated(int)),
+            this, SLOT(quickSettingSlotActivated(int)));
+    connect(chorusQuickLoad, SIGNAL(clicked()), this, SLOT(loadQuickSetting()));
+    connect(chorusQuickSave, SIGNAL(clicked()), this, SLOT(saveQuickSetting()));
+    quickSettingDialog->addEffectPage(
+        QuickSettingEffect::Chorus, "CHORUS", chorusQuickPanel);
 
     QLabel *chorusModulationTitle = new QLabel("MODULATION");
     chorusModulationTitle->setObjectName("ParameterSectionTitle");
@@ -1849,8 +2088,43 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     connect(eqOnOff, SIGNAL(clicked()), this, SLOT(toggleEq()));
     eqHeaderLayout->addWidget(eqToggle, 0, Qt::AlignTop);
     eqHeaderLayout->addStretch(1);
+    eqHeaderLayout->addWidget(createQuickSettingButton(
+        QuickSettingEffect::Equalizer), 0, Qt::AlignTop);
     eqHeaderLayout->addWidget(eqTitle);
     eqLayout->addWidget(eqHeader);
+
+    QWidget *eqQuickPanel = new QWidget;
+    QGridLayout *eqQuickLayout = new QGridLayout(eqQuickPanel);
+    eqQuickLayout->setContentsMargins(0, 0, 0, 0);
+    eqQuickLayout->setHorizontalSpacing(8);
+    eqQuickLayout->setVerticalSpacing(5);
+    eqQuickSlot = new QComboBox;
+    eqQuickSlot->setProperty("quickSettingEffect",
+        static_cast<int>(QuickSettingEffect::Equalizer));
+    eqQuickSlot->setFixedHeight(28);
+    eqQuickSlot->setMinimumWidth(132);
+    eqQuickSlot->setMaximumWidth(190);
+    eqQuickSlot->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    for (int slot = 1; slot <= 10; ++slot)
+        eqQuickSlot->addItem(QStringLiteral("U%1").arg(
+            slot, 2, 10, QChar('0')), slot);
+    eqQuickLayout->addWidget(eqQuickSlot, 1, 0);
+    eqQuickLoad = new QPushButton("LOAD");
+    eqQuickSave = new QPushButton("SAVE");
+    for (QPushButton *button : {eqQuickLoad, eqQuickSave}) {
+        button->setProperty("quickSettingEffect",
+            static_cast<int>(QuickSettingEffect::Equalizer));
+        button->setFixedSize(58, 28);
+    }
+    eqQuickLayout->addWidget(eqQuickLoad, 1, 1);
+    eqQuickLayout->addWidget(eqQuickSave, 1, 2);
+    eqQuickLayout->setColumnStretch(0, 1);
+    connect(eqQuickSlot, SIGNAL(activated(int)),
+            this, SLOT(quickSettingSlotActivated(int)));
+    connect(eqQuickLoad, SIGNAL(clicked()), this, SLOT(loadQuickSetting()));
+    connect(eqQuickSave, SIGNAL(clicked()), this, SLOT(saveQuickSetting()));
+    quickSettingDialog->addEffectPage(
+        QuickSettingEffect::Equalizer, "EQ", eqQuickPanel);
 
     eqGraph = new ModernEqGraph;
     eqLayout->addWidget(eqGraph, 1);
@@ -1973,6 +2247,44 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     });
     sendReturnEditor = new ModernSendReturnEditor(this);
     effectEditorStack->addWidget(sendReturnEditor->widget());
+    sendReturnEditor->addStateRowAction(createQuickSettingButton(
+        QuickSettingEffect::SendReturn));
+    QWidget *sendReturnQuickPanel = new QWidget;
+    QGridLayout *sendReturnQuickLayout = new QGridLayout(sendReturnQuickPanel);
+    sendReturnQuickLayout->setContentsMargins(0, 0, 0, 0);
+    sendReturnQuickLayout->setHorizontalSpacing(8);
+    sendReturnQuickLayout->setVerticalSpacing(5);
+    sendReturnQuickMode = new QLabel(QString::fromUtf8("—"));
+    sendReturnQuickMode->setObjectName("ParameterLabel");
+    sendReturnQuickLayout->addWidget(sendReturnQuickMode, 0, 1, 1, 2);
+    sendReturnQuickSlot = new QComboBox;
+    sendReturnQuickSlot->setProperty(
+        "quickSettingEffect",
+        static_cast<int>(QuickSettingEffect::SendReturn));
+    for (int slot = 1; slot <= 10; ++slot)
+        sendReturnQuickSlot->addItem(QStringLiteral("U%1").arg(
+            slot, 2, 10, QChar('0')), slot);
+    sendReturnQuickLayout->addWidget(sendReturnQuickSlot, 1, 0);
+    sendReturnQuickLoad = new QPushButton("LOAD");
+    sendReturnQuickSave = new QPushButton("SAVE");
+    for (QPushButton *button : {sendReturnQuickLoad,
+                                sendReturnQuickSave}) {
+        button->setProperty(
+            "quickSettingEffect",
+            static_cast<int>(QuickSettingEffect::SendReturn));
+        button->setFixedHeight(28);
+    }
+    sendReturnQuickLayout->addWidget(sendReturnQuickLoad, 1, 1);
+    sendReturnQuickLayout->addWidget(sendReturnQuickSave, 1, 2);
+    sendReturnQuickLayout->setColumnStretch(0, 1);
+    connect(sendReturnQuickSlot, SIGNAL(activated(int)),
+            this, SLOT(quickSettingSlotActivated(int)));
+    connect(sendReturnQuickLoad, SIGNAL(clicked()),
+            this, SLOT(loadQuickSetting()));
+    connect(sendReturnQuickSave, SIGNAL(clicked()),
+            this, SLOT(saveQuickSetting()));
+    quickSettingDialog->addEffectPage(
+        QuickSettingEffect::SendReturn, "S/R", sendReturnQuickPanel);
     connect(sendReturnEditor, &ModernSendReturnEditor::stateChanged,
             this, [this](bool available, bool on) {
         if (sendReturnCard)
@@ -2047,6 +2359,7 @@ EffectEditorPanel *modernFloorBoard::createPreampEditor(
     const QColor accent(ModernTheme::activeEffectAccent(name));
 
     state.editor = new EffectEditorPanel(name);
+    state.editor->typeLabel()->hide();
     state.browser = new EffectModelBrowser;
     state.browser->setAccentColor(accent);
     state.browser->setCategoriesCollapsible(true);
@@ -2056,9 +2369,20 @@ EffectEditorPanel *modernFloorBoard::createPreampEditor(
             this, SLOT(preampModelSelected(int)));
 
     state.artwork = new EffectArtworkWidget;
-    state.artwork->setArtwork(channel == PreampChannel::A
-        ? ":/assets/effects/preamp_a.png"
-        : ":/assets/effects/preamp_b.png");
+    const QString artworkPath = channel == PreampChannel::A
+        ? ":/assets/effects/amp_a.png"
+        : ":/assets/effects/amp_b.png";
+    if (!state.artwork->setArtwork(artworkPath))
+        qWarning() << "Failed to load PREAMP artwork:" << artworkPath;
+    QFont ampNameFont = state.artwork->font();
+    ampNameFont.setWeight(QFont::DemiBold);
+    ampNameFont.setLetterSpacing(QFont::PercentageSpacing, 103.0);
+    state.artwork->setTextOverlay(
+        "ampName",
+        channel == PreampChannel::A
+            ? QRectF(0.185, 0.217, 0.630, 0.145)
+            : QRectF(0.185, 0.177, 0.630, 0.155),
+        QString(), ampNameFont, QColor("#E8EDF1"), Qt::AlignCenter, 0.50);
     state.editor->setArtworkWidget(state.artwork);
 
     QVBoxLayout *layout = new QVBoxLayout(state.editor->parameterArea());
@@ -2079,7 +2403,54 @@ EffectEditorPanel *modernFloorBoard::createPreampEditor(
             this, SLOT(preampToggleChanged()));
     primaryLayout->addWidget(globalControl, 0, Qt::AlignTop);
     primaryLayout->addStretch(1);
+    primaryLayout->addWidget(createQuickSettingButton(
+        channel == PreampChannel::A ? QuickSettingEffect::PreampA
+                                    : QuickSettingEffect::PreampB),
+        0, Qt::AlignTop);
     layout->addWidget(primary);
+
+    QWidget *quickPanel = new QWidget;
+    QGridLayout *quickLayout = new QGridLayout(quickPanel);
+    quickLayout->setContentsMargins(0, 0, 0, 0);
+    quickLayout->setHorizontalSpacing(8);
+    quickLayout->setVerticalSpacing(5);
+    state.quickType = new QLabel(QString::fromUtf8("—"));
+    state.quickType->setObjectName("ParameterLabel");
+    state.quickType->setTextInteractionFlags(Qt::NoTextInteraction);
+    quickLayout->addWidget(state.quickType, 0, 1, 1, 2);
+    state.quickSlot = new QComboBox;
+    state.quickSlot->setProperty("preampChannel", channelValue);
+    state.quickSlot->setProperty("quickSettingEffect", channelValue);
+    for (int slot = 1; slot <= 10; ++slot)
+        state.quickSlot->addItem(QStringLiteral("U%1").arg(slot, 2, 10,
+                                                           QChar('0')), slot);
+    quickLayout->addWidget(state.quickSlot, 1, 0);
+    state.quickLoad = new QPushButton("LOAD");
+    state.quickSave = new QPushButton("SAVE");
+    for (QPushButton *button : {state.quickLoad, state.quickSave}) {
+        button->setProperty("preampChannel", channelValue);
+        button->setProperty("quickSettingEffect", channelValue);
+        button->setFixedHeight(28);
+        button->setStyleSheet(QStringLiteral(
+            "QPushButton { color: #C9D1D8; background: #11161B; "
+            "border: 1px solid #2B3945; border-radius: 5px; padding: 0 12px; "
+            "font-size: 10px; font-weight: 600; }"
+            "QPushButton:hover { border-color: %1; color: #F2F6F8; }"
+            "QPushButton:pressed { background: #0A0D10; }"
+            "QPushButton:disabled { color: #596169; border-color: #242A30; }")
+            .arg(ModernTheme::color(ModernTheme::AccentCyan)));
+    }
+    quickLayout->addWidget(state.quickLoad, 1, 1);
+    quickLayout->addWidget(state.quickSave, 1, 2);
+    quickLayout->setColumnStretch(0, 1);
+    connect(state.quickSlot, SIGNAL(activated(int)),
+            this, SLOT(quickSettingSlotActivated(int)));
+    connect(state.quickLoad, SIGNAL(clicked()), this, SLOT(loadQuickSetting()));
+    connect(state.quickSave, SIGNAL(clicked()), this, SLOT(saveQuickSetting()));
+    quickSettingDialog->addEffectPage(
+        channel == PreampChannel::A ? QuickSettingEffect::PreampA
+                                    : QuickSettingEffect::PreampB,
+        name, quickPanel);
 
     QWidget *typeControl = createPreampCombo(channel, "Type", 0x00);
     typeControl->setParent(state.editor->parameterArea());
@@ -3286,6 +3657,7 @@ void modernFloorBoard::pollOutputSystemData()
 
 void modernFloorBoard::backendConnected()
 {
+    invalidateQuickSettingPresentationCache();
     backendIsConnected = true;
     backendHasPatchData = false;
     outputSystemDataRequested = false;
@@ -3315,10 +3687,13 @@ void modernFloorBoard::backendConnected()
     refreshSystem();
     refreshNoiseSuppressors();
     refreshSendReturn();
+    refreshQuickSettingControls();
 }
 
 void modernFloorBoard::backendDisconnected()
 {
+    cancelQuickSettingPrefetch();
+    invalidateQuickSettingPresentationCache();
     backendIsConnected = false;
     backendHasPatchData = false;
     outputSystemDataRequested = false;
@@ -3355,6 +3730,7 @@ void modernFloorBoard::backendDisconnected()
     patchName->setText("NO PATCH DATA");
     patchName->setToolTip("NO PATCH DATA");
     patchListModel.setCurrentPatch(0, 0);
+    refreshQuickSettingControls();
 }
 
 void modernFloorBoard::backendActivityChanged(int status)
@@ -3363,6 +3739,721 @@ void modernFloorBoard::backendActivityChanged(int status)
     if (status == 1 && sysxIO->deviceReady())
         readRequestInFlight = false;
     refreshReadButtonState();
+    refreshQuickSettingControls();
+}
+
+QPushButton *modernFloorBoard::createQuickSettingButton(
+    QuickSettingEffect effect)
+{
+    auto *button = new QPushButton("QUICK");
+    button->setProperty("quickSettingEffect", static_cast<int>(effect));
+    button->setFixedSize(58, 27);
+    button->setToolTip(tr("Open User Quick Settings"));
+    button->setStyleSheet(QStringLiteral(
+        "QPushButton { color: #C9D1D8; background: #11161B; "
+        "border: 1px solid #35414D; border-radius: 5px; "
+        "font-size: 10px; font-weight: 600; }"
+        "QPushButton:hover { border-color: %1; color: #F2F6F8; }"
+        "QPushButton:pressed { background: #0A0D10; }"
+        "QPushButton:disabled { color: #596169; border-color: #242A30; }")
+        .arg(ModernTheme::color(ModernTheme::AccentCyan)));
+    connect(button, &QPushButton::clicked,
+            this, &modernFloorBoard::showQuickSettings);
+    return button;
+}
+
+void modernFloorBoard::showQuickSettings()
+{
+    const QPushButton *button = qobject_cast<QPushButton *>(sender());
+    if (!button || !quickSettingDialog)
+        return;
+    const QuickSettingEffect effect = static_cast<QuickSettingEffect>(
+        button->property("quickSettingEffect").toInt());
+    quickSettingDialog->showEffect(effect);
+    startQuickSettingPrefetch(effect);
+}
+
+QComboBox *modernFloorBoard::quickSettingCombo(
+    QuickSettingEffect effect) const
+{
+    if (effect == QuickSettingEffect::PreampA)
+        return preampA.quickSlot;
+    if (effect == QuickSettingEffect::PreampB)
+        return preampB.quickSlot;
+    if (effect == QuickSettingEffect::OverdriveDistortion)
+        return oddsQuickSlot;
+    if (effect == QuickSettingEffect::Delay)
+        return delayQuickSlot;
+    if (effect == QuickSettingEffect::Chorus)
+        return chorusQuickSlot;
+    if (effect == QuickSettingEffect::Reverb)
+        return reverbQuickSlot;
+    if (effect == QuickSettingEffect::Compressor)
+        return compQuickSlot;
+    if (effect == QuickSettingEffect::Equalizer)
+        return eqQuickSlot;
+    if (effect == QuickSettingEffect::SendReturn)
+        return sendReturnQuickSlot;
+    return nullptr;
+}
+
+QLabel *modernFloorBoard::quickSettingTypeLabel(
+    QuickSettingEffect effect) const
+{
+    if (effect == QuickSettingEffect::PreampA)
+        return preampA.quickType;
+    if (effect == QuickSettingEffect::PreampB)
+        return preampB.quickType;
+    if (effect == QuickSettingEffect::OverdriveDistortion)
+        return oddsQuickType;
+    if (effect == QuickSettingEffect::Delay)
+        return delayQuickType;
+    if (effect == QuickSettingEffect::Chorus)
+        return chorusQuickType;
+    if (effect == QuickSettingEffect::Reverb)
+        return reverbQuickType;
+    if (effect == QuickSettingEffect::Compressor)
+        return compQuickType;
+    if (effect == QuickSettingEffect::SendReturn)
+        return sendReturnQuickMode;
+    return nullptr;
+}
+
+void modernFloorBoard::applyQuickSettingPresentation(
+    QuickSettingEffect effect, int slot)
+{
+    QComboBox *combo = quickSettingCombo(effect);
+    if (!combo)
+        return;
+    const int index = combo->findData(slot);
+    if (index < 0)
+        return;
+    const QString slotText = QStringLiteral("U%1").arg(
+        slot, 2, 10, QChar('0'));
+    const QuickPresentationEntry entry = quickPresentationCache
+        .value(static_cast<int>(effect)).value(slot);
+    QString text = slotText;
+    if (entry.generation == quickPresentationGeneration) {
+        if (entry.status == QuickPresentationStatus::Loading)
+            text += tr(" · Loading...");
+        else if (entry.status == QuickPresentationStatus::Ready
+                 && !entry.display.isEmpty())
+            text += QStringLiteral(" · %1").arg(entry.display);
+        else if (entry.status == QuickPresentationStatus::Failed)
+            text += QString::fromUtf8(" · —");
+    }
+    combo->setItemText(index, text);
+    combo->setItemData(index,
+        entry.originalName.isEmpty() ? entry.typeDisplay
+                                     : entry.originalName,
+        Qt::ToolTipRole);
+}
+
+void modernFloorBoard::startQuickSettingPrefetch(
+    QuickSettingEffect effect)
+{
+    if (effect == QuickSettingEffect::Fx1)
+        return;
+    cancelQuickSettingPrefetch();
+    quickPrefetchEffect = effect;
+    quickPrefetchActive = true;
+    quickPrefetchTimer.restart();
+    QHash<int, QuickPresentationEntry> &effectCache =
+        quickPresentationCache[static_cast<int>(effect)];
+    for (int slot = 1; slot <= 10; ++slot) {
+        QuickPresentationEntry &entry = effectCache[slot];
+        if (entry.generation == quickPresentationGeneration
+            && entry.status == QuickPresentationStatus::Ready) {
+            applyQuickSettingPresentation(effect, slot);
+            continue;
+        }
+        entry = QuickPresentationEntry();
+        entry.generation = quickPresentationGeneration;
+        entry.status = QuickPresentationStatus::Loading;
+        quickPrefetchSlots.append(slot);
+        applyQuickSettingPresentation(effect, slot);
+    }
+    scheduleNextQuickSettingPrefetch();
+}
+
+void modernFloorBoard::scheduleNextQuickSettingPrefetch()
+{
+    if (!quickPrefetchActive || !quickSettingService
+        || quickSettingService->isBusy())
+        return;
+    if (!quickSettingDialog || !quickSettingDialog->isVisible()) {
+        cancelQuickSettingPrefetch();
+        return;
+    }
+    if (quickPrefetchSlots.isEmpty()) {
+        qInfo() << "[QuickSetting PREFETCH] completed effect="
+                << static_cast<int>(quickPrefetchEffect)
+                << "elapsedMs=" << quickPrefetchTimer.elapsed();
+        quickPrefetchActive = false;
+        return;
+    }
+    const int slot = quickPrefetchSlots.takeFirst();
+    quickPresentationRequestGeneration = quickPresentationGeneration;
+    quickSettingService->requestPresentation(quickPrefetchEffect, slot);
+}
+
+void modernFloorBoard::cancelQuickSettingPrefetch()
+{
+    quickPrefetchActive = false;
+    quickPrefetchSlots.clear();
+}
+
+void modernFloorBoard::invalidateQuickSettingPresentationCache()
+{
+    cancelQuickSettingPrefetch();
+    ++quickPresentationGeneration;
+    quickPresentationCache.clear();
+    const QList<QuickSettingEffect> effects = {
+        QuickSettingEffect::PreampA, QuickSettingEffect::PreampB,
+        QuickSettingEffect::OverdriveDistortion, QuickSettingEffect::Delay,
+        QuickSettingEffect::Chorus, QuickSettingEffect::Reverb,
+        QuickSettingEffect::Compressor, QuickSettingEffect::Equalizer,
+        QuickSettingEffect::SendReturn
+    };
+    for (QuickSettingEffect effect : effects) {
+        for (int slot = 1; slot <= 10; ++slot)
+            applyQuickSettingPresentation(effect, slot);
+    }
+}
+
+void modernFloorBoard::invalidateQuickSettingPresentationSlot(
+    QuickSettingEffect effect, int slot)
+{
+    QuickPresentationEntry &entry =
+        quickPresentationCache[static_cast<int>(effect)][slot];
+    entry = QuickPresentationEntry();
+    entry.generation = quickPresentationGeneration;
+    entry.status = QuickPresentationStatus::Stale;
+    applyQuickSettingPresentation(effect, slot);
+}
+
+void modernFloorBoard::setQuickSettingService(QuickSettingService *service)
+{
+    if (quickSettingService == service)
+        return;
+    if (quickSettingService)
+        disconnect(quickSettingService, nullptr, this, nullptr);
+    quickSettingService = service;
+    if (quickSettingService) {
+        connect(quickSettingService, &QuickSettingService::busyChanged,
+                this, [this](bool busy) {
+            refreshQuickSettingControls();
+            if (!busy)
+                scheduleNextQuickSettingPrefetch();
+        });
+        connect(quickSettingService, &QuickSettingService::slotTypeReady,
+                this, &modernFloorBoard::quickSettingTypeReady);
+        connect(quickSettingService, &QuickSettingService::slotIdentityReady,
+                this, &modernFloorBoard::quickSettingIdentityReady);
+        connect(quickSettingService,
+                &QuickSettingService::slotPresentationReady,
+                this, &modernFloorBoard::quickSettingPresentationReady);
+        connect(quickSettingService, &QuickSettingService::loadFinished,
+                this, &modernFloorBoard::quickSettingLoadFinished);
+        connect(quickSettingService, &QuickSettingService::saveFinished,
+                this, &modernFloorBoard::quickSettingSaveFinished);
+    }
+    refreshQuickSettingControls();
+}
+
+void modernFloorBoard::refreshQuickSettingControls()
+{
+    SysxIO *sysxIO = SysxIO::Instance();
+    const bool available = quickSettingService && !quickSettingService->isBusy()
+        && backendIsConnected && backendHasPatchData
+        && sysxIO->isConnected() && sysxIO->deviceReady()
+        && !readRequestInFlight && !writeRequestInFlight
+        && !patchManagementInFlight;
+    for (PreampEditorState *state : {&preampA, &preampB}) {
+        if (state->quickSlot)
+            state->quickSlot->setEnabled(available);
+        if (state->quickLoad)
+            state->quickLoad->setEnabled(available);
+        if (state->quickSave)
+            state->quickSave->setEnabled(available);
+    }
+    if (oddsQuickSlot)
+        oddsQuickSlot->setEnabled(available);
+    if (oddsQuickLoad)
+        oddsQuickLoad->setEnabled(available);
+    if (oddsQuickSave)
+        oddsQuickSave->setEnabled(available);
+    if (delayQuickSlot)
+        delayQuickSlot->setEnabled(available);
+    if (delayQuickLoad)
+        delayQuickLoad->setEnabled(available);
+    if (delayQuickSave)
+        delayQuickSave->setEnabled(available);
+    if (chorusQuickSlot)
+        chorusQuickSlot->setEnabled(available);
+    if (chorusQuickLoad)
+        chorusQuickLoad->setEnabled(available);
+    if (chorusQuickSave)
+        chorusQuickSave->setEnabled(available);
+    if (reverbQuickSlot)
+        reverbQuickSlot->setEnabled(available);
+    if (reverbQuickLoad)
+        reverbQuickLoad->setEnabled(available);
+    if (reverbQuickSave)
+        reverbQuickSave->setEnabled(available);
+    if (compQuickSlot)
+        compQuickSlot->setEnabled(available);
+    if (compQuickLoad)
+        compQuickLoad->setEnabled(available);
+    if (compQuickSave)
+        compQuickSave->setEnabled(available);
+    if (eqQuickSlot)
+        eqQuickSlot->setEnabled(available);
+    if (eqQuickLoad)
+        eqQuickLoad->setEnabled(available);
+    if (eqQuickSave)
+        eqQuickSave->setEnabled(available);
+    if (sendReturnQuickSlot)
+        sendReturnQuickSlot->setEnabled(available);
+    if (sendReturnQuickLoad)
+        sendReturnQuickLoad->setEnabled(available);
+    if (sendReturnQuickSave)
+        sendReturnQuickSave->setEnabled(available);
+}
+
+void modernFloorBoard::quickSettingSlotActivated(int)
+{
+    cancelQuickSettingPrefetch();
+    QComboBox *combo = qobject_cast<QComboBox *>(sender());
+    if (!combo || !quickSettingService)
+        return;
+    const QuickSettingEffect effect = static_cast<QuickSettingEffect>(
+        combo->property("quickSettingEffect").toInt());
+    const int slot = combo->currentData().toInt();
+    QLabel *typeLabel = effect == QuickSettingEffect::Equalizer
+        ? nullptr : (effect == QuickSettingEffect::Compressor
+        ? compQuickType : (effect == QuickSettingEffect::Delay
+        ? delayQuickType : (effect == QuickSettingEffect::Chorus
+            ? chorusQuickType : (effect == QuickSettingEffect::Reverb
+                ? reverbQuickType : oddsQuickType))));
+    if (effect == QuickSettingEffect::SendReturn)
+        typeLabel = sendReturnQuickMode;
+    if (effect != QuickSettingEffect::OverdriveDistortion
+        && effect != QuickSettingEffect::Compressor
+        && effect != QuickSettingEffect::Delay
+        && effect != QuickSettingEffect::Chorus
+        && effect != QuickSettingEffect::Reverb
+        && effect != QuickSettingEffect::Equalizer
+        && effect != QuickSettingEffect::Fx1
+        && effect != QuickSettingEffect::SendReturn)
+        typeLabel = preampState(effect == QuickSettingEffect::PreampA
+            ? PreampChannel::A : PreampChannel::B).quickType;
+    if (typeLabel)
+        typeLabel->setText("READING…");
+    quickSettingService->requestType(effect, slot);
+}
+
+void modernFloorBoard::loadQuickSetting()
+{
+    cancelQuickSettingPrefetch();
+    QPushButton *button = qobject_cast<QPushButton *>(sender());
+    if (!button || !quickSettingService)
+        return;
+    const QuickSettingEffect effect = static_cast<QuickSettingEffect>(
+        button->property("quickSettingEffect").toInt());
+    QComboBox *slotCombo = effect == QuickSettingEffect::Equalizer
+        ? eqQuickSlot : (effect == QuickSettingEffect::Compressor
+        ? compQuickSlot : (effect == QuickSettingEffect::Delay
+        ? delayQuickSlot : (effect == QuickSettingEffect::Chorus
+            ? chorusQuickSlot : (effect == QuickSettingEffect::Reverb
+                ? reverbQuickSlot : oddsQuickSlot))));
+    if (effect == QuickSettingEffect::SendReturn)
+        slotCombo = sendReturnQuickSlot;
+    if (effect != QuickSettingEffect::OverdriveDistortion
+        && effect != QuickSettingEffect::Compressor
+        && effect != QuickSettingEffect::Delay
+        && effect != QuickSettingEffect::Chorus
+        && effect != QuickSettingEffect::Reverb
+        && effect != QuickSettingEffect::Equalizer
+        && effect != QuickSettingEffect::Fx1
+        && effect != QuickSettingEffect::SendReturn)
+        slotCombo = preampState(effect == QuickSettingEffect::PreampA
+            ? PreampChannel::A : PreampChannel::B).quickSlot;
+    if (!slotCombo)
+        return;
+    quickSettingService->load(effect, slotCombo->currentData().toInt());
+}
+
+void modernFloorBoard::saveQuickSetting()
+{
+    cancelQuickSettingPrefetch();
+    QPushButton *button = qobject_cast<QPushButton *>(sender());
+    if (!button || !quickSettingService)
+        return;
+    const QuickSettingEffect effect = static_cast<QuickSettingEffect>(
+        button->property("quickSettingEffect").toInt());
+    QComboBox *slotCombo = effect == QuickSettingEffect::Equalizer
+        ? eqQuickSlot : (effect == QuickSettingEffect::Compressor
+        ? compQuickSlot : (effect == QuickSettingEffect::Delay
+        ? delayQuickSlot : (effect == QuickSettingEffect::Chorus
+            ? chorusQuickSlot : (effect == QuickSettingEffect::Reverb
+                ? reverbQuickSlot : oddsQuickSlot))));
+    if (effect == QuickSettingEffect::SendReturn)
+        slotCombo = sendReturnQuickSlot;
+    if (effect != QuickSettingEffect::OverdriveDistortion
+        && effect != QuickSettingEffect::Compressor
+        && effect != QuickSettingEffect::Delay
+        && effect != QuickSettingEffect::Chorus
+        && effect != QuickSettingEffect::Reverb
+        && effect != QuickSettingEffect::Equalizer
+        && effect != QuickSettingEffect::Fx1
+        && effect != QuickSettingEffect::SendReturn)
+        slotCombo = preampState(effect == QuickSettingEffect::PreampA
+            ? PreampChannel::A : PreampChannel::B).quickSlot;
+    if (!slotCombo)
+        return;
+
+    const int slot = slotCombo->currentData().toInt();
+    QDialog dialog(this);
+    dialog.setWindowTitle(tr("SAVE QUICK SETTING"));
+    dialog.setModal(true);
+    dialog.setMinimumWidth(340);
+    dialog.setStyleSheet(QStringLiteral(
+        "QDialog { background: #0D1014; color: #E7ECF0; }"
+        "QLabel { color: #AAB4BD; font-size: 11px; }"
+        "QLineEdit { min-height: 27px; padding: 0 8px; color: #E7ECF0; "
+        "background: #11161B; border: 1px solid #303941; border-radius: 5px; }"
+        "QLineEdit:focus { border-color: %1; }"
+        "QPushButton { min-width: 82px; min-height: 28px; color: #D4DCE2; "
+        "background: #151A1F; border: 1px solid #303941; border-radius: 5px; }"
+        "QPushButton:hover { border-color: %1; }")
+        .arg(ModernTheme::color(ModernTheme::AccentCyan)));
+    QVBoxLayout *layout = new QVBoxLayout(&dialog);
+    layout->setContentsMargins(20, 18, 20, 16);
+    layout->setSpacing(10);
+    const bool odds = effect == QuickSettingEffect::OverdriveDistortion;
+    const bool delay = effect == QuickSettingEffect::Delay;
+    const bool chorus = effect == QuickSettingEffect::Chorus;
+    const bool reverb = effect == QuickSettingEffect::Reverb;
+    const bool comp = effect == QuickSettingEffect::Compressor;
+    const bool eq = effect == QuickSettingEffect::Equalizer;
+    const bool fx1 = effect == QuickSettingEffect::Fx1;
+    const bool sendReturn = effect == QuickSettingEffect::SendReturn;
+    const bool namedEffect = comp || odds || delay || chorus || reverb || eq
+        || fx1 || sendReturn;
+    const QString typeBank = (odds || comp) ? QStringLiteral("00")
+        : ((delay || chorus || reverb || sendReturn) ? QStringLiteral("0A")
+            : (fx1 ? QStringLiteral("02") : QStringLiteral("01")));
+    const QString typeAddress = comp ? QStringLiteral("41")
+        : (odds ? QStringLiteral("71")
+        : (fx1 ? QStringLiteral("01")
+        : (sendReturn ? QStringLiteral("7A")
+        : (delay ? QStringLiteral("01")
+        : (chorus ? QStringLiteral("21")
+        : (reverb ? QStringLiteral("31")
+        : (effect == QuickSettingEffect::PreampA
+               ? QStringLiteral("10") : QStringLiteral("30"))))))));
+    const int currentTypeRaw = eq ? -1 : SysxIO::Instance()->getSourceValue(
+        QStringLiteral("Structure"), typeBank, QStringLiteral("00"),
+        typeAddress);
+    const QString currentType = eq
+        ? QString() : quickSettingTypeDisplay(effect, currentTypeRaw);
+    QGridLayout *summary = new QGridLayout;
+    summary->setHorizontalSpacing(18);
+    summary->setVerticalSpacing(7);
+    summary->addWidget(new QLabel(tr("Effect:"), &dialog), 0, 0);
+    summary->addWidget(new QLabel(
+        effect == QuickSettingEffect::PreampA ? "PREAMP A"
+            : (effect == QuickSettingEffect::PreampB ? "PREAMP B"
+                : (eq ? "EQ" : (comp ? "COMP" : (delay ? "DELAY"
+                    : (chorus ? "CHORUS" : (reverb ? "REVERB"
+                        : (fx1 ? "FX-1" : (sendReturn ? "S/R"
+                            : "OD/DS")))))))),
+        &dialog),
+        0, 1);
+    summary->addWidget(new QLabel(tr("Destination:"), &dialog), 1, 0);
+    summary->addWidget(new QLabel(
+        QStringLiteral("U%1").arg(slot, 2, 10, QChar('0')), &dialog), 1, 1);
+    QLineEdit *nameEdit = nullptr;
+    int typeRow = 2;
+    if (namedEffect) {
+        nameEdit = new QLineEdit(&dialog);
+        nameEdit->setMaxLength(QuickSettingCodec::NameSize);
+        nameEdit->setPlaceholderText(tr("Quick Setting name"));
+        summary->addWidget(new QLabel(tr("Name:"), &dialog), 2, 0);
+        summary->addWidget(nameEdit, 2, 1);
+        typeRow = 3;
+    }
+    if (!eq) {
+        summary->addWidget(new QLabel(
+            sendReturn ? tr("Current Mode:") : tr("Current Type:"),
+            &dialog), typeRow, 0);
+        summary->addWidget(new QLabel(
+            currentType.isEmpty() ? QString::fromUtf8("—") : currentType,
+            &dialog), typeRow, 1);
+    }
+    layout->addLayout(summary);
+    if (fx1) {
+        QLabel *sharedNameNote = new QLabel(
+            tr("FX-1 and FX-2 share the Quick Setting name for the same effect type."),
+            &dialog);
+        sharedNameNote->setWordWrap(true);
+        sharedNameNote->setStyleSheet(
+            "color: #7F8A93; font-size: 10px;");
+        layout->addWidget(sharedNameNote);
+    }
+    QDialogButtonBox *buttons = new QDialogButtonBox(
+        QDialogButtonBox::Cancel | QDialogButtonBox::Save, &dialog);
+    connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+    connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+    layout->addWidget(buttons);
+    if (dialog.exec() != QDialog::Accepted)
+        return;
+
+    if (namedEffect)
+        quickSettingService->save(effect, slot, nameEdit->text());
+    else
+        quickSettingService->save(effect, slot);
+}
+
+void modernFloorBoard::quickSettingTypeReady(QuickSettingEffect effect,
+                                              int slot, int typeRaw,
+                                              bool valid)
+{
+    QComboBox *slotCombo = effect == QuickSettingEffect::Equalizer
+        ? eqQuickSlot : (effect == QuickSettingEffect::Compressor
+        ? compQuickSlot : (effect == QuickSettingEffect::Delay
+        ? delayQuickSlot : (effect == QuickSettingEffect::Chorus
+            ? chorusQuickSlot : (effect == QuickSettingEffect::Reverb
+                ? reverbQuickSlot : oddsQuickSlot))));
+    QLabel *typeLabel = effect == QuickSettingEffect::Equalizer
+        ? nullptr : (effect == QuickSettingEffect::Compressor
+        ? compQuickType : (effect == QuickSettingEffect::Delay
+        ? delayQuickType : (effect == QuickSettingEffect::Chorus
+            ? chorusQuickType : (effect == QuickSettingEffect::Reverb
+                ? reverbQuickType : oddsQuickType))));
+    if (effect == QuickSettingEffect::SendReturn) {
+        slotCombo = sendReturnQuickSlot;
+        typeLabel = sendReturnQuickMode;
+    }
+    if (effect != QuickSettingEffect::OverdriveDistortion
+        && effect != QuickSettingEffect::Compressor
+        && effect != QuickSettingEffect::Delay
+        && effect != QuickSettingEffect::Chorus
+        && effect != QuickSettingEffect::Reverb
+        && effect != QuickSettingEffect::Equalizer
+        && effect != QuickSettingEffect::Fx1
+        && effect != QuickSettingEffect::SendReturn) {
+        PreampEditorState &state = preampState(
+            effect == QuickSettingEffect::PreampA
+                ? PreampChannel::A : PreampChannel::B);
+        slotCombo = state.quickSlot;
+        typeLabel = state.quickType;
+    }
+    if (slotCombo) {
+        QuickPresentationEntry &entry =
+            quickPresentationCache[static_cast<int>(effect)][slot];
+        entry = QuickPresentationEntry();
+        entry.generation = quickPresentationGeneration;
+        entry.status = valid ? QuickPresentationStatus::Ready
+                             : QuickPresentationStatus::Failed;
+        entry.typeRaw = valid ? typeRaw : -1;
+        entry.typeDisplay = valid
+            ? quickSettingTypeDisplay(effect, typeRaw) : QString();
+        entry.display = entry.typeDisplay;
+        applyQuickSettingPresentation(effect, slot);
+    }
+    if (!slotCombo || slotCombo->currentData().toInt() != slot)
+        return;
+    const QString type = valid
+        ? quickSettingTypeDisplay(effect, typeRaw) : QString();
+    if (typeLabel) {
+        typeLabel->setText(type.isEmpty()
+            ? QString::fromUtf8("—") : type);
+        typeLabel->setToolTip(type);
+    }
+    const int index = slotCombo->findData(slot);
+    if (index >= 0) {
+        const QString slotText = QStringLiteral("U%1").arg(
+            slot, 2, 10, QChar('0'));
+        slotCombo->setItemText(index, type.isEmpty()
+            ? slotText : QStringLiteral("%1 · %2").arg(slotText, type));
+    }
+}
+
+void modernFloorBoard::quickSettingIdentityReady(
+    QuickSettingEffect effect, int slot, int typeRaw, bool typeValid,
+    QString name, bool nameValid)
+{
+    QComboBox *slotCombo = effect == QuickSettingEffect::Equalizer
+        ? eqQuickSlot : (effect == QuickSettingEffect::Compressor
+        ? compQuickSlot : (effect == QuickSettingEffect::Delay
+        ? delayQuickSlot : (effect == QuickSettingEffect::Chorus
+            ? chorusQuickSlot : (effect == QuickSettingEffect::Reverb
+                ? reverbQuickSlot : oddsQuickSlot))));
+    QLabel *typeLabel = effect == QuickSettingEffect::Equalizer
+        ? nullptr : (effect == QuickSettingEffect::Compressor
+        ? compQuickType : (effect == QuickSettingEffect::Delay
+        ? delayQuickType : (effect == QuickSettingEffect::Chorus
+            ? chorusQuickType : (effect == QuickSettingEffect::Reverb
+                ? reverbQuickType : oddsQuickType))));
+    if (effect == QuickSettingEffect::SendReturn) {
+        slotCombo = sendReturnQuickSlot;
+        typeLabel = sendReturnQuickMode;
+    }
+    if ((effect != QuickSettingEffect::OverdriveDistortion
+         && effect != QuickSettingEffect::Compressor
+         && effect != QuickSettingEffect::Delay
+         && effect != QuickSettingEffect::Chorus
+         && effect != QuickSettingEffect::Reverb
+         && effect != QuickSettingEffect::Equalizer
+         && effect != QuickSettingEffect::Fx1
+         && effect != QuickSettingEffect::SendReturn)
+        || !slotCombo)
+        return;
+
+    const QString type = typeValid
+        ? quickSettingTypeDisplay(effect, typeRaw) : QString();
+    QuickPresentationEntry &entry =
+        quickPresentationCache[static_cast<int>(effect)][slot];
+    entry = QuickPresentationEntry();
+    entry.generation = quickPresentationGeneration;
+    entry.status = (nameValid || typeValid)
+        ? QuickPresentationStatus::Ready : QuickPresentationStatus::Failed;
+    entry.originalName = nameValid ? name.trimmed() : QString();
+    entry.typeRaw = typeValid ? typeRaw : -1;
+    entry.typeDisplay = type;
+    entry.display = !entry.originalName.isEmpty()
+        ? entry.originalName : entry.typeDisplay;
+    applyQuickSettingPresentation(effect, slot);
+    if (slotCombo->currentData().toInt() != slot)
+        return;
+    if (typeLabel) {
+        typeLabel->setText(type.isEmpty() ? QString::fromUtf8("—") : type);
+        typeLabel->setToolTip(type);
+    }
+    const int index = slotCombo->findData(slot);
+    if (index < 0)
+        return;
+    const QString slotText = QStringLiteral("U%1").arg(
+        slot, 2, 10, QChar('0'));
+    const QString identity = nameValid && !name.trimmed().isEmpty()
+        ? name.trimmed() : type;
+    slotCombo->setItemText(index, identity.isEmpty()
+        ? slotText : QStringLiteral("%1 · %2").arg(slotText, identity));
+    slotCombo->setItemData(index,
+        nameValid ? name.trimmed() : type, Qt::ToolTipRole);
+}
+
+void modernFloorBoard::quickSettingPresentationReady(
+    QuickSettingEffect effect, int slot, int typeRaw, bool typeValid,
+    QString name, bool nameValid, bool success)
+{
+    if (quickPresentationRequestGeneration != quickPresentationGeneration)
+        return;
+    QuickPresentationEntry &entry =
+        quickPresentationCache[static_cast<int>(effect)][slot];
+    entry = QuickPresentationEntry();
+    entry.generation = quickPresentationGeneration;
+    entry.status = success ? QuickPresentationStatus::Ready
+                           : QuickPresentationStatus::Failed;
+    entry.originalName = nameValid ? name.trimmed() : QString();
+    entry.typeRaw = typeValid ? typeRaw : -1;
+    entry.typeDisplay = typeValid
+        ? quickSettingTypeDisplay(effect, typeRaw) : QString();
+    entry.display = !entry.originalName.isEmpty()
+        ? entry.originalName : entry.typeDisplay;
+    applyQuickSettingPresentation(effect, slot);
+
+    QComboBox *combo = quickSettingCombo(effect);
+    QLabel *label = quickSettingTypeLabel(effect);
+    if (combo && label && combo->currentData().toInt() == slot
+        && typeValid) {
+        label->setText(entry.typeDisplay.isEmpty()
+            ? QString::fromUtf8("—") : entry.typeDisplay);
+        label->setToolTip(entry.typeDisplay);
+    }
+    QTimer::singleShot(0, this,
+                       &modernFloorBoard::scheduleNextQuickSettingPrefetch);
+}
+
+void modernFloorBoard::quickSettingLoadFinished(QuickSettingEffect effect,
+                                                 int slot, bool success,
+                                                 QString detail)
+{
+    if (success) {
+        if (effect == QuickSettingEffect::Compressor)
+            refreshCompState();
+        else if (effect == QuickSettingEffect::OverdriveDistortion)
+            refreshOddsState();
+        else if (effect == QuickSettingEffect::Delay)
+            refreshDelayState();
+        else if (effect == QuickSettingEffect::Chorus)
+            refreshChorus();
+        else if (effect == QuickSettingEffect::Reverb)
+            refreshReverbState();
+        else if (effect == QuickSettingEffect::Equalizer)
+            refreshEq();
+        else if (effect == QuickSettingEffect::SendReturn)
+            refreshSendReturn();
+        else if (effect == QuickSettingEffect::Fx1) {
+            if (fx1Editor)
+                fx1Editor->refreshFx(backendIsConnected, backendHasPatchData);
+        }
+        else
+            refreshPreamp(effect == QuickSettingEffect::PreampA
+                ? PreampChannel::A : PreampChannel::B);
+        return;
+    }
+    ModernMessageDialog failed(
+        ModernDialogIcon::Error, tr("QUICK SETTING LOAD FAILED"),
+        QStringLiteral("U%1").arg(slot, 2, 10, QChar('0')),
+        tr("The effect Quick Setting was not loaded."), detail, this);
+    failed.addOkButton();
+}
+
+void modernFloorBoard::quickSettingSaveFinished(QuickSettingEffect effect,
+                                                 int slot, bool verified,
+                                                 QString detail)
+{
+    if (verified) {
+        QComboBox *slotCombo = effect == QuickSettingEffect::Equalizer
+            ? eqQuickSlot : (effect == QuickSettingEffect::Compressor
+            ? compQuickSlot : (effect == QuickSettingEffect::Delay
+            ? delayQuickSlot : (effect == QuickSettingEffect::Chorus
+                ? chorusQuickSlot : (effect == QuickSettingEffect::Reverb
+                    ? reverbQuickSlot : oddsQuickSlot))));
+        if (effect == QuickSettingEffect::SendReturn)
+            slotCombo = sendReturnQuickSlot;
+        if (effect != QuickSettingEffect::OverdriveDistortion
+            && effect != QuickSettingEffect::Compressor
+            && effect != QuickSettingEffect::Delay
+            && effect != QuickSettingEffect::Chorus
+            && effect != QuickSettingEffect::Reverb
+            && effect != QuickSettingEffect::Equalizer
+            && effect != QuickSettingEffect::Fx1
+            && effect != QuickSettingEffect::SendReturn)
+            slotCombo = preampState(effect == QuickSettingEffect::PreampA
+                ? PreampChannel::A : PreampChannel::B).quickSlot;
+        invalidateQuickSettingPresentationSlot(effect, slot);
+        if (slotCombo && quickSettingService) {
+            QuickPresentationEntry &entry =
+                quickPresentationCache[static_cast<int>(effect)][slot];
+            entry.status = QuickPresentationStatus::Loading;
+            applyQuickSettingPresentation(effect, slot);
+            quickPresentationRequestGeneration = quickPresentationGeneration;
+            quickSettingService->requestPresentation(effect, slot);
+        }
+    }
+    ModernMessageDialog result(
+        verified ? ModernDialogIcon::Success : ModernDialogIcon::Error,
+        verified ? tr("QUICK SETTING VERIFIED")
+                 : tr("QUICK SETTING SAVE FAILED"),
+        QStringLiteral("U%1").arg(slot, 2, 10, QChar('0')),
+        verified ? tr("Effect data matched the GT-10 readback.")
+                 : tr("Automatic verification did not match."),
+        detail, this);
+    result.addOkButton();
 }
 
 void modernFloorBoard::patchNameResolved(int bank, int patch, QString name)
@@ -3378,6 +4469,7 @@ void modernFloorBoard::refreshReverbState()
     if (backendIsConnected && sysxIO->isConnected() && sysxIO->isDevice())
         backendHasPatchData = true;
     refreshReadButtonState();
+    refreshQuickSettingControls();
 
     if (backendHasPatchData) {
         const int bank = sysxIO->getLoadedBank();
@@ -3429,7 +4521,8 @@ void modernFloorBoard::refreshReverbState()
     );
     const bool on = (value == 1);
 
-    reverbCard->setEffectState(true, on);
+    if (reverbCard)
+        reverbCard->setEffectState(true, on);
     updateReverbParameterControls(true);
     refreshCompState();
     refreshOddsState();
@@ -3453,6 +4546,7 @@ void modernFloorBoard::refreshReverbState()
 
 void modernFloorBoard::readCurrentPatch()
 {
+    cancelQuickSettingPrefetch();
     SysxIO *sysxIO = SysxIO::Instance();
     if (readRequestInFlight || writeRequestInFlight || patchManagementInFlight
         || !backendIsConnected
@@ -3466,6 +4560,7 @@ void modernFloorBoard::readCurrentPatch()
 
 void modernFloorBoard::writeCurrentPatch()
 {
+    cancelQuickSettingPrefetch();
     SysxIO *sysxIO = SysxIO::Instance();
     if (readRequestInFlight || writeRequestInFlight || patchManagementInFlight
         || !backendIsConnected
@@ -3515,6 +4610,7 @@ void modernFloorBoard::writeCurrentPatch()
 
 void modernFloorBoard::beginPatchRename(int bank, int patch)
 {
+    cancelQuickSettingPrefetch();
     SysxIO *sysxIO = SysxIO::Instance();
     if (patchManagementInFlight || readRequestInFlight || writeRequestInFlight
         || !backendIsConnected || !sysxIO->isConnected()
@@ -3557,6 +4653,7 @@ void modernFloorBoard::beginPatchPaste(int sourceBank, int sourcePatch,
                                        QString sourceName, int targetBank,
                                        int targetPatch, QString targetName)
 {
+    cancelQuickSettingPrefetch();
     SysxIO *sysxIO = SysxIO::Instance();
     if (patchManagementInFlight || readRequestInFlight || writeRequestInFlight
         || !backendIsConnected || !sysxIO->isConnected()
@@ -3787,6 +4884,7 @@ void modernFloorBoard::refreshSignalChainModel()
         return;
 
     const bool wasValid = signalChainModel.isValid();
+    const bool wasDeviceConfirmed = signalChainModel.isDeviceConfirmed();
     const modernSignalChainModel::ChainSnapshot previousSnapshot =
         signalChainModel.snapshot();
 
@@ -3809,17 +4907,11 @@ void modernFloorBoard::refreshSignalChainModel()
         return signature;
     };
 
-    if (!backendIsConnected || !backendHasPatchData) {
-        signalChainModel.clear();
-        if (wasValid || !signalChainContent)
-            rebuildSignalChainView();
-        return;
-    }
-
     signalChainModel.refreshFromLegacyBackend();
     signalChainModel.logInterpretedChain();
     const bool isValid = signalChainModel.isValid();
     const bool structureChanged = wasValid != isValid
+        || wasDeviceConfirmed != signalChainModel.isDeviceConfirmed()
         || (wasValid && isValid
             && structuralSignature(previousSnapshot)
                 != structuralSignature(signalChainModel.snapshot()));
@@ -3864,7 +4956,9 @@ SignalChainModule *modernFloorBoard::createSignalChainModule(
                          || isPreampA || isPreampB
                          || isPedalFx || isFootVolume
                          || isNs1 || isNs2 || isSendReturn);
-    module->setMovable(entry.movable && !signalChainTransactionActive,
+    module->setMovable(entry.movable
+                           && signalChainModel.isDeviceConfirmed()
+                           && !signalChainTransactionActive,
                        entry.moduleId);
     module->setProperty("chainPosition", entry.originalPosition);
     module->setProperty("rawValue", entry.rawValue);
@@ -4199,7 +5293,9 @@ bool modernFloorBoard::handleSignalChainDrag(
     int moduleId, const QPoint &contentPosition, bool commit)
 {
     using Model = modernSignalChainModel;
-    if (signalChainTransactionActive || !Model::isMovableModule(moduleId)
+    if (signalChainTransactionActive
+        || !signalChainModel.isDeviceConfirmed()
+        || !Model::isMovableModule(moduleId)
         || !signalChainContent)
         return false;
 
@@ -4298,7 +5394,8 @@ bool modernFloorBoard::handleSignalChainDrag(
     // Defer mutation/rebuild until QDropEvent has returned. Rebuilding here
     // would delete the SignalChainContent that is still dispatching the drop.
     QTimer::singleShot(0, this, [this, moduleId, destination]() {
-        if (signalChainTransactionActive || !signalChainModel.isValid())
+        if (signalChainTransactionActive
+            || !signalChainModel.isDeviceConfirmed())
             return;
         modernSignalChainMutationController controller(&signalChainModel);
         const ChainMoveResult move = controller.moveModule(
@@ -4355,6 +5452,9 @@ void modernFloorBoard::performSignalChainTransaction(
     const modernSignalChainModel::ChainSnapshot &after,
     const QList<QString> &serializedBytes)
 {
+    if (!signalChainModel.isDeviceConfirmed())
+        return;
+
     QList<QString> beforeBytes;
     modernSignalChainSerializer::serialize(before, &beforeBytes, nullptr);
     const QString currentPatchIdentity = QString("%1:%2")
@@ -5618,8 +6718,8 @@ void modernFloorBoard::updatePreampTypeDisplay(PreampChannel channel)
                 typeName = typeName.mid(categoryEnd + 1).trimmed();
         }
     }
-    state.editor->typeLabel()->setText(
-        typeName.isEmpty() ? QString::fromUtf8("—") : typeName.toUpper());
+    if (state.artwork)
+        state.artwork->setTextOverlayText("ampName", typeName.toUpper());
 }
 
 void modernFloorBoard::updatePreampParameterControls(

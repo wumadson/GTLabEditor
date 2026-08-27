@@ -630,6 +630,26 @@ for that DT1 completion reply before connecting and issuing the RQ1. The decoder
 has regression coverage; the corrected automatic MATCH result still requires a
 final physical retest.
 
+The first native Quick Settings pilot is isolated to PREAMP A/B User slots
+U01-U10. `QuickSettingCodec` owns the validated `30:<slot-1>` address encoding,
+29-byte PREAMP A (`01:10-01:2C`) / PREAMP B (`01:30-01:4C`) payloads and the
+shared 12-byte name at `40:24-40:2F`. `QuickSettingService` owns lazy name RQ1,
+LOAD into only the selected Temporary Buffer slice, and SAVE followed by exact
+effect/name readback verification. Common PREAMP byte `01:00`, the opposite
+channel and patch identity are excluded. Codec/address/isolation tests pass
+offline; LOAD and SAVE still require final physical GT-10 validation before
+being declared hardware-proven.
+
+FX-1 Quick Settings use an opt-in segmented plan and do not migrate the
+validated short-payload effects. A logical FX-1 payload is 470 bytes split over
+User pages `02:00` (128), `03:00` (128), `04:00` (128) and `05:00` (86), with
+the same pages under `60:00` for the Temporary Buffer. Its 12-byte name is
+shared by FX type and is addressed from `40:48 + (TYPE * 0x0C)` using Roland
+7-bit carry. All four segments must validate before publication or Temporary
+application; SAVE verifies all four segments and the type-specific name. The
+segmented codec tests pass offline, while FX-1 LOAD/SAVE and FX-2 preservation
+still require final physical GT-10 validation.
+
 ## Hardware validation status
 
 The physical BOSS GT-10 was available for the first Modern UI milestone and validated connection, current-patch readback, Reverb ON/OFF and all implemented internal Reverb controls. Hardware availability may still vary between development sessions.

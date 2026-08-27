@@ -82,6 +82,8 @@ public:
 	QString getCurrentPatchName();
 	void sendMidi(QString midiMsg);
 	void sendSysx(QString sysxMsg);
+	void sendSysx(QString sysxMsg, int expectedReplyPayloadSize,
+	              QString expectedReplyAddress);
 	void requestPatchName(int bank, int patch);
 	void requestPatch(int bank, int patch);
 	void requestPatchChange(int bank, int patch);

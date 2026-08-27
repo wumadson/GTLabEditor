@@ -7,6 +7,12 @@
 class modernSignalChainModel
 {
 public:
+    enum class SourceState {
+        Unavailable,
+        TemporaryBuffer,
+        DeviceConfirmed
+    };
+
     enum Path {
         Common,
         PathA,
@@ -68,6 +74,8 @@ public:
     void logInterpretedChain() const;
 
     bool isValid() const;
+    SourceState sourceState() const;
+    bool isDeviceConfirmed() const;
     QString errorString() const;
     ChannelMode channelMode() const;
     int channelSelect() const;
@@ -95,6 +103,7 @@ private:
     void applySnapshot(const ChainSnapshot &snapshot);
 
     bool valid = false;
+    SourceState currentSourceState = SourceState::Unavailable;
     QString error;
     ChannelMode mode = UnknownMode;
     int selectedChannel = -1;
