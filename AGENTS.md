@@ -1,6 +1,38 @@
 # AGENTS.md
 # GT-10 FxFloorBoard Modern
 
+## GT LAB project rules
+
+This repository is the GT Lab Editor modernization of GT-10 FxFloorBoard.
+
+The validated macOS implementation must remain functional while Windows
+support is developed in parallel.
+
+Mandatory rules:
+
+- Preserve validated/protected areas unless explicitly authorized.
+- AUDIT FIRST before architectural, MIDI, SysEx, hardware or packaging changes.
+- Prefer the smallest possible diff.
+- Do not reimplement GT-10 SysEx when existing backend paths can be reused.
+- Preserve H1A and H1B behavior unless a specific audit proves a change is required.
+- Preserve validated Signal Chain behavior.
+- Preserve validated Quick Settings behavior and transport semantics.
+- Prefer platform-specific changes inside appropriate macx/win32 scopes.
+- Avoid shared-code changes when the same result can be isolated by platform.
+- Windows support must not regress the validated macOS build/runtime.
+- Do not claim hardware validation without a real physical test.
+- Do not make commits or pushes without explicit authorization.
+
+Windows initial target:
+
+- Windows 10 x64
+- Visual Studio 2022
+- Qt 5.15.x
+- MSVC
+- Direct MIDI through the official BOSS/Roland GT-10 Windows driver
+- WinMM -> RtMidi -> existing GT Lab Editor MIDI/SysEx backend
+- Do not create a GT-10 USB Bridge for Windows in this phase
+
 ## Project purpose
 
 This repository is a modernization fork of **GT-10 FxFloorBoard** for the **BOSS GT-10**.
