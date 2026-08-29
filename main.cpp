@@ -119,9 +119,6 @@ int main(int argc, char **argv)
 	app.processEvents(); 
 
 	splash->showStatusMessage(QObject::tr("Preparing workspace..."));
-	window.setWindowFlags( Qt::WindowTitleHint 
-		| Qt::WindowMinimizeButtonHint 
-		| Qt::MSWindowsFixedSizeDialogHint );
 	window.setWindowIcon(QIcon(":/images/windowicon.png"));
 
 	app.processEvents(); 
