@@ -53,6 +53,9 @@ SysxIO::SysxIO()
 	this->setLoadedBank(0);
 	this->setLoadedPatch(0);
 	this->changeCount = 0;
+#ifdef Q_OS_WIN
+	this->pendingMidiInputTransactions = 0;
+#endif
 };
 
 SysxIO* SysxIO::_instance = 0;// initialize pointer
@@ -916,7 +919,17 @@ void SysxIO::sendSysx(QString sysxMsg, int expectedReplyPayloadSize,
 	Preferences *preferences = Preferences::Instance();  bool ok;
 	int midiOutPort = preferences->getPreferences("Midi", "MidiOut", "device").toInt(&ok, 10);	// Get midi out device from preferences.
 	int midiInPort = preferences->getPreferences("Midi", "MidiIn", "device").toInt(&ok, 10);	// Get midi in device from preferences.
-	
+
+#ifdef Q_OS_WIN
+	const bool needsMidiInput =
+		sysxMsg.mid(sysxAddressOffset * 2 - 2, 2) != "12";
+	if (needsMidiInput)
+	{
+		++pendingMidiInputTransactions;
+		emit midiInputTransactionStarted();
+	}
+#endif
+
 	midiIO *midi = new midiIO();
     QList<QString> midiInDevices = midi->getMidiInDevices();
 	  QList<QString> midiOutDevices = midi->getMidiOutDevices();
@@ -944,6 +957,13 @@ void SysxIO::sendSysx(QString sysxMsg, int expectedReplyPayloadSize,
 ****************************************************************************/
 void SysxIO::receiveSysx(QString sysxMsg)
 {
+#ifdef Q_OS_WIN
+	if (pendingMidiInputTransactions > 0)
+	{
+		--pendingMidiInputTransactions;
+		emit midiInputTransactionFinished();
+	}
+#endif
 	 /*DeBugGING OUTPUT */
 /*	Preferences *preferences = Preferences::Instance(); // Load the preferences.
 	if(preferences->getPreferences("Midi", "DBug", "bool")=="true")

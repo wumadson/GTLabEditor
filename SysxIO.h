@@ -123,6 +123,10 @@ signals:
 	void patchName(QString name);
 	void isFinished();
 	void isChanged();
+#ifdef Q_OS_WIN
+	void midiInputTransactionStarted();
+	void midiInputTransactionFinished();
+#endif
 
 	void setStatusSymbol(int value);
 	void setStatusProgress(int value);
@@ -166,6 +170,9 @@ private:
 	QString xml_area;
 	QString errorType;
 	QString errorMsg;
+#ifdef Q_OS_WIN
+	int pendingMidiInputTransactions;
+#endif
 };
 
 #endif // SYSXIO_H

@@ -81,11 +81,22 @@ bankTreeList::bankTreeList(QWidget *parent)
 
         QObject::connect(patchChangeListener, SIGNAL(shortMidiMessage(int,int,int)),
                          this, SLOT(shortMidiMessageReceived(int,int,int)));
+#ifdef Q_OS_WIN
+        QObject::connect(sysxIO, SIGNAL(midiInputTransactionStarted()),
+                         this, SLOT(midiInputTransactionStarted()),
+                         Qt::DirectConnection);
+        QObject::connect(sysxIO, SIGNAL(midiInputTransactionFinished()),
+                         this, SLOT(midiInputTransactionFinished()),
+                         Qt::DirectConnection);
+#endif
 };
 
 bankTreeList::~bankTreeList()
 {
         patchChangeListener->stopShortMidiListener();
+#ifdef Q_OS_WIN
+        shortMidiListenerActive = false;
+#endif
 }
 
 void bankTreeList::updateSize(QRect newrect)
@@ -751,7 +762,11 @@ void bankTreeList::updatePatch(QString replyMsg)
 void bankTreeList::connectedSignal()
 {
         SysxIO *sysxIO = SysxIO::Instance();
+#ifdef Q_OS_WIN
+        shortMidiListenerActive = patchChangeListener->startShortMidiListener();
+#else
         patchChangeListener->startShortMidiListener();
+#endif
         if(sysxIO->deviceReady() && sysxIO->isConnected())
         {
                 sysxIO->setDeviceReady(false);
@@ -780,6 +795,10 @@ void bankTreeList::connectedSignal()
 void bankTreeList::disconnectedSignal()
 {
         patchChangeListener->stopShortMidiListener();
+#ifdef Q_OS_WIN
+        shortMidiListenerActive = false;
+        restartShortMidiListener = false;
+#endif
         lastBankMsb = -1;
         lastBankLsb = -1;
         queuedPhysicalBank = 0;
@@ -788,6 +807,34 @@ void bankTreeList::disconnectedSignal()
         localPatchChangeBank = 0;
         localPatchChangePatch = 0;
 }
+
+#ifdef Q_OS_WIN
+void bankTreeList::midiInputTransactionStarted()
+{
+        ++midiInputTransactionDepth;
+        if (!shortMidiListenerActive)
+                return;
+
+        restartShortMidiListener = true;
+        patchChangeListener->stopShortMidiListener();
+        shortMidiListenerActive = false;
+}
+
+void bankTreeList::midiInputTransactionFinished()
+{
+        if (midiInputTransactionDepth <= 0)
+                return;
+
+        --midiInputTransactionDepth;
+        if (midiInputTransactionDepth != 0)
+                return;
+
+        const bool shouldRestart = restartShortMidiListener;
+        restartShortMidiListener = false;
+        if (shouldRestart && SysxIO::Instance()->isConnected())
+                shortMidiListenerActive = patchChangeListener->startShortMidiListener();
+}
+#endif
 
 void bankTreeList::selectPatch(int bank, int patch, const QString &name)
 {

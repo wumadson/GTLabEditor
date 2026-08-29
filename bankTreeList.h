@@ -55,6 +55,10 @@ public slots:
 	void selectPatch(int bank, int patch, const QString &name);
 	void shortMidiMessageReceived(int status, int data1, int data2);
 	void setExclusiveMemoryOperation(bool active);
+#ifdef Q_OS_WIN
+	void midiInputTransactionStarted();
+	void midiInputTransactionFinished();
+#endif
 	void setItemClicked(QTreeWidgetItem *item, int column);
 	void setItemDoubleClicked(QTreeWidgetItem *item, int column);
 
@@ -95,6 +99,11 @@ private:
 	bool preserveLoadedPatchOnNextRead;
 	int preservedLoadedBank;
 	int preservedLoadedPatch;
+#ifdef Q_OS_WIN
+	bool shortMidiListenerActive = false;
+	bool restartShortMidiListener = false;
+	int midiInputTransactionDepth = 0;
+#endif
 	QTreeWidget* treeList;
 	QMap<int, QTreeWidgetItem*> patchBankItems;
 	int itemIndex;
