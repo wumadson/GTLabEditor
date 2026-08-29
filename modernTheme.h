@@ -3,6 +3,8 @@
 
 #include <QString>
 
+class QWidget;
+
 class ModernTheme
 {
 public:
@@ -21,6 +23,8 @@ public:
     static int radius(RadiusRole role);
     static QString effectColor(const QString &effectName);
     static QString effectFaceColor(const QString &effectName);
+    static void applyWindowsDarkTitleBar(QWidget *window);
+    static void refreshWindowsDarkTitleBar(QWidget *window);
 };
 
 #endif

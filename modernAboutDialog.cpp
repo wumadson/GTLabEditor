@@ -31,6 +31,7 @@ ModernAboutDialog::ModernAboutDialog(Page initialPage, QWidget *parent)
 {
     setWindowTitle(tr("About GT Lab Editor"));
     setModal(true);
+    ModernTheme::applyWindowsDarkTitleBar(this);
     resize(760, 540);
     setMinimumSize(680, 480);
     setStyleSheet(QStringLiteral(

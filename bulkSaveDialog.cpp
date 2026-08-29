@@ -27,6 +27,7 @@
 #include <QByteArray>
 #include <QMessageBox>
 #include "bulkSaveDialog.h"
+#include "modernTheme.h"
 #include "Preferences.h"
 #include "globalVariables.h"
 
@@ -42,6 +43,7 @@
 
 bulkSaveDialog::bulkSaveDialog()
 { 
+  ModernTheme::applyWindowsDarkTitleBar(this);
   QLabel *startRangeLabel = new QLabel(tr("Start Bank."));
 	QLabel *finishRangeLabel = new QLabel(tr("Finish Bank."));
 	

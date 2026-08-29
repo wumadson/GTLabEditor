@@ -35,6 +35,7 @@ class modernFloorBoard;
 class statusBarWidget;
 class BackupCoordinator;
 class QuickSettingService;
+class QShowEvent;
 
 //class mainWindow : public QWidget
 class mainWindow : public QMainWindow
@@ -45,6 +46,9 @@ public:
     mainWindow();
         ~mainWindow();
         void closeEvent(QCloseEvent* ce);
+
+protected:
+        void showEvent(QShowEvent *event) override;
 
 signals:
         void updateSignal();

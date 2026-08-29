@@ -19,6 +19,7 @@ ModernBackupDialog::ModernBackupDialog(BackupCoordinator *coordinator,
     setModal(true);
     setFixedSize(470, 290);
     setWindowFlag(Qt::WindowContextHelpButtonHint, false);
+    ModernTheme::applyWindowsDarkTitleBar(this);
 
     QLabel *title = new QLabel(titleText, this);
     title->setObjectName("operationTitle");

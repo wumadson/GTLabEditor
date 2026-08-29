@@ -22,12 +22,14 @@
 ****************************************************************************/
 
 #include "customRenameDialog.h"
+#include "modernTheme.h"
 #include "SysxIO.h"
 #include "globalVariables.h"
 
 customRenameDialog::customRenameDialog(QWidget *parent, QString hex1, QString hex2, QString hex3, QString area, QString length)
      : QDialog(parent)
 {
+    ModernTheme::applyWindowsDarkTitleBar(this);
     this->hex1 = hex1;
     this->hex2 = hex2;
     this->hex3 = hex3;

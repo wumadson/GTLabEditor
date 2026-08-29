@@ -22,11 +22,13 @@
 ****************************************************************************/
 
 #include "renameDialog.h"
+#include "modernTheme.h"
 #include "SysxIO.h"
 
 renameDialog::renameDialog(QWidget *parent)
      : QDialog(parent)
 {
+	ModernTheme::applyWindowsDarkTitleBar(this);
 	SysxIO *sysxIO = SysxIO::Instance();
 
 	QRegExp rx( QString::fromUtf8( "[\x20-\x7F\xe2\x86\x92\xe2\x86\x90]{1,16}" ) );

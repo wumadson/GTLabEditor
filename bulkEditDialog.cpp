@@ -27,6 +27,7 @@
 #include <QByteArray>
 #include <QMessageBox>
 #include "bulkEditDialog.h"
+#include "modernTheme.h"
 #include "Preferences.h"
 #include "globalVariables.h"
 #include "SysxIO.h"
@@ -34,6 +35,7 @@
 
 bulkEditDialog::bulkEditDialog(int partStart, int partLength, QString partHex1, QString partHex3)
 { 
+  ModernTheme::applyWindowsDarkTitleBar(this);
   this->partialStart = partStart;
   this->partialLength = partLength;
   this->hex1 = partHex1;

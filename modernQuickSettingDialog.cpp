@@ -7,6 +7,7 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QStackedWidget>
+#include <QTimer>
 #include <QVBoxLayout>
 
 ModernQuickSettingDialog::ModernQuickSettingDialog(QWidget *parent)
@@ -96,6 +97,15 @@ void ModernQuickSettingDialog::showEffect(QuickSettingEffect effect)
     effectLabel->setText(effectNames.value(key));
     adjustSize();
     show();
+#ifdef Q_OS_WIN
+    ModernTheme::applyWindowsDarkTitleBar(this);
+#endif
     raise();
     activateWindow();
+#ifdef Q_OS_WIN
+    QTimer::singleShot(0, this, [this]() {
+        ModernTheme::applyWindowsDarkTitleBar(this);
+        ModernTheme::refreshWindowsDarkTitleBar(this);
+    });
+#endif
 }

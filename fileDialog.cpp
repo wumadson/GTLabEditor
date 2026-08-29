@@ -23,10 +23,12 @@
 
 #include <QtGui>
 #include "fileDialog.h"
+#include "modernTheme.h"
 
 
 fileDialog::fileDialog(QString fileName, QList<QString> patchList, QByteArray fileData, QByteArray default_data, QString type)
 {
+  ModernTheme::applyWindowsDarkTitleBar(this);
     //QObject::connect(this, SIGNAL(patchIndex(int)),
                 //this->parent(), SLOT(patchIndex(int)));
   this->file_format = type;

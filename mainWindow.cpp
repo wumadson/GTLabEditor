@@ -22,6 +22,8 @@
 ****************************************************************************/
 
 #include <QtGui>
+#include <QMenuBar>
+#include <QShowEvent>
 #include <QWhatsThis>
 #include <QStyle>
 #include "mainWindow.h"
@@ -200,6 +202,14 @@ mainWindow::~mainWindow()
         };
         preferences->savePreferences();
 };
+
+void mainWindow::showEvent(QShowEvent *event)
+{
+        QMainWindow::showEvent(event);
+#ifdef Q_OS_WIN
+        ModernTheme::applyWindowsDarkTitleBar(this);
+#endif
+}
 
 void mainWindow::updateSize(QSize floorSize, QSize oldFloorSize)
 {
@@ -385,6 +395,9 @@ void mainWindow::createMenus()
         helpMenu->addSeparator();
         helpMenu->addAction(aboutAct);
         //menuBar->addMenu(helpMenu);
+
+        menuBar()->setObjectName("ModernMenuBar");
+        menuBar()->setStyleSheet(ModernTheme::applicationStyleSheet());
 
 };
 

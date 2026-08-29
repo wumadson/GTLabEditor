@@ -128,6 +128,7 @@ public:
     {
         setWindowTitle(title);
         setModal(true);
+        ModernTheme::applyWindowsDarkTitleBar(this);
         setMinimumWidth(410);
         setMaximumWidth(470);
         setStyleSheet(QStringLiteral(
@@ -262,6 +263,7 @@ public:
     {
         setWindowTitle(tr("RENAME PATCH"));
         setModal(true);
+        ModernTheme::applyWindowsDarkTitleBar(this);
         setFixedWidth(390);
         setStyleSheet(QStringLiteral(
             "QDialog{background:%1;color:%2;border:1px solid %3;"
@@ -4118,6 +4120,7 @@ void modernFloorBoard::saveQuickSetting()
     QDialog dialog(this);
     dialog.setWindowTitle(tr("SAVE QUICK SETTING"));
     dialog.setModal(true);
+    ModernTheme::applyWindowsDarkTitleBar(&dialog);
     dialog.setMinimumWidth(340);
     dialog.setStyleSheet(QStringLiteral(
         "QDialog { background: #0D1014; color: #E7ECF0; }"

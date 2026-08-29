@@ -22,6 +22,7 @@
 ****************************************************************************/
 
 #include "editWindow.h"
+#include "modernTheme.h"
 #include "MidiTable.h"
 #include "SysxIO.h"
 #include "globalVariables.h"
@@ -44,6 +45,7 @@ editWindow::editWindow(QWidget *parent)
         this->setWindowFlags(Qt::WindowStaysOnTopHint);
     } else { this->image = QPixmap(":images/meshWindow.png"); };
 
+        ModernTheme::applyWindowsDarkTitleBar(this);
         this->title = new QLabel;
         this->title->setObjectName("title");
 

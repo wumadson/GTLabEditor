@@ -27,12 +27,14 @@
 #include <QByteArray>
 #include <QMessageBox>
 #include "bulkLoadDialog.h"
+#include "modernTheme.h"
 #include "Preferences.h"
 #include "globalVariables.h"
 
 
 bulkLoadDialog::bulkLoadDialog()
 { 
+  ModernTheme::applyWindowsDarkTitleBar(this);
   failed = true;
   QLabel *startListLabel = new QLabel(tr("Starting from"));
   this->startPatchCombo = new QComboBox(this);

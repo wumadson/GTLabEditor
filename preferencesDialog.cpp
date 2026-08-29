@@ -23,11 +23,13 @@
 
 #include <QtGui>
 #include "preferencesDialog.h"
+#include "modernTheme.h"
 #include "preferencesPages.h"
 
 
 preferencesDialog::preferencesDialog()
 {
+	ModernTheme::applyWindowsDarkTitleBar(this);
 	contentsWidget = new QListWidget;
 	contentsWidget->setViewMode(QListView::IconMode);
 	contentsWidget->setIconSize(QSize(45, 40));

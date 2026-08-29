@@ -1,7 +1,15 @@
 #include "modernTheme.h"
 
 #include <QColor>
+#include <QWidget>
 #include <QtMath>
+#ifdef Q_OS_WIN
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#include <dwmapi.h>
+#endif
 
 namespace {
 qreal linearChannel(qreal channel)
@@ -47,6 +55,74 @@ QString ModernTheme::color(ColorRole role)
     return QString();
 }
 
+void ModernTheme::applyWindowsDarkTitleBar(QWidget *window)
+{
+#ifdef Q_OS_WIN
+    if (!window)
+        return;
+
+    const HWND windowHandle = reinterpret_cast<HWND>(window->winId());
+    if (!windowHandle)
+        return;
+
+    HMODULE dwmapi = LoadLibraryW(L"dwmapi.dll");
+    if (!dwmapi)
+        return;
+
+    typedef HRESULT (WINAPI *DwmSetWindowAttributeFunction)(
+        HWND, DWORD, LPCVOID, DWORD);
+    DwmSetWindowAttributeFunction setWindowAttribute =
+        reinterpret_cast<DwmSetWindowAttributeFunction>(
+            GetProcAddress(dwmapi, "DwmSetWindowAttribute"));
+
+    if (setWindowAttribute) {
+        const BOOL enabled = TRUE;
+        HRESULT result = setWindowAttribute(
+            windowHandle, DWMWA_USE_IMMERSIVE_DARK_MODE,
+            &enabled, sizeof(enabled));
+        if (FAILED(result)) {
+            const DWORD legacyImmersiveDarkMode = 19;
+            setWindowAttribute(windowHandle, legacyImmersiveDarkMode,
+                               &enabled, sizeof(enabled));
+        }
+    }
+
+    FreeLibrary(dwmapi);
+#else
+    Q_UNUSED(window)
+#endif
+}
+
+void ModernTheme::refreshWindowsDarkTitleBar(QWidget *window)
+{
+#ifdef Q_OS_WIN
+    if (!window)
+        return;
+
+    const HWND windowHandle = reinterpret_cast<HWND>(window->winId());
+    if (!windowHandle)
+        return;
+
+    HMODULE user32 = LoadLibraryW(L"user32.dll");
+    if (!user32)
+        return;
+
+    typedef LRESULT (WINAPI *SendMessageFunction)(
+        HWND, UINT, WPARAM, LPARAM);
+    SendMessageFunction sendMessage = reinterpret_cast<SendMessageFunction>(
+        GetProcAddress(user32, "SendMessageW"));
+
+    if (sendMessage) {
+        sendMessage(windowHandle, WM_NCACTIVATE, FALSE, 0);
+        sendMessage(windowHandle, WM_NCACTIVATE, TRUE, 0);
+    }
+
+    FreeLibrary(user32);
+#else
+    Q_UNUSED(window)
+#endif
+}
+
 int ModernTheme::radius(RadiusRole role)
 {
     switch (role) {
@@ -68,6 +144,45 @@ QString ModernTheme::applicationStyleSheet()
         }
         QWidget#ModernFloorBoard QWidget#MainArea {
             background: #060708;
+        }
+        QMenuBar#ModernMenuBar {
+            background: #030405;
+            color: #B3B7BC;
+            border: none;
+            border-bottom: 1px solid #171A1E;
+        }
+        QMenuBar#ModernMenuBar::item {
+            background: transparent;
+            color: #B3B7BC;
+            padding: 4px 9px;
+        }
+        QMenuBar#ModernMenuBar::item:selected,
+        QMenuBar#ModernMenuBar::item:pressed {
+            background: #0D0F12;
+            color: #ECEFF2;
+        }
+        QMenuBar#ModernMenuBar QMenu {
+            background: #090A0C;
+            color: #B3B7BC;
+            border: 1px solid #24272C;
+            padding: 4px 0;
+        }
+        QMenuBar#ModernMenuBar QMenu::item {
+            background: transparent;
+            color: #B3B7BC;
+            padding: 5px 26px 5px 24px;
+        }
+        QMenuBar#ModernMenuBar QMenu::item:selected {
+            background: #0D0F12;
+            color: #ECEFF2;
+        }
+        QMenuBar#ModernMenuBar QMenu::item:disabled {
+            color: #666B72;
+        }
+        QMenuBar#ModernMenuBar QMenu::separator {
+            height: 1px;
+            background: #24272C;
+            margin: 4px 8px;
         }
         QFrame#AppHeader {
             background: #050607;
