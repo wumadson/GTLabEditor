@@ -50,20 +50,7 @@ QT += core gui widgets xml printsupport
 
 #Platform dependent file(s)
 win32 {
-        exists("C:/Progra~1/MS_SDKs/Windows/v6.1/Lib/WinMM.Lib") {	# <-- Change the path to WinMM.Lib here!
-                LIBS += C:/Progra~1/MS_SDKs/Windows/v6.1/Lib/WinMM.Lib	# <-- Change the path here also!
-    } else { 
-        exists("c:/PROGRA~1/MICROS~3/VC/PLATFO~1/Lib/WinMM.Lib") { # Path vs2005 (Vista)
-        	LIBS += c:/PROGRA~1/MICROS~3/VC/PLATFO~1/Lib/WinMM.Lib
-        } else { 
-            LIBS += .\WinMM.Lib
-            message("WINMM.LIB IS REQUIRED. IF NOT INSTALLED THEN")
-            message("PLEASE DOWNLOAD AND INSTALL THE LATEST PLATFORM SDK")
-            message("FROM MICROSOFT.COM AND AFTER INSTALLATION")
-            message("CHANGE THE CORRECT (DOS) PATH TO WinMM.lib")
-            message("IN THIS (GT-10FxFloorBoard.pro) FILE WHERE INDICATED")
-        }
-	}
+	LIBS += winmm.lib
 	 HEADERS += 
 	 SOURCES += ./windows/RtMidi.cpp                        
 	 INCLUDEPATH += ./windows
@@ -111,7 +98,11 @@ win32:RC_FILE = GT-10FxFloorBoard.rc
 
 # Qt4 -> Qt5 baseline compatibility
 HEADERS += qt4compat.h
-QMAKE_CXXFLAGS += -include $$PWD/qt4compat.h
+msvc {
+    QMAKE_CXXFLAGS += /FI$$shell_path($$PWD/qt4compat.h)
+} else {
+    QMAKE_CXXFLAGS += -include $$PWD/qt4compat.h
+}
 
 # GT-10 FxFloorBoard Modern UI
 SOURCES += modernFloorBoard.cpp modernTheme.cpp modernWidgets.cpp modernSignalChainModel.cpp \

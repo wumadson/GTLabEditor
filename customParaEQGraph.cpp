@@ -368,6 +368,7 @@ QRect customParaEQGraph::nodeRect ( int iNode ) const
 {
        // const QPoint& pos = m_poly.at(iNode);
        // return QRect(pos.x() - 4, pos.y() - 4, 8, 8);
+       return QRect();
 }
 
 
@@ -398,6 +399,7 @@ int customParaEQGraph::nodeIndex ( const QPoint& pos ) const
                 return 1; //LowCut+LowGain
 
         return -1;*/
+        return -1;
 }
 
 void customParaEQGraph::dragNode ( const QPoint& pos )

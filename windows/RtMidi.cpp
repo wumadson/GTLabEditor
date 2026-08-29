@@ -181,11 +181,11 @@ struct WinMidiData {
 //  Class Definitions: RtMidiIn
 //*********************************************************************//
 
-static void CALLBACK midiInputCallback( HMIDIOUT hmin,
-                                        UINT inputStatus, 
-                                        DWORD instancePtr,
-                                        DWORD midiMessage,
-                                        DWORD timestamp )
+static void CALLBACK midiInputCallback( HMIDIIN hmin,
+                                        UINT inputStatus,
+                                        DWORD_PTR instancePtr,
+                                        DWORD_PTR midiMessage,
+                                        DWORD_PTR timestamp )
 {
   if ( inputStatus != MIM_DATA && inputStatus != MIM_LONGDATA && inputStatus != MIM_LONGERROR ) return;
 
@@ -313,8 +313,8 @@ void RtMidiIn :: openPort( unsigned int portNumber, const std::string /*portName
   WinMidiData *data = static_cast<WinMidiData *> (apiData_);
   MMRESULT result = midiInOpen( &data->inHandle,
                                 portNumber,
-                                (DWORD)&midiInputCallback,
-                                (DWORD)&inputData_,
+                                reinterpret_cast<DWORD_PTR>(&midiInputCallback),
+                                reinterpret_cast<DWORD_PTR>(&inputData_),
                                 CALLBACK_FUNCTION );
   if ( result != MMSYSERR_NOERROR ) {
     errorString_ = "RtMidiIn::openPort: error creating Windows MM MIDI input port.";
@@ -497,8 +497,8 @@ void RtMidiOut :: openPort( unsigned int portNumber, const std::string /*portNam
   WinMidiData *data = static_cast<WinMidiData *> (apiData_);
   MMRESULT result = midiOutOpen( &data->outHandle,
                                  portNumber,
-                                 (DWORD)NULL,
-                                 (DWORD)NULL,
+                                 DWORD_PTR(0),
+                                 DWORD_PTR(0),
                                  CALLBACK_NULL );
   if ( result != MMSYSERR_NOERROR ) {
     errorString_ = "RtMidiOut::openPort: error creating Windows MM MIDI output port.";
