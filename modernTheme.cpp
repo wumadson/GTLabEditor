@@ -66,6 +66,9 @@ QString ModernTheme::applicationStyleSheet()
             color: #ECEFF2;
             font-family: -apple-system, "SF Pro Display", "Helvetica Neue";
         }
+        QWidget#ModernFloorBoard QWidget#MainArea {
+            background: #060708;
+        }
         QFrame#AppHeader {
             background: #050607;
             border-bottom: 1px solid #202329;

@@ -120,7 +120,7 @@ mainWindow::mainWindow()
                         QFile file(":qss/windows.qss");
                         file.open(QFile::ReadOnly);
                         QString styleSheet = QLatin1String(file.readAll());
-                        modernFloorBoardWidget->setStyleSheet(styleSheet);
+                        legacyFloorBoard->setStyleSheet(styleSheet);
                 };
 #endif
 

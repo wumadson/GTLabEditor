@@ -1408,6 +1408,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
 
     // MAIN AREA
     QWidget *mainArea = new QWidget;
+    mainArea->setObjectName("MainArea");
 
     QVBoxLayout *mainLayout = new QVBoxLayout(mainArea);
     mainLayout->setContentsMargins(8, 8, 8, 8);
