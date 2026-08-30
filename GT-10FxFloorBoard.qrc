@@ -103,5 +103,19 @@
         <file>assets/pedals/expression_pedal.png</file>
         <file>assets/pedalboard/gt10_footswitch.png</file>
         <file>assets/pedalboard/bossgt10.png</file>
+        <file>assets/menu/load.png</file>
+        <file>assets/menu/save.png</file>
+        <file>assets/menu/exit.png</file>
+        <file>assets/menu/settings.png</file>
+        <file>assets/menu/summary.png</file>
+        <file>assets/menu/upload.png</file>
+        <file>assets/menu/help.png</file>
+        <file>assets/menu/manual.png</file>
+        <file>assets/menu/code.png</file>
+        <file>assets/menu/web.png</file>
+        <file>assets/menu/donate.png</file>
+        <file>assets/menu/license.png</file>
+        <file>assets/menu/components.png</file>
+        <file>assets/menu/about.png</file>
     </qresource>
 </RCC>

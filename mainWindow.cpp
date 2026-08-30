@@ -348,7 +348,7 @@ void mainWindow::updateSize(QSize floorSize, QSize oldFloorSize)
 
 void mainWindow::createActions()
 {
-        openAct = new QAction(style()->standardIcon(QStyle::SP_DialogOpenButton), tr("&Load Patch File... (*.syx, *.mid, *.gxg *.gxb)"), this);
+        openAct = new QAction(QIcon(":/assets/menu/load.png"), tr("&Load Patch File... (*.syx, *.mid, *.gxg *.gxb)"), this);
         openAct->setShortcut(tr("Ctrl+O"));
         openAct->setWhatsThis(tr("Open an existing file"));
         connect(openAct, SIGNAL(triggered()), this, SLOT(open()));
@@ -359,37 +359,37 @@ void mainWindow::createActions()
         saveAct->setWhatsThis(tr("Save the document to disk"));
         connect(saveAct, SIGNAL(triggered()), this, SLOT(save()));
 
-        saveAsAct = new QAction(style()->standardIcon(QStyle::SP_DialogSaveButton), tr("Save &As Patch...  (*.syx)"), this);
+        saveAsAct = new QAction(QIcon(":/assets/menu/save.png"), tr("Save &As Patch...  (*.syx)"), this);
         saveAsAct->setShortcut(tr("Ctrl+Shift+S"));
         saveAsAct->setWhatsThis(tr("Save the document under a new name"));
         connect(saveAsAct, SIGNAL(triggered()), this, SLOT(saveAs()));
 
-        exportSMFAct = new QAction(style()->standardIcon(QStyle::SP_DialogSaveButton), tr("Save As &SMF Patch... (*.mid)"), this);
+        exportSMFAct = new QAction(QIcon(":/assets/menu/save.png"), tr("Save As &SMF Patch... (*.mid)"), this);
         exportSMFAct->setShortcut(tr("Ctrl+Shift+E"));
         exportSMFAct->setWhatsThis(tr("Export as a Standard Midi File"));
         connect(exportSMFAct, SIGNAL(triggered()), this, SLOT(exportSMF()));
 
-        saveGXGAct = new QAction(style()->standardIcon(QStyle::SP_DialogSaveButton), tr("Save As GXG Patch... (*.gxg)"), this);
+        saveGXGAct = new QAction(QIcon(":/assets/menu/save.png"), tr("Save As GXG Patch... (*.gxg)"), this);
         saveGXGAct->setShortcut(tr("Ctrl+Shift+G"));
         saveGXGAct->setWhatsThis(tr("Export as a Boss Librarian File"));
         connect(saveGXGAct, SIGNAL(triggered()), this, SLOT(saveGXG()));
 
-        systemLoadAct = new QAction(style()->standardIcon(QStyle::SP_DialogOpenButton), tr("&Load System and Global Data..."), this);
+        systemLoadAct = new QAction(QIcon(":/assets/menu/load.png"), tr("&Load System and Global Data..."), this);
         systemLoadAct->setShortcut(tr("Ctrl+L"));
         systemLoadAct->setWhatsThis(tr("Load System Data to GT-10"));
         connect(systemLoadAct, SIGNAL(triggered()), this, SLOT(systemLoad()));
 
-        systemSaveAct = new QAction(style()->standardIcon(QStyle::SP_DialogSaveButton), tr("Save System and Global Data to File..."), this);
+        systemSaveAct = new QAction(QIcon(":/assets/menu/save.png"), tr("Save System and Global Data to File..."), this);
         systemSaveAct->setShortcut(tr("Ctrl+D"));
         systemSaveAct->setWhatsThis(tr("Save System Data to File"));
         connect(systemSaveAct, SIGNAL(triggered()), this, SLOT(systemSave()));
 
-        bulkLoadAct = new QAction(style()->standardIcon(QStyle::SP_DialogOpenButton), tr("&Load Bulk Patch File to GT-10..."), this);
+        bulkLoadAct = new QAction(QIcon(":/assets/menu/load.png"), tr("&Load Bulk Patch File to GT-10..."), this);
         bulkLoadAct->setShortcut(tr("Ctrl+B"));
         bulkLoadAct->setWhatsThis(tr("Load Bulk Data to GT-10"));
         connect(bulkLoadAct, SIGNAL(triggered()), this, SLOT(bulkLoad()));
 
-        bulkSaveAct = new QAction(style()->standardIcon(QStyle::SP_DialogSaveButton), tr("Save Bulk GT-10 Patches to File..."), this);
+        bulkSaveAct = new QAction(QIcon(":/assets/menu/save.png"), tr("Save Bulk GT-10 Patches to File..."), this);
         bulkSaveAct->setShortcut(tr("Ctrl+G"));
         bulkSaveAct->setWhatsThis(tr("Save Bulk Data to File"));
         connect(bulkSaveAct, SIGNAL(triggered()), this, SLOT(bulkSave()));
@@ -406,67 +406,67 @@ void mainWindow::createActions()
         connect(restoreUserPatchesAct, SIGNAL(triggered()),
                 this, SLOT(restoreUserPatches()));
 
-        exitAct = new QAction(style()->standardIcon(QStyle::SP_DialogCloseButton),tr("E&xit"), this);
+        exitAct = new QAction(QIcon(":/assets/menu/exit.png"),tr("E&xit"), this);
         exitAct->setShortcut(tr("Ctrl+Q"));
         exitAct->setWhatsThis(tr("Exit the application"));
         exitAct->setMenuRole(QAction::QuitRole);
         connect(exitAct, SIGNAL(triggered()), this, SLOT(close()));
 
-        settingsAct = new QAction(style()->standardIcon(QStyle::SP_FileDialogDetailedView), tr("&Settings..."), this);
+        settingsAct = new QAction(QIcon(":/assets/menu/settings.png"), tr("&Settings..."), this);
         settingsAct->setShortcut(tr("Ctrl+P"));
         settingsAct->setWhatsThis(tr("FxFloorBoard Preferences<br>Select midi device, language,splash, directories"));
         settingsAct->setMenuRole(QAction::PreferencesRole);
         connect(settingsAct, SIGNAL(triggered()), this, SLOT(settings()));
 
-        uploadAct = new QAction(style()->standardIcon(QStyle::SP_ArrowUp), tr("Upload patch to GT-Central"), this);
+        uploadAct = new QAction(QIcon(":/assets/menu/upload.png"), tr("Upload patch to GT-Central"), this);
         uploadAct->setWhatsThis(tr("Upload any saved patch file to a shared patch library<br>via the internet."));
         connect(uploadAct, SIGNAL(triggered()), this, SLOT(upload()));
 
-        summaryAct = new QAction(style()->standardIcon(QStyle::SP_FileIcon), tr("Patch Text Summary"), this);
+        summaryAct = new QAction(QIcon(":/assets/menu/summary.png"), tr("Patch Text Summary"), this);
         summaryAct->setWhatsThis(tr("Display the current patch parameters<br>in a readable text format, which<br>can be printed or saved to file."));
         connect(summaryAct, SIGNAL(triggered()), this, SLOT(summaryPage()));
         
-        summarySystemAct = new QAction(style()->standardIcon(QStyle::SP_FileIcon), tr("System/Global Text Summary"), this);
+        summarySystemAct = new QAction(QIcon(":/assets/menu/summary.png"), tr("System/Global Text Summary"), this);
         summarySystemAct->setWhatsThis(tr("Display the current System and Global parameters<br>in a readable text format, which<br>can be printed or saved to file."));
         connect(summarySystemAct, SIGNAL(triggered()), this, SLOT(summarySystemPage()));
         
-        summaryPatchListAct = new QAction(style()->standardIcon(QStyle::SP_FileIcon), tr("GT-10 Patch List Summary"), this);
+        summaryPatchListAct = new QAction(QIcon(":/assets/menu/summary.png"), tr("GT-10 Patch List Summary"), this);
         summaryPatchListAct->setWhatsThis(tr("Display the GT-10 patch listing names<br>in a readable text format, which<br>can be printed or saved to file."));
         connect(summaryPatchListAct, SIGNAL(triggered()), this, SLOT(summaryPatchList()));
 
-        helpAct = new QAction(style()->standardIcon(QStyle::SP_DialogHelpButton), tr("GT Lab Editor &Help"), this);
+        helpAct = new QAction(QIcon(":/assets/menu/help.png"), tr("GT Lab Editor &Help"), this);
         helpAct->setShortcut(tr("Ctrl+F1"));
         helpAct->setWhatsThis(tr("Help page to assist with FxFloorBoard functions."));
         connect(helpAct, SIGNAL(triggered()), this, SLOT(help()));
 
-        whatsThisAct = new QAction(style()->standardIcon(QStyle::SP_DialogHelpButton), tr("Whats This? description of items under the mouse cursor"), this);
+        whatsThisAct = new QAction(QIcon(":/assets/menu/help.png"), tr("Whats This? description of items under the mouse cursor"), this);
         whatsThisAct->setShortcut(tr("F1"));
         whatsThisAct->setWhatsThis(tr("ha..ha..ha..!!"));
         connect(whatsThisAct, SIGNAL(triggered()), this, SLOT(whatsThis()));
 
-        homepageAct = new QAction(style()->standardIcon(QStyle::SP_DriveNetIcon), tr("Original FxFloorBoard &Project"), this);
+        homepageAct = new QAction(QIcon(":/assets/menu/web.png"), tr("Original FxFloorBoard &Project"), this);
         homepageAct->setWhatsThis(tr("download Webpage for FxFloorBoard<br>find if the latest version is available."));
         connect(homepageAct, SIGNAL(triggered()), this, SLOT(homepage()));
 
-        donationAct = new QAction(style()->standardIcon(QStyle::SP_DialogApplyButton), tr("Donate towards GT test equipment for Gumtown"), this);
+        donationAct = new QAction(QIcon(":/assets/menu/donate.png"), tr("Donate towards GT test equipment for Gumtown"), this);
         donationAct->setWhatsThis(tr("Even though the software is free,<br>an occassional donation is very much appreciated<br>i am not paid for this work."));
         connect(donationAct, SIGNAL(triggered()), this, SLOT(donate()));
 
-        manualAct = new QAction(style()->standardIcon(QStyle::SP_DialogHelpButton), tr("BOSS GT-10 Documentation"), this);
+        manualAct = new QAction(QIcon(":/assets/menu/manual.png"), tr("BOSS GT-10 Documentation"), this);
         manualAct->setWhatsThis(tr("........"));
         connect(manualAct, SIGNAL(triggered()), this, SLOT(manual()));
 
-        licenseAct = new QAction(style()->standardIcon(QStyle::SP_FileIcon), tr("License && &Credits"), this);
+        licenseAct = new QAction(QIcon(":/assets/menu/license.png"), tr("License && &Credits"), this);
         licenseAct->setWhatsThis(tr("licence agreement which you<br>have accepted by installing this software."));
         connect(licenseAct, SIGNAL(triggered()), this, SLOT(license()));
 
-        thirdPartyAct = new QAction(style()->standardIcon(QStyle::SP_ComputerIcon), tr("&Third-Party Software"), this);
+        thirdPartyAct = new QAction(QIcon(":/assets/menu/components.png"), tr("&Third-Party Software"), this);
         connect(thirdPartyAct, SIGNAL(triggered()), this, SLOT(thirdParty()));
 
-        sourceCodeAct = new QAction(style()->standardIcon(QStyle::SP_DriveNetIcon), tr("&Source Code"), this);
+        sourceCodeAct = new QAction(QIcon(":/assets/menu/code.png"), tr("&Source Code"), this);
         connect(sourceCodeAct, SIGNAL(triggered()), this, SLOT(sourceCode()));
 
-        aboutAct = new QAction(style()->standardIcon(QStyle::SP_MessageBoxInformation), tr("&About GT Lab Editor"), this);
+        aboutAct = new QAction(QIcon(":/assets/menu/about.png"), tr("&About GT Lab Editor"), this);
         aboutAct->setWhatsThis(tr("Show the application's About box"));
         aboutAct->setMenuRole(QAction::AboutRole);
         connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));

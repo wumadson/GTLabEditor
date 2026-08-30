@@ -66,7 +66,7 @@ statusBarWidget::statusBarWidget(QWidget *parent)
 
 	QWidget *connectionGroup = new QWidget(this);
 	QHBoxLayout *connectionLayout = new QHBoxLayout(connectionGroup);
-	connectionLayout->setContentsMargins(0, 0, 0, 0);
+	connectionLayout->setContentsMargins(0, 0, 8, 0);
 	connectionLayout->setSpacing(4);
 	connectionLayout->addWidget(this->connectionDot, 0, Qt::AlignVCenter);
 	connectionLayout->addWidget(this->connectionLabel, 0, Qt::AlignVCenter);
