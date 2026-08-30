@@ -147,7 +147,7 @@ ModernSettingsDialog::ModernSettingsDialog(QWidget *parent)
         "QListWidget#settingsNavigation::item { color: %5; height: 38px;"
         " padding-left: 12px; border-radius: 7px; font-size: 11px; font-weight: 600; }"
         "QListWidget#settingsNavigation::item:hover { background: %6; color: %2; }"
-        "QListWidget#settingsNavigation::item:selected { background: %7; color: %8; }"
+        "QListWidget#settingsNavigation::item:selected { background: %7; color: %2; }"
         "QLabel#settingsPageTitle { color: %2; font-size: 20px; font-weight: 600; }"
         "QLabel#settingsSectionTitle { color: %5; font-size: 10px; font-weight: 600; }"
         "QLabel#settingsFieldLabel { color: %2; font-size: 12px; font-weight: 600; }"
