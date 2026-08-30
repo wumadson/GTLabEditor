@@ -31,7 +31,6 @@ ModernAboutDialog::ModernAboutDialog(Page initialPage, QWidget *parent)
 {
     setWindowTitle(tr("About GT Lab Editor"));
     setModal(true);
-    ModernTheme::applyWindowsDarkTitleBar(this);
     resize(760, 540);
     setMinimumSize(680, 480);
     setStyleSheet(QStringLiteral(
@@ -98,6 +97,12 @@ ModernAboutDialog::ModernAboutDialog(Page initialPage, QWidget *parent)
     connect(navigation, &QListWidget::currentRowChanged,
             pages, &QStackedWidget::setCurrentIndex);
     setCurrentPage(initialPage);
+}
+
+void ModernAboutDialog::showEvent(QShowEvent *event)
+{
+    QDialog::showEvent(event);
+    ModernTheme::applyWindowsDarkTitleBar(this);
 }
 
 void ModernAboutDialog::setCurrentPage(Page page)

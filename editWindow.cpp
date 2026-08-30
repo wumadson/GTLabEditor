@@ -45,7 +45,6 @@ editWindow::editWindow(QWidget *parent)
         this->setWindowFlags(Qt::WindowStaysOnTopHint);
     } else { this->image = QPixmap(":images/meshWindow.png"); };
 
-        ModernTheme::applyWindowsDarkTitleBar(this);
         this->title = new QLabel;
         this->title->setObjectName("title");
 
@@ -189,6 +188,12 @@ editWindow::editWindow(QWidget *parent)
         QObject::connect(this->pageComboBox, SIGNAL(activated(int)), this, SLOT(valueChanged(int)));
 
 };
+
+void editWindow::showEvent(QShowEvent *event)
+{
+        QDialog::showEvent(event);
+        ModernTheme::applyWindowsDarkTitleBar(this);
+}
 
 void editWindow::paintEvent(QPaintEvent *)
 {

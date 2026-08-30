@@ -34,7 +34,6 @@
 
 bulkLoadDialog::bulkLoadDialog()
 { 
-  ModernTheme::applyWindowsDarkTitleBar(this);
   failed = true;
   QLabel *startListLabel = new QLabel(tr("Starting from"));
   this->startPatchCombo = new QComboBox(this);
@@ -239,6 +238,12 @@ bulkLoadDialog::bulkLoadDialog()
 	  this->startButton->hide();
   };
 };
+
+void bulkLoadDialog::showEvent(QShowEvent *event)
+{
+  QDialog::showEvent(event);
+  ModernTheme::applyWindowsDarkTitleBar(this);
+}
 
 void bulkLoadDialog::comboValueChanged(int value)
 {

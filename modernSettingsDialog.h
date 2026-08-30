@@ -18,6 +18,9 @@ class ModernSettingsDialog : public QDialog
 public:
     explicit ModernSettingsDialog(QWidget *parent = 0);
 
+protected:
+    void showEvent(QShowEvent *event) override;
+
 private:
     QWidget *createGeneralPage();
     QWidget *createMidiPage();

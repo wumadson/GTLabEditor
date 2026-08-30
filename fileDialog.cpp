@@ -28,7 +28,6 @@
 
 fileDialog::fileDialog(QString fileName, QList<QString> patchList, QByteArray fileData, QByteArray default_data, QString type)
 {
-  ModernTheme::applyWindowsDarkTitleBar(this);
     //QObject::connect(this, SIGNAL(patchIndex(int)),
                 //this->parent(), SLOT(patchIndex(int)));
   this->file_format = type;
@@ -73,6 +72,12 @@ fileDialog::fileDialog(QString fileName, QList<QString> patchList, QByteArray fi
 
         setWindowTitle(tr("Bulk File Patch Extraction"));
 };
+
+void fileDialog::showEvent(QShowEvent *event)
+{
+  QDialog::showEvent(event);
+  ModernTheme::applyWindowsDarkTitleBar(this);
+}
 
 void fileDialog::valueChanged(int value)
 {

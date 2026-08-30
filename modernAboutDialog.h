@@ -19,6 +19,9 @@ public:
 
     void setCurrentPage(Page page);
 
+protected:
+    void showEvent(QShowEvent *event) override;
+
 private:
     QWidget *createAboutPage();
     QWidget *createCreditsPage();

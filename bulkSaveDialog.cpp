@@ -43,7 +43,6 @@
 
 bulkSaveDialog::bulkSaveDialog()
 { 
-  ModernTheme::applyWindowsDarkTitleBar(this);
   QLabel *startRangeLabel = new QLabel(tr("Start Bank."));
 	QLabel *finishRangeLabel = new QLabel(tr("Finish Bank."));
 	
@@ -171,6 +170,12 @@ bulkSaveDialog::bulkSaveDialog()
 	QObject::connect(this, SIGNAL(setStatusMessage(QString)), sysxIO, SIGNAL(setStatusMessage(QString)));	
   
 };
+
+void bulkSaveDialog::showEvent(QShowEvent *event)
+{
+  QDialog::showEvent(event);
+  ModernTheme::applyWindowsDarkTitleBar(this);
+}
 
 void bulkSaveDialog::backup()
 {

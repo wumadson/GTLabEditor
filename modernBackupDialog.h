@@ -16,6 +16,9 @@ public:
                                 const QString &title,
                                 QWidget *parent = nullptr);
 
+protected:
+    void showEvent(QShowEvent *event) override;
+
 private slots:
     void updateProgress(QString patchNumber, int completed, int total,
                         QString stage, QString status);

@@ -55,8 +55,11 @@ public slots:
   void requestPatch(int bank, int patch);
   void updatePatch(QString replyMsg);
   void bulkStatusProgress(int value);
-     
-private: 
+
+protected:
+  void showEvent(QShowEvent *event) override;
+
+private:
   QLabel *progressLabel;
   QLabel *bytesLabel; 
   QPushButton *startButton;

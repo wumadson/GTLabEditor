@@ -67,6 +67,7 @@ public slots:
 	void swap_pre();
 
 protected:
+	void showEvent(QShowEvent *event) override;
 	void paintEvent(QPaintEvent *event);
 
 private:

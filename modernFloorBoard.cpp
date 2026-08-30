@@ -118,17 +118,29 @@ private:
     Kind iconKind;
 };
 
-class ModernMessageDialog final : public QDialog
+class ModernOwnedDialog : public QDialog
+{
+public:
+    explicit ModernOwnedDialog(QWidget *parent = nullptr) : QDialog(parent) {}
+
+protected:
+    void showEvent(QShowEvent *event) override
+    {
+        QDialog::showEvent(event);
+        ModernTheme::applyWindowsDarkTitleBar(this);
+    }
+};
+
+class ModernMessageDialog final : public ModernOwnedDialog
 {
 public:
     ModernMessageDialog(ModernDialogIcon::Kind kind, const QString &title,
                         const QString &target, const QString &description,
                         const QString &detail, QWidget *parent)
-        : QDialog(parent)
+        : ModernOwnedDialog(parent)
     {
         setWindowTitle(title);
         setModal(true);
-        ModernTheme::applyWindowsDarkTitleBar(this);
         setMinimumWidth(410);
         setMaximumWidth(470);
         setStyleSheet(QStringLiteral(
@@ -254,16 +266,15 @@ private:
     QHBoxLayout *buttonRow = nullptr;
 };
 
-class ModernRenamePatchDialog final : public QDialog
+class ModernRenamePatchDialog final : public ModernOwnedDialog
 {
 public:
     ModernRenamePatchDialog(const QString &number, const QString &currentName,
                             QWidget *parent)
-        : QDialog(parent)
+        : ModernOwnedDialog(parent)
     {
         setWindowTitle(tr("RENAME PATCH"));
         setModal(true);
-        ModernTheme::applyWindowsDarkTitleBar(this);
         setFixedWidth(390);
         setStyleSheet(QStringLiteral(
             "QDialog{background:%1;color:%2;border:1px solid %3;"
@@ -4117,10 +4128,9 @@ void modernFloorBoard::saveQuickSetting()
         return;
 
     const int slot = slotCombo->currentData().toInt();
-    QDialog dialog(this);
+    ModernOwnedDialog dialog(this);
     dialog.setWindowTitle(tr("SAVE QUICK SETTING"));
     dialog.setModal(true);
-    ModernTheme::applyWindowsDarkTitleBar(&dialog);
     dialog.setMinimumWidth(340);
     dialog.setStyleSheet(QStringLiteral(
         "QDialog { background: #0D1014; color: #E7ECF0; }"

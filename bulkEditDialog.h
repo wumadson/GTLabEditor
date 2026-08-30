@@ -56,7 +56,10 @@ public slots:
   void bulkStatusProgress(int value);
   void sendSequence(QString value); 
   void sendPatch(QString data);
-  
+
+protected:
+  void showEvent(QShowEvent *event) override;
+
 private slots:
   void comboValueChanged(int value);
        

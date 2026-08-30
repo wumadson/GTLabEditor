@@ -52,6 +52,9 @@ public slots:
   void highlighted(int value);
   void cancel();
 
+protected:
+  void showEvent(QShowEvent *event) override;
+
 private:
   QList<QString> patchList;
   QListWidget *contentsWidget;

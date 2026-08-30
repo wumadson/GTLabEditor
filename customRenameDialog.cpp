@@ -29,7 +29,6 @@
 customRenameDialog::customRenameDialog(QWidget *parent, QString hex1, QString hex2, QString hex3, QString area, QString length)
      : QDialog(parent)
 {
-    ModernTheme::applyWindowsDarkTitleBar(this);
     this->hex1 = hex1;
     this->hex2 = hex2;
     this->hex3 = hex3;
@@ -111,6 +110,12 @@ customRenameDialog::customRenameDialog(QWidget *parent, QString hex1, QString he
 	setLayout(mainLayout);
   this->setMinimumWidth(dialogLength);
 };
+
+void customRenameDialog::showEvent(QShowEvent *event)
+{
+    QDialog::showEvent(event);
+    ModernTheme::applyWindowsDarkTitleBar(this);
+}
 
 void customRenameDialog::emitValue()
 {

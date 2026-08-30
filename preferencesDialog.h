@@ -44,6 +44,9 @@ public:
 public slots:
 	void changePage(QListWidgetItem *current, QListWidgetItem *previous);
 
+protected:
+	void showEvent(QShowEvent *event) override;
+
 private:
 	void createIcons();
 	QListWidget *contentsWidget;

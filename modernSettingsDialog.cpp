@@ -63,7 +63,6 @@ ModernSettingsDialog::ModernSettingsDialog(QWidget *parent)
     resize(820, 540);
     setMinimumSize(700, 480);
     setModal(true);
-    ModernTheme::applyWindowsDarkTitleBar(this);
 
     Preferences *preferences = Preferences::Instance();
     initialPatchFolder = preferences->getPreferences("General", "Files", "dir");
@@ -191,6 +190,12 @@ ModernSettingsDialog::ModernSettingsDialog(QWidget *parent)
     navigation->setCurrentRow(0);
     refreshMidiDevices();
     updateDirtyState();
+}
+
+void ModernSettingsDialog::showEvent(QShowEvent *event)
+{
+    QDialog::showEvent(event);
+    ModernTheme::applyWindowsDarkTitleBar(this);
 }
 
 QWidget *ModernSettingsDialog::createGeneralPage()

@@ -46,6 +46,7 @@ signals:
 	void nameChanged(QString name);
 
 protected:
+	void showEvent(QShowEvent *event) override;
 
 private:
 	QLabel *nameLabel;

@@ -29,7 +29,6 @@
 
 preferencesDialog::preferencesDialog()
 {
-	ModernTheme::applyWindowsDarkTitleBar(this);
 	contentsWidget = new QListWidget;
 	contentsWidget->setViewMode(QListView::IconMode);
 	contentsWidget->setIconSize(QSize(45, 40));
@@ -81,6 +80,12 @@ preferencesDialog::preferencesDialog()
 
 	setWindowTitle(tr("GT Lab Editor - Settings"));
 };
+
+void preferencesDialog::showEvent(QShowEvent *event)
+{
+	QDialog::showEvent(event);
+	ModernTheme::applyWindowsDarkTitleBar(this);
+}
 
 void preferencesDialog::createIcons()
 {

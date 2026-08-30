@@ -19,7 +19,6 @@ ModernBackupDialog::ModernBackupDialog(BackupCoordinator *coordinator,
     setModal(true);
     setFixedSize(470, 290);
     setWindowFlag(Qt::WindowContextHelpButtonHint, false);
-    ModernTheme::applyWindowsDarkTitleBar(this);
 
     QLabel *title = new QLabel(titleText, this);
     title->setObjectName("operationTitle");
@@ -87,6 +86,12 @@ ModernBackupDialog::ModernBackupDialog(BackupCoordinator *coordinator,
         "QPushButton:hover { border-color: %6; }"
         "QPushButton:disabled { color: %4; }")
         .arg(background).arg(primary).arg(panel).arg(secondary).arg(border).arg(accent));
+}
+
+void ModernBackupDialog::showEvent(QShowEvent *event)
+{
+    QDialog::showEvent(event);
+    ModernTheme::applyWindowsDarkTitleBar(this);
 }
 
 void ModernBackupDialog::updateProgress(QString patchNumber, int completed,

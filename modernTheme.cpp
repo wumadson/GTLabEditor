@@ -2,6 +2,7 @@
 
 #include <QColor>
 #include <QWidget>
+#include <QWindow>
 #include <QtMath>
 #ifdef Q_OS_WIN
 #ifndef NOMINMAX
@@ -58,10 +59,13 @@ QString ModernTheme::color(ColorRole role)
 void ModernTheme::applyWindowsDarkTitleBar(QWidget *window)
 {
 #ifdef Q_OS_WIN
-    if (!window)
+    if (!window || !window->isWindow() || !window->isVisible()
+            || !window->testAttribute(Qt::WA_WState_Created)
+            || !window->windowHandle())
         return;
 
-    const HWND windowHandle = reinterpret_cast<HWND>(window->winId());
+    const HWND windowHandle = reinterpret_cast<HWND>(
+        window->windowHandle()->winId());
     if (!windowHandle)
         return;
 
@@ -96,10 +100,13 @@ void ModernTheme::applyWindowsDarkTitleBar(QWidget *window)
 void ModernTheme::refreshWindowsDarkTitleBar(QWidget *window)
 {
 #ifdef Q_OS_WIN
-    if (!window)
+    if (!window || !window->isWindow() || !window->isVisible()
+            || !window->testAttribute(Qt::WA_WState_Created)
+            || !window->windowHandle())
         return;
 
-    const HWND windowHandle = reinterpret_cast<HWND>(window->winId());
+    const HWND windowHandle = reinterpret_cast<HWND>(
+        window->windowHandle()->winId());
     if (!windowHandle)
         return;
 

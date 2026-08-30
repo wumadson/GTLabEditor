@@ -35,7 +35,6 @@
 
 bulkEditDialog::bulkEditDialog(int partStart, int partLength, QString partHex1, QString partHex3)
 { 
-  ModernTheme::applyWindowsDarkTitleBar(this);
   this->partialStart = partStart;
   this->partialLength = partLength;
   this->hex1 = partHex1;
@@ -147,6 +146,12 @@ bulkEditDialog::bulkEditDialog(int partStart, int partLength, QString partHex1, 
   
   prepareData();
 };
+
+void bulkEditDialog::showEvent(QShowEvent *event)
+{
+  QDialog::showEvent(event);
+  ModernTheme::applyWindowsDarkTitleBar(this);
+}
 
 void bulkEditDialog::comboValueChanged(int value)
 {
