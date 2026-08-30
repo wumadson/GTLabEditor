@@ -432,7 +432,16 @@ BottomControlStrip::BottomControlStrip(QWidget *parent)
     setMaximumHeight(130);
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-    QHBoxLayout *layout = new QHBoxLayout(this);
+    QHBoxLayout *outerLayout = new QHBoxLayout(this);
+    outerLayout->setContentsMargins(0, 0, 0, 0);
+    outerLayout->setSpacing(0);
+
+    QWidget *contentWrapper = new QWidget;
+    // Keep the strip close to the natural width of the primary workspace.
+    contentWrapper->setMaximumWidth(1680);
+    contentWrapper->setSizePolicy(QSizePolicy::Expanding,
+                                  QSizePolicy::Preferred);
+    QHBoxLayout *layout = new QHBoxLayout(contentWrapper);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
 
@@ -737,6 +746,9 @@ BottomControlStrip::BottomControlStrip(QWidget *parent)
         }
         layout->addWidget(region, stretches[i]);
     }
+    outerLayout->addStretch();
+    outerLayout->addWidget(contentWrapper, 1);
+    outerLayout->addStretch();
 }
 
 QComboBox *BottomControlStrip::tunerReferenceComboBox() const
