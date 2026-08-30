@@ -5091,6 +5091,20 @@ void modernFloorBoard::rebuildSignalChainView()
 
     SignalChainContent *content = new SignalChainContent;
     signalChainContent = content;
+    const auto installContent = [this, content]() {
+        QWidget *wrapper = new QWidget;
+        wrapper->setObjectName("SignalChainViewportWrapper");
+        wrapper->setStyleSheet(QString(
+            "QWidget#SignalChainViewportWrapper{background:%1;}")
+            .arg(ModernTheme::color(ModernTheme::ControlBackground)));
+        QHBoxLayout *wrapperLayout = new QHBoxLayout(wrapper);
+        wrapperLayout->setContentsMargins(0, 0, 0, 0);
+        wrapperLayout->setSpacing(0);
+        wrapperLayout->addStretch(1);
+        wrapperLayout->addWidget(content, 0, Qt::AlignVCenter);
+        wrapperLayout->addStretch(1);
+        signalChainScroll->setWidget(wrapper);
+    };
     content->setDragHandler([this](int moduleId, const QPoint &position,
                                    bool commit) {
         return handleSignalChainDrag(moduleId, position, commit);
@@ -5117,7 +5131,7 @@ void modernFloorBoard::rebuildSignalChainView()
         signalChainConnectors.append(outputConnector);
         signalFlowLayout->addWidget(outputConnector, 0, Qt::AlignVCenter);
         signalChainScroll->setUpdatesEnabled(false);
-        signalChainScroll->setWidget(content);
+        installContent();
         signalChainScroll->setUpdatesEnabled(true);
         signalChainScroll->viewport()->update();
         return;
@@ -5203,7 +5217,7 @@ void modernFloorBoard::rebuildSignalChainView()
     // geometry for one or more frames. Keep the scroll area frozen until the
     // responsive geometry has been applied synchronously.
     signalChainScroll->setUpdatesEnabled(false);
-    signalChainScroll->setWidget(content);
+    installContent();
     applyResponsiveSignalChainLayout();
     signalChainScroll->setUpdatesEnabled(true);
     signalChainScroll->viewport()->update();
@@ -5544,7 +5558,7 @@ void modernFloorBoard::applyResponsiveSignalChainLayout()
     if (available <= 0 || viewportHeight <= 0)
         return;
 
-    QWidget *content = signalChainScroll->widget();
+    QWidget *content = signalChainContent;
     if (!content)
         return;
     content->setMinimumHeight(viewportHeight);
@@ -5584,7 +5598,10 @@ void modernFloorBoard::applyResponsiveSignalChainLayout()
     for (SignalConnector *connector : signalChainConnectors)
         connector->setCompactWidth(connectorWidth);
 
+    if (signalPathsLayout)
+        signalPathsLayout->invalidate();
     signalFlowLayout->invalidate();
+    content->setFixedWidth(signalFlowLayout->sizeHint().width());
     signalFlowLayout->activate();
     if (signalPathsLayout)
         signalPathsLayout->activate();
