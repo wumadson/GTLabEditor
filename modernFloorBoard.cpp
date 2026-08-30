@@ -912,6 +912,16 @@ QString quickSettingTypeDisplay(QuickSettingEffect effect, int raw)
     return QString();
 }
 
+QString quickSettingSlotDisplay(int slot, const QString &detail = QString())
+{
+    const QString slotText = QStringLiteral("U%1").arg(
+        slot, 2, 10, QChar('0'));
+    return detail.isEmpty()
+        ? slotText
+        : QStringLiteral("%1 %2 %3").arg(
+              slotText, QString(QChar(0x00B7)), detail);
+}
+
 class EqBandArea : public QWidget
 {
 public:
@@ -3847,19 +3857,19 @@ void modernFloorBoard::applyQuickSettingPresentation(
     const int index = combo->findData(slot);
     if (index < 0)
         return;
-    const QString slotText = QStringLiteral("U%1").arg(
-        slot, 2, 10, QChar('0'));
     const QuickPresentationEntry entry = quickPresentationCache
         .value(static_cast<int>(effect)).value(slot);
-    QString text = slotText;
+    QString text = quickSettingSlotDisplay(slot);
     if (entry.generation == quickPresentationGeneration) {
-        if (entry.status == QuickPresentationStatus::Loading)
-            text += tr(" · Loading...");
+        if (entry.status == QuickPresentationStatus::Loading) {
+            const QString loading = tr(" \xC2\xB7 Loading...");
+            text = quickSettingSlotDisplay(slot, loading.mid(3));
+        }
         else if (entry.status == QuickPresentationStatus::Ready
                  && !entry.display.isEmpty())
-            text += QStringLiteral(" · %1").arg(entry.display);
+            text = quickSettingSlotDisplay(slot, entry.display);
         else if (entry.status == QuickPresentationStatus::Failed)
-            text += QString::fromUtf8(" · —");
+            text = quickSettingSlotDisplay(slot, QString(QChar(0x2014)));
     }
     combo->setItemText(index, text);
     combo->setItemData(index,
@@ -4293,10 +4303,9 @@ void modernFloorBoard::quickSettingTypeReady(QuickSettingEffect effect,
     }
     const int index = slotCombo->findData(slot);
     if (index >= 0) {
-        const QString slotText = QStringLiteral("U%1").arg(
-            slot, 2, 10, QChar('0'));
         slotCombo->setItemText(index, type.isEmpty()
-            ? slotText : QStringLiteral("%1 · %2").arg(slotText, type));
+            ? quickSettingSlotDisplay(slot)
+            : quickSettingSlotDisplay(slot, type));
     }
 }
 
@@ -4354,12 +4363,11 @@ void modernFloorBoard::quickSettingIdentityReady(
     const int index = slotCombo->findData(slot);
     if (index < 0)
         return;
-    const QString slotText = QStringLiteral("U%1").arg(
-        slot, 2, 10, QChar('0'));
     const QString identity = nameValid && !name.trimmed().isEmpty()
         ? name.trimmed() : type;
     slotCombo->setItemText(index, identity.isEmpty()
-        ? slotText : QStringLiteral("%1 · %2").arg(slotText, identity));
+        ? quickSettingSlotDisplay(slot)
+        : quickSettingSlotDisplay(slot, identity));
     slotCombo->setItemData(index,
         nameValid ? name.trimmed() : type, Qt::ToolTipRole);
 }
