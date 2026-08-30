@@ -103,6 +103,35 @@ struct WindowsEraseFunctions
 #include "summaryDialogSystem.h"
 #include "globalVariables.h"
 
+#ifdef Q_OS_WIN
+namespace {
+
+void clearWindowsCaptionText(QWidget *window)
+{
+        if (!window || !window->isVisible())
+                return;
+
+        const HWND windowHandle = reinterpret_cast<HWND>(window->winId());
+        if (!windowHandle)
+                return;
+
+        const HMODULE user32 = LoadLibraryW(L"user32.dll");
+        if (!user32)
+                return;
+
+        typedef BOOL (WINAPI *SetWindowTextFunction)(HWND, LPCWSTR);
+        const SetWindowTextFunction setWindowText =
+            reinterpret_cast<SetWindowTextFunction>(
+                GetProcAddress(user32, "SetWindowTextW"));
+        if (setWindowText)
+                setWindowText(windowHandle, L"");
+
+        FreeLibrary(user32);
+}
+
+} // namespace
+#endif
+
 
 mainWindow::mainWindow()
     {
@@ -272,6 +301,7 @@ void mainWindow::showEvent(QShowEvent *event)
         QMainWindow::showEvent(event);
 #ifdef Q_OS_WIN
         ModernTheme::applyWindowsDarkTitleBar(this);
+        clearWindowsCaptionText(this);
 #endif
 }
 
