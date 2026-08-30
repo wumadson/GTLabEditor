@@ -26,6 +26,64 @@
 #include <QShowEvent>
 #include <QWhatsThis>
 #include <QStyle>
+#ifdef Q_OS_WIN
+#include <windows.h>
+
+namespace {
+
+struct WindowsEraseFunctions
+{
+        typedef BOOL (WINAPI *GetClientRectFunction)(HWND, LPRECT);
+        typedef int (WINAPI *FillRectFunction)(HDC, const RECT *, HBRUSH);
+        typedef HBRUSH (WINAPI *CreateSolidBrushFunction)(COLORREF);
+        typedef BOOL (WINAPI *DeleteObjectFunction)(HGDIOBJ);
+
+        WindowsEraseFunctions()
+            : user32(LoadLibraryW(L"user32.dll")),
+              gdi32(LoadLibraryW(L"gdi32.dll")),
+              getClientRect(nullptr),
+              fillRect(nullptr),
+              createSolidBrush(nullptr),
+              deleteObject(nullptr)
+        {
+                if (user32) {
+                        getClientRect = reinterpret_cast<GetClientRectFunction>(
+                            GetProcAddress(user32, "GetClientRect"));
+                        fillRect = reinterpret_cast<FillRectFunction>(
+                            GetProcAddress(user32, "FillRect"));
+                }
+                if (gdi32) {
+                        createSolidBrush = reinterpret_cast<CreateSolidBrushFunction>(
+                            GetProcAddress(gdi32, "CreateSolidBrush"));
+                        deleteObject = reinterpret_cast<DeleteObjectFunction>(
+                            GetProcAddress(gdi32, "DeleteObject"));
+                }
+        }
+
+        ~WindowsEraseFunctions()
+        {
+                if (gdi32)
+                        FreeLibrary(gdi32);
+                if (user32)
+                        FreeLibrary(user32);
+        }
+
+        bool available() const
+        {
+                return getClientRect && fillRect && createSolidBrush
+                    && deleteObject;
+        }
+
+        HMODULE user32;
+        HMODULE gdi32;
+        GetClientRectFunction getClientRect;
+        FillRectFunction fillRect;
+        CreateSolidBrushFunction createSolidBrush;
+        DeleteObjectFunction deleteObject;
+};
+
+} // namespace
+#endif
 #include "mainWindow.h"
 #include "modernFloorBoard.h"
 #include "modernTheme.h"
@@ -48,6 +106,12 @@
 
 mainWindow::mainWindow()
     {
+        QPalette windowPalette = palette();
+        windowPalette.setColor(QPalette::Window, QColor(
+            ModernTheme::color(ModernTheme::ApplicationBackground)));
+        setPalette(windowPalette);
+        setAutoFillBackground(true);
+
         createActions();
         createMenus();
 
@@ -210,6 +274,39 @@ void mainWindow::showEvent(QShowEvent *event)
         ModernTheme::applyWindowsDarkTitleBar(this);
 #endif
 }
+
+#ifdef Q_OS_WIN
+bool mainWindow::nativeEvent(const QByteArray &eventType, void *message,
+                             long *result)
+{
+        static const WindowsEraseFunctions functions;
+        MSG *msg = static_cast<MSG *>(message);
+        if (msg && msg->message == WM_ERASEBKGND
+                && functions.available()) {
+                const HDC deviceContext = reinterpret_cast<HDC>(msg->wParam);
+                RECT clientRect;
+                if (deviceContext
+                        && functions.getClientRect(msg->hwnd, &clientRect)) {
+                        const QColor background(ModernTheme::color(
+                            ModernTheme::ApplicationBackground));
+                        const HBRUSH brush = functions.createSolidBrush(
+                            RGB(background.red(), background.green(),
+                                background.blue()));
+                        if (brush) {
+                                const int fillResult = functions.fillRect(
+                                    deviceContext, &clientRect, brush);
+                                functions.deleteObject(brush);
+                                if (fillResult) {
+                                        if (result)
+                                                *result = 1;
+                                        return true;
+                                }
+                        }
+                }
+        }
+        return QMainWindow::nativeEvent(eventType, message, result);
+}
+#endif
 
 void mainWindow::updateSize(QSize floorSize, QSize oldFloorSize)
 {

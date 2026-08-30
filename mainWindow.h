@@ -49,6 +49,10 @@ public:
 
 protected:
         void showEvent(QShowEvent *event) override;
+#ifdef Q_OS_WIN
+        bool nativeEvent(const QByteArray &eventType, void *message,
+                         long *result) override;
+#endif
 
 signals:
         void updateSignal();
