@@ -67,7 +67,7 @@ public:
         QVBoxLayout *layout = new QVBoxLayout(this);
         layout->setContentsMargins(0, 0, 0, 0);
         layout->setSpacing(8);
-        QLabel *title = new QLabel("SOURCE");
+        QLabel *title = new QLabel(QObject::tr("SOURCE"));
         title->setObjectName("ParameterLabel");
         field = new QPushButton;
         field->setObjectName("AssignSourceField");
@@ -84,7 +84,7 @@ public:
         popupLayout->setContentsMargins(10, 10, 10, 10);
         popupLayout->setSpacing(8);
         search = new QLineEdit;
-        search->setPlaceholderText("Search source...");
+        search->setPlaceholderText(QObject::tr("Search source..."));
         search->setClearButtonEnabled(true);
         popupLayout->addWidget(search);
         QHBoxLayout *filters = new QHBoxLayout;
@@ -92,7 +92,10 @@ public:
         filters->setSpacing(5);
         categoryGroup = new QButtonGroup(popover);
         categoryGroup->setExclusive(true);
-        const QStringList names = {"PHYSICAL", "GENERATORS", "MIDI CC"};
+        const QStringList names = {
+            QObject::tr("PHYSICAL"), QObject::tr("GENERATORS"),
+            QObject::tr("MIDI CC")
+        };
         for (int category = 0; category < names.size(); ++category) {
             QPushButton *button = new QPushButton(names.at(category));
             button->setObjectName("AssignSourceCategory");
@@ -304,7 +307,7 @@ public:
         popupLayout->setContentsMargins(10, 10, 10, 10);
         popupLayout->setSpacing(8);
         search = new QLineEdit;
-        search->setPlaceholderText("Search function...");
+        search->setPlaceholderText(QObject::tr("Search function..."));
         search->setClearButtonEnabled(true);
         popupLayout->addWidget(search);
 
@@ -315,7 +318,9 @@ public:
         categoryGroup = new QButtonGroup(popover);
         categoryGroup->setExclusive(true);
         const QStringList names = {
-            "GENERAL", "EFFECTS", "PERFORMANCE", "MIDI", "PATCH", "LED"
+            QObject::tr("GENERAL"), QObject::tr("EFFECTS"),
+            QObject::tr("PERFORMANCE"), QObject::tr("MIDI"),
+            QObject::tr("PATCH"), QObject::tr("LED")
         };
         for (int category = 0; category < names.size(); ++category) {
             QPushButton *button = new QPushButton(names.at(category));
@@ -558,7 +563,7 @@ public:
         QVBoxLayout *layout = new QVBoxLayout(this);
         layout->setContentsMargins(0, 0, 0, 0);
         layout->setSpacing(8);
-        QLabel *title = new QLabel("SOURCE MODE");
+        QLabel *title = new QLabel(QObject::tr("SOURCE MODE"));
         title->setObjectName("ParameterLabel");
         field = new QPushButton;
         field->setObjectName("AssignModeField");
@@ -722,7 +727,7 @@ public:
         popupLayout->setContentsMargins(8, 8, 8, 8);
         popupLayout->setSpacing(6);
         search = new QLineEdit;
-        search->setPlaceholderText("Search...");
+        search->setPlaceholderText(QObject::tr("Search..."));
         search->setClearButtonEnabled(true);
         popupLayout->addWidget(search);
         list = new QListWidget;
@@ -963,7 +968,7 @@ EffectEditorPanel *ModernControlAssignEditor::widget() const
 
 void ModernControlAssignEditor::buildEditor()
 {
-    editor = new EffectEditorPanel("CONTROL ASSIGN");
+    editor = new EffectEditorPanel(tr("CONTROL ASSIGN"));
     editor->typeLabel()->hide();
     QWidget *artworkPane = editor->artworkArea()->parentWidget();
     if (artworkPane)
@@ -973,7 +978,7 @@ void ModernControlAssignEditor::buildEditor()
     for (QLabel *label : editorLabels) {
         if (label->objectName() == "WorkspaceColumnTitle"
             && label->text() == "PARAMETERS") {
-            label->setText("CONTROL ASSIGN");
+    label->setText(tr("CONTROL ASSIGN"));
             label->setObjectName("ControlAssignWorkspaceTitle");
             label->setStyleSheet(
                 "color:#D4D7DB;font-size:14px;font-weight:700;"
@@ -986,7 +991,7 @@ void ModernControlAssignEditor::buildEditor()
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
 
-    ParameterSection *controls = new ParameterSection("DIRECT CONTROLS", 3);
+    ParameterSection *controls = new ParameterSection(tr("DIRECT CONTROLS"), 3);
     const QList<QLabel *> controlLabels = controls->findChildren<QLabel *>();
     for (QLabel *label : controlLabels) {
         if (label->objectName() == "ParameterSectionTitle"
@@ -1055,7 +1060,7 @@ QWidget *ModernControlAssignEditor::createAssignDetail()
 
     QHBoxLayout *heading = new QHBoxLayout;
     heading->setContentsMargins(0, 0, 0, 0);
-    detailTitle = new QLabel("ASSIGN 1");
+    detailTitle = new QLabel(tr("ASSIGN 1"));
     detailTitle->setObjectName("ParameterSectionTitle");
     heading->addWidget(detailTitle);
     heading->addStretch(1);
@@ -1064,7 +1069,7 @@ QWidget *ModernControlAssignEditor::createAssignDetail()
     QVBoxLayout *stateLayout = new QVBoxLayout;
     stateLayout->setContentsMargins(0, 0, 0, 0);
     stateLayout->setSpacing(4);
-    QLabel *stateLabel = new QLabel("STATE");
+    QLabel *stateLabel = new QLabel(tr("STATE"));
     stateLabel->setObjectName("ParameterLabel");
     detailStateToggle = new ModernToggleSwitch;
     detailStateToggle->setAccentColor(QColor("#00AEEF"));
@@ -1084,9 +1089,10 @@ QWidget *ModernControlAssignEditor::createAssignDetail()
         "trigger", "time", "curve", "rate", "form", "sensitivity"
     };
     const QStringList labels = {
-        "SOURCE", "TARGET", "TARGET MIN", "TARGET MAX", "SOURCE MODE",
-        "ACTIVE RANGE LOW", "ACTIVE RANGE HIGH", "TRIGGER", "TIME",
-        "CURVE", "RATE", "FORM", "INPUT SENSITIVITY"
+        tr("SOURCE"), tr("TARGET"), tr("TARGET MIN"), tr("TARGET MAX"),
+        tr("SOURCE MODE"), tr("ACTIVE RANGE LOW"),
+        tr("ACTIVE RANGE HIGH"), tr("TRIGGER"), tr("TIME"),
+        tr("CURVE"), tr("RATE"), tr("FORM"), tr("INPUT SENSITIVITY")
     };
     for (int index = 0; index < keys.size(); ++index) {
         const bool firstRow = index <= 3;
@@ -1574,15 +1580,15 @@ void ModernControlAssignEditor::updateAssignList()
         if (index == selectedAssign && !button->isChecked())
             button->setChecked(true);
         if (!assignModel.isAvailable()) {
-            button->setText(QString("ASSIGN %1\n—").arg(index + 1));
+            button->setText(tr("ASSIGN %1\n—").arg(index + 1));
             button->setEnabled(false);
             continue;
         }
         const ModernAssignModel::Record &record = assignModel.record(index);
         button->setEnabled(record.valid);
-        button->setText(QString("ASSIGN %1   %2\n%3  →  %4")
+        button->setText(tr("ASSIGN %1   %2\n%3  →  %4")
             .arg(index + 1)
-            .arg(record.enabled ? "ON" : "OFF")
+            .arg(record.enabled ? tr("ON") : tr("OFF"))
             .arg(record.sourceDisplay)
             .arg(record.targetName));
         button->setProperty("assignEnabled", record.enabled);
@@ -1596,7 +1602,7 @@ void ModernControlAssignEditor::updateAssignDetail()
     const bool valid = assignModel.isAvailable()
         && selectedAssign >= 0 && selectedAssign < assignModel.count()
         && assignModel.record(selectedAssign).valid;
-    detailTitle->setText(QString("ASSIGN %1").arg(selectedAssign + 1));
+    detailTitle->setText(tr("ASSIGN %1").arg(selectedAssign + 1));
     detailStateToggle->setEnabled(valid);
     detailStateToggle->setCheckedFromBackend(
         valid && assignModel.record(selectedAssign).enabled);

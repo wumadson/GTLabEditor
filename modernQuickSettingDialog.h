@@ -12,6 +12,8 @@ class QWidget;
 
 class ModernQuickSettingDialog final : public QDialog
 {
+    Q_OBJECT
+
 public:
     explicit ModernQuickSettingDialog(QWidget *parent = nullptr);
 

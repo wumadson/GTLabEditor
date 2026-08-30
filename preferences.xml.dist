@@ -12,7 +12,7 @@
 		<Webpage url="http://gtx.tinfoilmusic.net/"/>
 	</General>
 	<Language>
-    <Locale select="0"/>
+		<Locale select="en"/>
   </Language>
 	<Midi>
 	  <BulkFinish patch="200"/>

@@ -258,7 +258,8 @@ mainWindow::mainWindow()
         //mainLayout->setSpacing(0);
         //setLayout(mainLayout);
         setCentralWidget(modernFloorBoardWidget);
-        statusBar()->setWhatsThis("StatusBar<br>midi activity is displayed here<br>and some status messages are displayed.");
+        statusBar()->setWhatsThis(
+            tr("StatusBar<br>midi activity is displayed here<br>and some status messages are displayed."));
  
         // Modern UI utiliza layout responsivo; nao usa sizeChanged() do floorBoard legado.
 };

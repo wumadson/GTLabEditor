@@ -47,7 +47,7 @@ void ModernSendReturnEditor::buildEditor()
 {
     const QColor accent(ModernTheme::activeEffectAccent("SEND/RETURN"));
 
-    editor = new EffectEditorPanel("SEND/RETURN");
+    editor = new EffectEditorPanel(tr("SEND/RETURN"));
     editor->typeLabel()->hide();
     editor->setRightPanelTitle("LOOP MODE");
 
@@ -67,19 +67,19 @@ void ModernSendReturnEditor::buildEditor()
     stateRowLayout = new QHBoxLayout(stateRow);
     stateRowLayout->setContentsMargins(0, 0, 0, 0);
     stateRowLayout->setSpacing(0);
-    EffectToggleControl *stateControl = new EffectToggleControl("State");
+    EffectToggleControl *stateControl = new EffectToggleControl(tr("State"));
     stateToggle = stateControl->toggle();
     stateToggle->setAccentColor(accent);
     stateRowLayout->addWidget(stateControl, 0, Qt::AlignTop);
     stateRowLayout->addStretch(1);
     parameterLayout->addWidget(stateRow);
 
-    QLabel *sectionTitle = new QLabel("LEVELS");
+    QLabel *sectionTitle = new QLabel(tr("LEVELS"));
     sectionTitle->setObjectName("ParameterSectionTitle");
     parameterLayout->addWidget(sectionTitle);
 
     MidiTable *midiTable = MidiTable::Instance();
-    sendLevelBar = new ParameterBar("Send Level");
+    sendLevelBar = new ParameterBar(tr("Send Level"));
     sendLevelBar->setAccentColor(accent);
     sendLevelBar->setRange(
         midiTable->getRangeMinimum(kStructure, kBank, kMiddleByte,
@@ -88,7 +88,7 @@ void ModernSendReturnEditor::buildEditor()
                             kSendLevelAddress));
     parameterLayout->addWidget(sendLevelBar);
 
-    returnLevelBar = new ParameterBar("Return Level");
+    returnLevelBar = new ParameterBar(tr("Return Level"));
     returnLevelBar->setAccentColor(accent);
     returnLevelBar->setRange(
         midiTable->getRangeMinimum(kStructure, kBank, kMiddleByte,
@@ -98,12 +98,12 @@ void ModernSendReturnEditor::buildEditor()
     parameterLayout->addWidget(returnLevelBar);
     parameterLayout->addStretch(1);
 
-    ParameterCombo *modeControl = new ParameterCombo("Mode");
+    ParameterCombo *modeControl = new ParameterCombo(tr("Mode"));
     modeControl->setLabelVisible(false);
     modeCombo = modeControl->comboBox();
-    modeCombo->addItem("NORMAL", 0x00);
-    modeCombo->addItem("DIRECT MIX", 0x01);
-    modeCombo->addItem("BRANCH OUT", 0x02);
+    modeCombo->addItem(tr("NORMAL"), 0x00);
+    modeCombo->addItem(tr("DIRECT MIX"), 0x01);
+    modeCombo->addItem(tr("BRANCH OUT"), 0x02);
     QWidget *modePanel = new QWidget;
     QVBoxLayout *modeLayout = new QVBoxLayout(modePanel);
     modeLayout->setContentsMargins(0, 0, 0, 0);

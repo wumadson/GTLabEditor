@@ -76,7 +76,7 @@ AssignTargetBrowser::AssignTargetBrowser(QWidget *parent) : QWidget(parent)
     QVBoxLayout *layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(8);
-    QLabel *title = new QLabel("TARGET");
+    QLabel *title = new QLabel(QObject::tr("TARGET"));
     title->setObjectName("ParameterLabel");
     field = new QPushButton(QString::fromUtf8("—  ▾"));
     field->setObjectName("AssignTargetField");
@@ -94,11 +94,11 @@ AssignTargetBrowser::AssignTargetBrowser(QWidget *parent) : QWidget(parent)
     QVBoxLayout *browserLayout = new QVBoxLayout(browser);
     browserLayout->setContentsMargins(12, 12, 12, 12);
     browserLayout->setSpacing(9);
-    QLabel *heading = new QLabel("TARGET BROWSER");
+    QLabel *heading = new QLabel(QObject::tr("TARGET BROWSER"));
     heading->setObjectName("AssignTargetBrowserHeading");
     browserLayout->addWidget(heading);
     search = new QLineEdit;
-    search->setPlaceholderText("Search target...");
+    search->setPlaceholderText(QObject::tr("Search target..."));
     search->setClearButtonEnabled(true);
     browserLayout->addWidget(search);
 
@@ -124,7 +124,9 @@ AssignTargetBrowser::AssignTargetBrowser(QWidget *parent) : QWidget(parent)
     detailsLayout->setHorizontalSpacing(8);
     detailsLayout->setVerticalSpacing(8);
     const QStringList labels = {
-        "TARGET ID", "CATEGORY", "TYPE", "RANGE", "CURRENT MIN", "CURRENT MAX"
+        QObject::tr("TARGET ID"), QObject::tr("CATEGORY"),
+        QObject::tr("TYPE"), QObject::tr("RANGE"),
+        QObject::tr("CURRENT MIN"), QObject::tr("CURRENT MAX")
     };
     QList<QLabel **> values = {
         &idValue, &categoryValue, &typeValue,
@@ -142,9 +144,9 @@ AssignTargetBrowser::AssignTargetBrowser(QWidget *parent) : QWidget(parent)
     QHBoxLayout *actions = new QHBoxLayout;
     actions->setContentsMargins(0, 0, 0, 0);
     actions->setSpacing(6);
-    cancelButton = new QPushButton("CANCEL");
+    cancelButton = new QPushButton(QObject::tr("CANCEL"));
     cancelButton->setObjectName("AssignTargetCancel");
-    applyButton = new QPushButton("APPLY TARGET");
+    applyButton = new QPushButton(QObject::tr("APPLY TARGET"));
     applyButton->setObjectName("AssignTargetApply");
     actions->addWidget(cancelButton);
     actions->addWidget(applyButton, 1);
@@ -399,7 +401,7 @@ void AssignTargetBrowser::rebuildResults()
         QListWidgetItem *item = new QListWidgetItem(itemText, results);
         item->setData(Qt::UserRole, target.id);
         if (target.type == "ACTION")
-            item->setToolTip("ACTION");
+            item->setToolTip(QObject::tr("ACTION"));
         if (target.id == currentTargetId)
             selected = item;
     }

@@ -3,6 +3,7 @@
 #include "globalVariables.h"
 
 #include <QFile>
+#include <QObject>
 
 namespace {
 QString normalizedHex(QString value)
@@ -66,7 +67,7 @@ bool appendSyntheticBlock0D(SysxData *source, QString *error)
     QFile file(":default.syx");
     if (!file.open(QIODevice::ReadOnly)) {
         if (error)
-            *error = "Unable to read the legacy synthetic block 0D";
+            *error = QObject::tr("Unable to read the legacy synthetic block 0D");
         return false;
     }
     const QByteArray tail = file.readAll().mid(patchSize);
@@ -84,7 +85,8 @@ bool appendSyntheticBlock0D(SysxData *source, QString *error)
         message.clear();
     }
     if (!found && error)
-        *error = "The legacy synthetic block 0D is missing from default.syx";
+            *error = QObject::tr(
+                "The legacy synthetic block 0D is missing from default.syx");
     return found;
 }
 
@@ -118,12 +120,13 @@ DecodedPatch PatchTransferCodec::decodePatchReply(const QString &rawReply)
     DecodedPatch decoded;
     const QString reply = normalizedHex(rawReply);
     if (reply.size() / 2 != patchReplySize) {
-        decoded.error = QString("Patch readback has %1 bytes; expected %2")
+        decoded.error = QObject::tr("Patch readback has %1 bytes; expected %2")
             .arg(reply.size() / 2).arg(patchReplySize);
         return decoded;
     }
     if (!reply.startsWith("F041") || reply.mid(12, 2) != "12") {
-        decoded.error = "Patch readback does not start with a GT-10 DT1 frame";
+        decoded.error = QObject::tr(
+            "Patch readback does not start with a GT-10 DT1 frame");
         return decoded;
     }
 
@@ -151,7 +154,7 @@ DecodedPatch PatchTransferCodec::decodePatchReply(const QString &rawReply)
         if (part.secondLength > 0)
             payload += reply.mid(part.second, part.secondLength);
         if (payload.size() != part.firstLength + part.secondLength) {
-            decoded.error = QString("Patch readback block %1 is truncated")
+            decoded.error = QObject::tr("Patch readback block %1 is truncated")
                 .arg(part.address);
             decoded.messages00To0C.clear();
             decoded.logicalBlocks00To0C.clear();
@@ -200,7 +203,7 @@ QMap<QString, QString> PatchTransferCodec::comparableBlocks00To0C(
             .toUpper();
         if (!blocks.contains(key)) {
             if (error)
-                *error = QString("Current patch is missing logical block %1")
+                *error = QObject::tr("Current patch is missing logical block %1")
                     .arg(key);
             return QMap<QString, QString>();
         }
@@ -218,7 +221,8 @@ QString PatchTransferCodec::buildUserWriteMessage(const SysxData &source,
     if (targetBank < 1 || targetBank > bankTotalUser
         || targetPatch < 1 || targetPatch > patchPerBank) {
         if (error)
-            *error = "Persistent WRITE target is outside GT-10 User memory";
+            *error = QObject::tr(
+                "Persistent WRITE target is outside GT-10 User memory");
         return QString();
     }
     return buildLegacyWriteMessage(source, targetBank, targetPatch, error);
@@ -229,7 +233,7 @@ QByteArray PatchTransferCodec::encodePatchName16(const QString &name,
 {
     if (name.isEmpty() || name.size() > nameLength) {
         if (error)
-            *error = "Patch name must contain 1 to 16 characters";
+            *error = QObject::tr("Patch name must contain 1 to 16 characters");
         return QByteArray();
     }
     QByteArray encoded;
@@ -244,7 +248,7 @@ QByteArray PatchTransferCodec::encodePatchName16(const QString &name,
             encoded.append(char(unicode));
         else {
             if (error)
-                *error = "Patch name contains an unsupported character";
+            *error = QObject::tr("Patch name contains an unsupported character");
             return QByteArray();
         }
     }
@@ -262,12 +266,14 @@ QString PatchTransferCodec::buildUserNameWriteMessage(
     QString address2;
     if (!userPatchAddress(targetBank, targetPatch, &address1, &address2)) {
         if (error)
-            *error = "Persistent RENAME target is outside GT-10 User memory";
+            *error = QObject::tr(
+                "Persistent RENAME target is outside GT-10 User memory");
         return QString();
     }
     if (encodedName16.size() != nameLength) {
         if (error)
-            *error = "Persistent RENAME requires exactly 16 name bytes";
+            *error = QObject::tr(
+                "Persistent RENAME requires exactly 16 name bytes");
         return QString();
     }
     QString payload;
@@ -284,7 +290,8 @@ QString PatchTransferCodec::buildUserCopyWriteMessage(
 {
     if (!decoded.valid || decoded.messages00To0C.size() != 13) {
         if (error)
-            *error = "COPY source does not contain authoritative blocks 00-0C";
+            *error = QObject::tr(
+                "COPY source does not contain authoritative blocks 00-0C");
         return QString();
     }
     SysxData source;
@@ -293,7 +300,7 @@ QString PatchTransferCodec::buildUserCopyWriteMessage(
         const QString key = blockKey(bytes);
         if (key.isEmpty()) {
             if (error)
-                *error = "COPY source contains an invalid SysEx block";
+            *error = QObject::tr("COPY source contains an invalid SysEx block");
             return QString();
         }
         source.address.append(key);
@@ -314,12 +321,14 @@ QString PatchTransferCodec::buildUserWriteMessage00To0C(
     QString address2;
     if (!userPatchAddress(targetBank, targetPatch, &address1, &address2)) {
         if (error)
-            *error = "Backup restore target is outside GT-10 User memory";
+            *error = QObject::tr(
+                "Backup restore target is outside GT-10 User memory");
         return QString();
     }
     if (!decoded.valid || decoded.logicalBlocks00To0C.size() != 13) {
         if (error)
-            *error = "Backup patch does not contain authoritative blocks 00-0C";
+            *error = QObject::tr(
+                "Backup patch does not contain authoritative blocks 00-0C");
         return QString();
     }
 
@@ -331,7 +340,8 @@ QString PatchTransferCodec::buildUserWriteMessage00To0C(
         const QString payload = decoded.logicalBlocks00To0C.value(key);
         if (payload.isEmpty()) {
             if (error)
-                *error = QString("Backup patch is missing logical block %1").arg(key);
+                *error = QObject::tr("Backup patch is missing logical block %1")
+                    .arg(key);
             return QString();
         }
         message += canonicalMessage(address1 + address2, key, payload);
@@ -348,7 +358,7 @@ QString PatchTransferCodec::buildLegacyWriteMessage(const SysxData &source,
 {
     if (source.hex.isEmpty()) {
         if (error)
-            *error = "Current patch buffer is empty";
+            *error = QObject::tr("Current patch buffer is empty");
         return QString();
     }
 
@@ -379,7 +389,8 @@ QString PatchTransferCodec::buildLegacyWriteMessage(const SysxData &source,
         QList<QString> message = sourceMessage;
         if (message.size() <= sysxAddressOffset + 1) {
             if (error)
-                *error = "Current patch contains an invalid SysEx block";
+            *error = QObject::tr(
+                "Current patch contains an invalid SysEx block");
             return QString();
         }
         message[sysxAddressOffset] = address1;

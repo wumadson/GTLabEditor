@@ -123,8 +123,8 @@ void statusBarWidget::setStatusSymbol(int value)
 
 void statusBarWidget::setConnectionState(bool connected)
 {
-	this->connectionLabel->setText(connected ? "GT-10 CONNECTED"
-	                                         : "GT-10 DISCONNECTED");
+	this->connectionLabel->setText(connected ? tr("GT-10 CONNECTED")
+	                                         : tr("GT-10 DISCONNECTED"));
 	const char *state = connected ? "connected" : "disconnected";
 	this->connectionDot->setProperty("state", state);
 	this->connectionLabel->setProperty("state", state);

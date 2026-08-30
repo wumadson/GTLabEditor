@@ -81,19 +81,19 @@ void ModernNoiseSuppressorEditor::buildEditor()
     QHBoxLayout *stateLayout = new QHBoxLayout(stateRow);
     stateLayout->setContentsMargins(0, 0, 0, 0);
     stateLayout->setSpacing(0);
-    EffectToggleControl *stateControl = new EffectToggleControl("State");
+    EffectToggleControl *stateControl = new EffectToggleControl(tr("State"));
     stateToggle = stateControl->toggle();
     stateToggle->setAccentColor(accent);
     stateLayout->addWidget(stateControl, 0, Qt::AlignTop);
     stateLayout->addStretch(1);
     parameterLayout->addWidget(stateRow);
 
-    QLabel *sectionTitle = new QLabel("SUPPRESSION");
+    QLabel *sectionTitle = new QLabel(tr("SUPPRESSION"));
     sectionTitle->setObjectName("ParameterSectionTitle");
     parameterLayout->addWidget(sectionTitle);
 
     MidiTable *midiTable = MidiTable::Instance();
-    thresholdBar = new ParameterBar("Threshold");
+    thresholdBar = new ParameterBar(tr("Threshold"));
     thresholdBar->setAccentColor(accent);
     thresholdBar->setRange(
         midiTable->getRangeMinimum(kStructure, kBank, kMiddleByte,
@@ -102,7 +102,7 @@ void ModernNoiseSuppressorEditor::buildEditor()
                             addressForOffset(1)));
     parameterLayout->addWidget(thresholdBar);
 
-    releaseBar = new ParameterBar("Release");
+    releaseBar = new ParameterBar(tr("Release"));
     releaseBar->setAccentColor(accent);
     releaseBar->setRange(
         midiTable->getRangeMinimum(kStructure, kBank, kMiddleByte,
@@ -112,7 +112,7 @@ void ModernNoiseSuppressorEditor::buildEditor()
     parameterLayout->addWidget(releaseBar);
     parameterLayout->addStretch(1);
 
-    ParameterCombo *detectControl = new ParameterCombo("Detect");
+    ParameterCombo *detectControl = new ParameterCombo(tr("Detect"));
     detectControl->setLabelVisible(false);
     detectCombo = detectControl->comboBox();
     const Midi detectMap = midiTable->getMidiMap(

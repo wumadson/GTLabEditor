@@ -78,7 +78,10 @@ ModernSettingsDialog::ModernSettingsDialog(QWidget *parent)
         1, preferences->getPreferences("Midi", "Delay", "set").toInt(), 20);
     initialRestoreWindow = preferences->getPreferences("Window", "Restore", "window") == "true";
     initialSplashScreen = preferences->getPreferences("Window", "Splash", "bool") == "true";
-    initialLanguage = preferences->getPreferences("Language", "Locale", "select").toInt();
+    const QString storedLanguage = preferences->getPreferences(
+        "Language", "Locale", "select");
+    initialLanguage = storedLanguage == QLatin1String("pt_BR")
+        ? QStringLiteral("pt_BR") : QStringLiteral("en");
 
     navigation->setObjectName("settingsNavigation");
     navigation->setFixedWidth(172);
@@ -444,22 +447,27 @@ QWidget *ModernSettingsDialog::createLanguagePage()
     QLabel *sectionTitle = new QLabel(tr("APPLICATION LANGUAGE"), section);
     sectionTitle->setObjectName("settingsSectionTitle");
     languageSelector = new QComboBox(section);
-    languageSelector->addItem(tr("English"), 0);
-    languageSelector->addItem(tr("French"), 1);
-    languageSelector->addItem(tr("German"), 2);
-    languageSelector->addItem(tr("Chinese Simplified"), 3);
-    languageSelector->setCurrentIndex(qBound(0, initialLanguage, 3));
+    languageSelector->addItem(QStringLiteral("English"), QStringLiteral("en"));
+    languageSelector->addItem(QString::fromUtf8("Portugu\xC3\xAAs (Brasil)"),
+                              QStringLiteral("pt_BR"));
+    const int languageIndex = languageSelector->findData(initialLanguage);
+    languageSelector->setCurrentIndex(languageIndex >= 0 ? languageIndex : 0);
 
     QLabel *restartNotice = new QLabel(
         tr("Language changes take effect after restarting GT Lab Editor."), section);
     restartNotice->setObjectName("settingsDescription");
+    restartNotice->setVisible(false);
     QLabel *coverageNotice = new QLabel(
         tr("Some modern interface text may not yet be translated."), section);
     coverageNotice->setObjectName("settingsDescription");
 
     connect(languageSelector,
             static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
-            this, [this](int) { updateDirtyState(); });
+            this, [this, restartNotice](int) {
+        restartNotice->setVisible(
+            languageSelector->currentData().toString() != initialLanguage);
+        updateDirtyState();
+    });
 
     sectionLayout->addWidget(sectionTitle);
     sectionLayout->addWidget(languageSelector);
@@ -503,8 +511,11 @@ void ModernSettingsDialog::refreshMidiDevices()
     populateMidiSelector(midiInputSelector, inputs, selectedInput);
     populateMidiSelector(midiOutputSelector, outputs, selectedOutput);
 
-    midiStatus->setText(tr("%1 input device(s) · %2 output device(s). Refresh does not change the active session.")
-                        .arg(inputs.size()).arg(outputs.size()));
+    const QString inputCount = tr("%n input device(s)", nullptr, inputs.size());
+    const QString outputCount = tr("%n output device(s)", nullptr, outputs.size());
+    midiStatus->setText(
+        tr("%1 · %2. Refresh does not change the active session.")
+            .arg(inputCount, outputCount));
     updateDirtyState();
 }
 
@@ -572,9 +583,9 @@ void ModernSettingsDialog::saveSettings()
     if (splashScreenCheckBox->isChecked() != initialSplashScreen)
         preferences->setPreferences("Window", "Splash", "bool",
                                     splashScreenCheckBox->isChecked() ? "true" : "false");
-    if (languageSelector->currentData().toInt() != initialLanguage)
+    if (languageSelector->currentData().toString() != initialLanguage)
         preferences->setPreferences("Language", "Locale", "select",
-                                    QString::number(languageSelector->currentData().toInt()));
+                                    languageSelector->currentData().toString());
     preferences->savePreferences();
     accept();
 }
@@ -596,7 +607,7 @@ void ModernSettingsDialog::updateDirtyState()
         midiDelaySpinBox->value() != initialMidiDelay ||
         restoreWindowCheckBox->isChecked() != initialRestoreWindow ||
         splashScreenCheckBox->isChecked() != initialSplashScreen ||
-        languageSelector->currentData().toInt() != initialLanguage;
+        languageSelector->currentData().toString() != initialLanguage;
     saveButton->setEnabled(dirty);
 }
 

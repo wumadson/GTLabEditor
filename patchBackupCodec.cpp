@@ -2,6 +2,8 @@
 
 #include "globalVariables.h"
 
+#include <QObject>
+
 namespace {
 
 QByteArray hexToBytes(const QString &hex, bool *ok)
@@ -67,7 +69,7 @@ DecodedPatch PatchBackupCodec::decodeDeviceReply(const QString &reply)
     bool ok = false;
     const QByteArray data = hexToBytes(normalized, &ok);
     if (!ok || data.size() != patchReplySize) {
-        invalid.error = QString("Expected %1 reply bytes, received %2")
+        invalid.error = QObject::tr("Expected %1 reply bytes, received %2")
             .arg(patchReplySize).arg(data.size());
         return invalid;
     }
@@ -77,18 +79,18 @@ DecodedPatch PatchBackupCodec::decodeDeviceReply(const QString &reply)
     while (offset < data.size()) {
         const int end = data.indexOf(char(0xF7), offset);
         if (static_cast<unsigned char>(data.at(offset)) != 0xF0 || end < 0) {
-            invalid.error = QString("Malformed device reply at byte %1").arg(offset);
+            invalid.error = QObject::tr("Malformed device reply at byte %1").arg(offset);
             return invalid;
         }
         const QByteArray message = data.mid(offset, end - offset + 1);
         ++messageNumber;
         if (message.left(7) != QByteArray::fromHex("F0410000002F12")) {
-            invalid.error = QString("Unexpected SysEx message %1 in device reply")
+            invalid.error = QObject::tr("Unexpected SysEx message %1 in device reply")
                 .arg(messageNumber);
             return invalid;
         }
         if (!validateMessageChecksum(message)) {
-            invalid.error = QString("Invalid checksum in device reply message %1")
+            invalid.error = QObject::tr("Invalid checksum in device reply message %1")
                 .arg(messageNumber);
             return invalid;
         }
@@ -102,7 +104,7 @@ QByteArray PatchBackupCodec::serialize(const QVector<DecodedPatch> &patches,
 {
     if (patches.size() != bankTotalUser * patchPerBank) {
         if (error)
-            *error = QString("Backup requires exactly %1 patches")
+            *error = QObject::tr("Backup requires exactly %1 patches")
                 .arg(bankTotalUser * patchPerBank);
         return QByteArray();
     }
@@ -111,7 +113,7 @@ QByteArray PatchBackupCodec::serialize(const QVector<DecodedPatch> &patches,
     for (const DecodedPatch &patch : patches) {
         if (!patch.valid || patch.messages00To0C.size() != 13) {
             if (error)
-                *error = "Backup contains an incomplete patch";
+                *error = QObject::tr("Backup contains an incomplete patch");
             return QByteArray();
         }
         for (const QString &hex : patch.messages00To0C) {
@@ -119,7 +121,7 @@ QByteArray PatchBackupCodec::serialize(const QVector<DecodedPatch> &patches,
             const QByteArray message = hexToBytes(hex, &ok);
             if (!ok || !validateMessageChecksum(message)) {
                 if (error)
-                    *error = "Backup contains an invalid DT1 checksum";
+                    *error = QObject::tr("Backup contains an invalid DT1 checksum");
                 return QByteArray();
             }
             output += message;
@@ -144,24 +146,24 @@ QVector<DecodedPatch> PatchBackupCodec::parse(const QByteArray &data,
     while (offset < data.size()) {
         if (static_cast<unsigned char>(data.at(offset)) != 0xF0) {
             if (error)
-                *error = QString("Unexpected byte at file offset %1").arg(offset);
+                *error = QObject::tr("Unexpected byte at file offset %1").arg(offset);
             return QVector<DecodedPatch>();
         }
         const int end = data.indexOf(char(0xF7), offset);
         if (end < 0) {
             if (error)
-                *error = "Backup contains a truncated SysEx message";
+                *error = QObject::tr("Backup contains a truncated SysEx message");
             return QVector<DecodedPatch>();
         }
         const QByteArray message = data.mid(offset, end - offset + 1);
         if (message.left(7) != QByteArray::fromHex("F0410000002F12")) {
             if (error)
-                *error = "Backup is not a BOSS GT-10 DT1 stream";
+                *error = QObject::tr("Backup is not a BOSS GT-10 DT1 stream");
             return QVector<DecodedPatch>();
         }
         if (!validateMessageChecksum(message)) {
             if (error)
-                *error = QString("Invalid checksum in SysEx message %1")
+                *error = QObject::tr("Invalid checksum in SysEx message %1")
                     .arg(messages.size() + 1);
             return QVector<DecodedPatch>();
         }
@@ -172,7 +174,7 @@ QVector<DecodedPatch> PatchBackupCodec::parse(const QByteArray &data,
     const int expectedPatches = bankTotalUser * patchPerBank;
     if (messages.size() != expectedPatches * 13) {
         if (error)
-            *error = QString("Backup contains %1 patches; exactly %2 are required")
+            *error = QObject::tr("Backup contains %1 patches; exactly %2 are required")
                 .arg(messages.size() / 13).arg(expectedPatches);
         return QVector<DecodedPatch>();
     }
@@ -193,7 +195,7 @@ QVector<DecodedPatch> PatchBackupCodec::parse(const QByteArray &data,
             if (page != expectedPage || slot != expectedOffset
                 || logicalKey(message) != expectedKey) {
                 if (error)
-                    *error = QString("Patch %1 has an invalid User address or block order")
+                    *error = QObject::tr("Patch %1 has an invalid User address or block order")
                         .arg(patchIndex + 1);
                 return QVector<DecodedPatch>();
             }
@@ -202,7 +204,7 @@ QVector<DecodedPatch> PatchBackupCodec::parse(const QByteArray &data,
                 : block == 0x09 ? 100 : 128;
             if (blockPayload.size() / 2 != expectedPayloadBytes) {
                 if (error)
-                    *error = QString("Patch %1 block %2 has an invalid payload size")
+                    *error = QObject::tr("Patch %1 block %2 has an invalid payload size")
                         .arg(patchIndex + 1).arg(expectedKey);
                 return QVector<DecodedPatch>();
             }

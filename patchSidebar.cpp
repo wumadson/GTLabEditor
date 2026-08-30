@@ -186,11 +186,11 @@ PatchSidebar::PatchSidebar(ModernPatchListModel *model, QWidget *parent)
     QVBoxLayout *layout = new QVBoxLayout(this);
     layout->setContentsMargins(10, 11, 7, 4);
     layout->setSpacing(6);
-    QLabel *title = new QLabel("PATCH LIBRARY");
+    QLabel *title = new QLabel(tr("PATCH LIBRARY"));
     title->setObjectName("PatchLibraryTitle");
     QLineEdit *search = new QLineEdit;
     search->setObjectName("PatchSearch");
-    search->setPlaceholderText("Search patches...");
+    search->setPlaceholderText(tr("Search patches..."));
     QPalette searchPalette = search->palette();
     searchPalette.setColor(QPalette::PlaceholderText, QColor("#666B72"));
     search->setPalette(searchPalette);
@@ -214,7 +214,9 @@ PatchSidebar::PatchSidebar(ModernPatchListModel *model, QWidget *parent)
         if (patch.category != ModernPatchListModel::User
             && patch.category != ModernPatchListModel::Preset) continue;
         if (patch.category != lastCategory) {
-            QLabel *heading = new QLabel(patch.category == ModernPatchListModel::User ? "USER" : "PRESET");
+            QLabel *heading = new QLabel(
+                patch.category == ModernPatchListModel::User
+                    ? tr("USER") : tr("PRESET"));
             heading->setObjectName("PatchGroupTitle");
             bankLayout->addSpacing(lastCategory == ModernPatchListModel::Temp
                                        ? 2 : 8);
@@ -223,7 +225,7 @@ PatchSidebar::PatchSidebar(ModernPatchListModel *model, QWidget *parent)
         }
         if (patch.bank != lastBank) {
             section = new PatchBankSection(patch.bank,
-                QString("Bank %1").arg(patch.number.left(3)));
+                tr("Bank %1").arg(patch.number.left(3)));
             connect(section, SIGNAL(expanded(int)), this, SLOT(expandBank(int)));
             banks.append(section);
             bankSections.insert(patch.bank, section);

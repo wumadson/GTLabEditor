@@ -41,7 +41,7 @@ ModernInputPopover::ModernInputPopover(QWidget *parent)
     root->setContentsMargins(18, 16, 18, 18);
     root->setSpacing(14);
 
-    QLabel *title = new QLabel("INPUT SETTINGS");
+    QLabel *title = new QLabel(tr("INPUT SETTINGS"));
     title->setObjectName("InputTitle");
     root->addWidget(title);
 
@@ -58,7 +58,9 @@ ModernInputPopover::ModernInputPopover(QWidget *parent)
 
     profileGroup = new QButtonGroup(this);
     profileGroup->setExclusive(true);
-    const QStringList profiles = {"GUITAR 1", "GUITAR 2", "GUITAR 3", "USB IN"};
+    const QStringList profiles = {
+        tr("GUITAR 1"), tr("GUITAR 2"), tr("GUITAR 3"), tr("USB IN")
+    };
     for (int profile = 0; profile < profiles.size(); ++profile) {
         QPushButton *button = new QPushButton(profiles.at(profile));
         button->setObjectName("InputProfileButton");
@@ -78,8 +80,8 @@ ModernInputPopover::ModernInputPopover(QWidget *parent)
     parameterLayout->setContentsMargins(0, 0, 0, 0);
     parameterLayout->setSpacing(24);
 
-    levelBar = new ParameterBar("LEVEL");
-    presBar = new ParameterBar("PRES");
+    levelBar = new ParameterBar(tr("LEVEL"));
+    presBar = new ParameterBar(tr("PRES"));
     for (ParameterBar *bar : {levelBar, presBar}) {
         bar->setMinimumWidth(170);
         bar->setValueReadoutFollowsHandle(true);

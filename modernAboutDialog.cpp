@@ -141,8 +141,8 @@ QWidget *ModernAboutDialog::createAboutPage()
                 QStringLiteral("<a href=\"https://github.com/wumadson/GTLabEditor\">"
                                "github.com/wumadson/GTLabEditor</a>")) +
         section(tr("ORIGINAL PROJECT"),
-                QStringLiteral("Original source code:<br>"
-                               "<a href=\"https://sourceforge.net/p/fxfloorboard/"
+                tr("Original source code:<br>") +
+                QStringLiteral("<a href=\"https://sourceforge.net/p/fxfloorboard/"
                                "fxfloorboard/ci/gt-10/tree/\">"
                                "sourceforge.net/p/fxfloorboard/fxfloorboard/"
                                "ci/gt-10/tree/</a>")) +

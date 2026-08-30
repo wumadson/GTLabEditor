@@ -133,6 +133,8 @@ protected:
 
 class ModernMessageDialog final : public ModernOwnedDialog
 {
+    Q_DECLARE_TR_FUNCTIONS(ModernMessageDialog)
+
 public:
     ModernMessageDialog(ModernDialogIcon::Kind kind, const QString &title,
                         const QString &target, const QString &description,
@@ -268,6 +270,8 @@ private:
 
 class ModernRenamePatchDialog final : public ModernOwnedDialog
 {
+    Q_DECLARE_TR_FUNCTIONS(ModernRenamePatchDialog)
+
 public:
     ModernRenamePatchDialog(const QString &number, const QString &currentName,
                             QWidget *parent)
@@ -1057,7 +1061,7 @@ protected:
             painter.setFont(QFont("Helvetica Neue", 9, QFont::DemiBold));
             painter.drawText(QRectF(area.left(), area.bottom() + 10,
                                     area.width(), 18),
-                             Qt::AlignCenter, "NO PATCH DATA");
+                             Qt::AlignCenter, QObject::tr("NO PATCH DATA"));
         }
     }
 };
@@ -1102,7 +1106,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
 
     GtLabBrandWidget *title = new GtLabBrandWidget;
 
-    QLabel *subtitle = new QLabel("BOSS GT-10");
+    QLabel *subtitle = new QLabel(tr("BOSS GT-10"));
     subtitle->setObjectName("BrandSubtitle");
 
     brandLayout->addWidget(title);
@@ -1138,16 +1142,16 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     QVBoxLayout *patchTextLayout = new QVBoxLayout(patchTextBlock);
     patchTextLayout->setContentsMargins(0, 0, 0, 0);
     patchTextLayout->setSpacing(1);
-    QLabel *patchCaption = new QLabel("PATCH");
+    QLabel *patchCaption = new QLabel(tr("PATCH"));
     patchCaption->setObjectName("PatchCaption");
     patchCaption->setFixedHeight(headerCaptionHeight);
     patchCaption->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     patchNumber = new QLabel(QString::fromUtf8("—"));
     patchNumber->setObjectName("PatchNumber");
     patchNumber->setFixedWidth(58);
-    patchName = new ElidingPatchNameLabel("NO PATCH DATA");
+    patchName = new ElidingPatchNameLabel(tr("NO PATCH DATA"));
     patchName->setObjectName("PatchName");
-    patchName->setToolTip("NO PATCH DATA");
+    patchName->setToolTip(tr("NO PATCH DATA"));
     QWidget *patchIdentityRow = new QWidget;
     patchIdentityRow->setFixedHeight(headerValueHeight);
     QHBoxLayout *patchIdentityRowLayout =
@@ -1168,7 +1172,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     QVBoxLayout *tempoLayout = new QVBoxLayout(tempoHeader);
     tempoLayout->setContentsMargins(0, 0, 0, 0);
     tempoLayout->setSpacing(1);
-    QLabel *tempoCaption = new QLabel("TEMPO BPM");
+    QLabel *tempoCaption = new QLabel(tr("TEMPO BPM"));
     tempoCaption->setObjectName("PatchCaption");
     tempoCaption->setFixedHeight(headerCaptionHeight);
     tempoCaption->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
@@ -1210,7 +1214,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     QVBoxLayout *patchLevelLayout = new QVBoxLayout(patchLevelHeader);
     patchLevelLayout->setContentsMargins(0, 0, 0, 0);
     patchLevelLayout->setSpacing(1);
-    QLabel *patchLevelCaption = new QLabel("PATCH LEVEL");
+    QLabel *patchLevelCaption = new QLabel(tr("PATCH LEVEL"));
     patchLevelCaption->setObjectName("PatchCaption");
     patchLevelCaption->setFixedHeight(headerCaptionHeight);
     patchLevelCaption->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
@@ -1257,7 +1261,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     outputSelectLayout->setContentsMargins(0, 0, 0, 0);
     outputSelectLayout->setSpacing(1);
 
-    QLabel *outputSelectCaption = new QLabel("OUTPUT SELECT");
+    QLabel *outputSelectCaption = new QLabel(tr("OUTPUT SELECT"));
     outputSelectCaption->setObjectName("PatchCaption");
     outputSelectCaption->setFixedHeight(headerCaptionHeight);
     outputSelectCaption->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
@@ -1300,11 +1304,11 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
             QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, &modernFloorBoard::outputSelectChanged);
 
-    readButton = new QPushButton("READ");
+    readButton = new QPushButton(tr("READ"));
     readButton->setObjectName("HeaderReadButton");
     readButton->setFixedSize(54, headerValueHeight);
     readButton->setEnabled(false);
-    readButton->setToolTip("Reload the current GT-10 temporary patch buffer");
+    readButton->setToolTip(tr("Reload the current GT-10 temporary patch buffer"));
     readButton->setStyleSheet(
         "QPushButton#HeaderReadButton { color: #D8E1EA; background: #11171D; "
         "border: 1px solid #35414D; border-radius: 4px; "
@@ -1319,11 +1323,11 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     connect(readButton, &QPushButton::clicked,
             this, &modernFloorBoard::readCurrentPatch);
 
-    writeButton = new QPushButton("WRITE");
+    writeButton = new QPushButton(tr("WRITE"));
     writeButton->setObjectName("HeaderWriteButton");
     writeButton->setFixedSize(54, headerValueHeight);
     writeButton->setEnabled(false);
-    writeButton->setToolTip("Write and verify the current patch in GT-10 User memory");
+    writeButton->setToolTip(tr("Write and verify the current patch in GT-10 User memory"));
     writeButton->setStyleSheet(
         "QPushButton#HeaderWriteButton { color: #E6C8C8; background: #211315; "
         "border: 1px solid #63363A; border-radius: 4px; "
@@ -1338,10 +1342,10 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     connect(writeButton, &QPushButton::clicked,
             this, &modernFloorBoard::writeCurrentPatch);
 
-    systemButton = new QPushButton("SYSTEM");
+    systemButton = new QPushButton(tr("SYSTEM"));
     systemButton->setObjectName("HeaderSystemButton");
     systemButton->setFixedSize(66, headerValueHeight);
-    systemButton->setToolTip("Open GT-10 System workspace");
+    systemButton->setToolTip(tr("Open GT-10 System workspace"));
     systemButton->setStyleSheet(
         "QPushButton#HeaderSystemButton { color: #D8E1EA; "
         "background: #11171D; border: 1px solid #35414D; "
@@ -1427,7 +1431,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     mainLayout->setContentsMargins(8, 8, 8, 8);
     mainLayout->setSpacing(7);
 
-    QLabel *chainTitle = new QLabel("SIGNAL CHAIN");
+    QLabel *chainTitle = new QLabel(tr("SIGNAL CHAIN"));
     chainTitle->setObjectName("SectionTitle");
 
     mainLayout->addWidget(chainTitle);
@@ -1467,7 +1471,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
 
     effectEditorStack = new QStackedWidget;
 
-    reverbEditor = new EffectEditorPanel("REVERB");
+    reverbEditor = new EffectEditorPanel(tr("REVERB"));
     reverbTypeDisplay = reverbEditor->typeLabel();
     reverbTypeDisplay->hide();
     reverbModelBrowser = new EffectModelBrowser;
@@ -1491,7 +1495,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
         new QHBoxLayout(reverbPrimaryControls);
     reverbPrimaryLayout->setContentsMargins(0, 0, 0, 0);
     reverbPrimaryLayout->setSpacing(0);
-    EffectToggleControl *reverbToggle = new EffectToggleControl("State");
+    EffectToggleControl *reverbToggle = new EffectToggleControl(tr("State"));
     reverbOnOff = reverbToggle->toggle();
     reverbOnOff->setAccentColor(QColor(
         ModernTheme::activeEffectAccent("REVERB")));
@@ -1518,8 +1522,8 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
         reverbQuickSlot->addItem(QStringLiteral("U%1").arg(
             slot, 2, 10, QChar('0')), slot);
     reverbQuickLayout->addWidget(reverbQuickSlot, 1, 0);
-    reverbQuickLoad = new QPushButton("LOAD");
-    reverbQuickSave = new QPushButton("SAVE");
+    reverbQuickLoad = new QPushButton(tr("LOAD"));
+    reverbQuickSave = new QPushButton(tr("SAVE"));
     for (QPushButton *button : {reverbQuickLoad, reverbQuickSave}) {
         button->setProperty("quickSettingEffect",
             static_cast<int>(QuickSettingEffect::Reverb));
@@ -1539,7 +1543,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     reverbTypeControl->setParent(reverbEditor->parameterArea());
     reverbTypeControl->hide();
 
-    QLabel *spaceTitle = new QLabel("SPACE");
+    QLabel *spaceTitle = new QLabel(tr("SPACE"));
     spaceTitle->setObjectName("ParameterSectionTitle");
     parameterLayout->addWidget(spaceTitle);
     parameterLayout->addWidget(createReverbBar("Time", "32"));
@@ -1548,13 +1552,13 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     parameterLayout->addWidget(
         createReverbBar("Spring Sensitivity", "39"));
 
-    QLabel *filterTitle = new QLabel("FILTER");
+    QLabel *filterTitle = new QLabel(tr("FILTER"));
     filterTitle->setObjectName("ParameterSectionTitle");
     parameterLayout->addWidget(filterTitle);
     parameterLayout->addWidget(createReverbCombo("Low Cut", "34"));
     parameterLayout->addWidget(createReverbCombo("High Cut", "35"));
 
-    QLabel *mixTitle = new QLabel("MIX");
+    QLabel *mixTitle = new QLabel(tr("MIX"));
     mixTitle->setObjectName("ParameterSectionTitle");
     parameterLayout->addWidget(mixTitle);
     parameterLayout->addWidget(createReverbBar("Effect Level", "37"));
@@ -1562,7 +1566,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     parameterLayout->addStretch(1);
     effectEditorStack->addWidget(reverbEditor);
 
-    compEditor = new EffectEditorPanel("COMP");
+    compEditor = new EffectEditorPanel(tr("COMP"));
     compTypeDisplay = compEditor->typeLabel();
     compTypeDisplay->hide();
     compModelBrowser = new EffectModelBrowser;
@@ -1592,7 +1596,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     QHBoxLayout *compPrimaryLayout = new QHBoxLayout(compPrimaryControls);
     compPrimaryLayout->setContentsMargins(0, 0, 0, 0);
     compPrimaryLayout->setSpacing(0);
-    EffectToggleControl *compToggle = new EffectToggleControl("State");
+    EffectToggleControl *compToggle = new EffectToggleControl(tr("State"));
     compOnOff = compToggle->toggle();
     compOnOff->setAccentColor(QColor(
         ModernTheme::activeEffectAccent("COMP")));
@@ -1619,8 +1623,8 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
         compQuickSlot->addItem(QStringLiteral("U%1").arg(
             slot, 2, 10, QChar('0')), slot);
     compQuickLayout->addWidget(compQuickSlot, 1, 0);
-    compQuickLoad = new QPushButton("LOAD");
-    compQuickSave = new QPushButton("SAVE");
+    compQuickLoad = new QPushButton(tr("LOAD"));
+    compQuickSave = new QPushButton(tr("SAVE"));
     for (QPushButton *button : {compQuickLoad, compQuickSave}) {
         button->setProperty("quickSettingEffect",
             static_cast<int>(QuickSettingEffect::Compressor));
@@ -1645,7 +1649,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     QVBoxLayout *compressorLayout = new QVBoxLayout(compressorPage);
     compressorLayout->setContentsMargins(0, 0, 0, 0);
     compressorLayout->setSpacing(7);
-    QLabel *compressorTitle = new QLabel("COMPRESSOR");
+    QLabel *compressorTitle = new QLabel(tr("COMPRESSOR"));
     compressorTitle->setObjectName("ParameterSectionTitle");
     compressorLayout->addWidget(compressorTitle);
     compressorLayout->addWidget(createCompBar("Sustain", "42"));
@@ -1658,7 +1662,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     QVBoxLayout *limiterLayout = new QVBoxLayout(limiterPage);
     limiterLayout->setContentsMargins(0, 0, 0, 0);
     limiterLayout->setSpacing(7);
-    QLabel *limiterTitle = new QLabel("LIMITER");
+    QLabel *limiterTitle = new QLabel(tr("LIMITER"));
     limiterTitle->setObjectName("ParameterSectionTitle");
     limiterLayout->addWidget(limiterTitle);
     limiterLayout->addWidget(createCompBar("Threshold", "44"));
@@ -1672,7 +1676,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     compParameterLayout->addWidget(compModeStack, 1);
     effectEditorStack->addWidget(compEditor);
 
-    oddsEditor = new EffectEditorPanel("OD/DS");
+    oddsEditor = new EffectEditorPanel(tr("OD/DS"));
     oddsEditor->typeLabel()->hide();
     oddsModelBrowser = new EffectModelBrowser;
     oddsModelBrowser->setAccentColor(QColor(
@@ -1697,7 +1701,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     QHBoxLayout *oddsPrimaryLayout = new QHBoxLayout(oddsPrimaryControls);
     oddsPrimaryLayout->setContentsMargins(0, 0, 0, 0);
     oddsPrimaryLayout->setSpacing(0);
-    EffectToggleControl *oddsToggle = new EffectToggleControl("State");
+    EffectToggleControl *oddsToggle = new EffectToggleControl(tr("State"));
     oddsOnOff = oddsToggle->toggle();
     oddsOnOff->setAccentColor(QColor(
         ModernTheme::activeEffectAccent("OD/DS")));
@@ -1725,8 +1729,8 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
         oddsQuickSlot->addItem(QStringLiteral("U%1").arg(
             slot, 2, 10, QChar('0')), slot);
     oddsQuickLayout->addWidget(oddsQuickSlot, 1, 0);
-    oddsQuickLoad = new QPushButton("LOAD");
-    oddsQuickSave = new QPushButton("SAVE");
+    oddsQuickLoad = new QPushButton(tr("LOAD"));
+    oddsQuickSave = new QPushButton(tr("SAVE"));
     for (QPushButton *button : {oddsQuickLoad, oddsQuickSave}) {
         button->setProperty("quickSettingEffect",
                             static_cast<int>(QuickSettingEffect::OverdriveDistortion));
@@ -1754,7 +1758,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     oddsTypeControl->setParent(oddsEditor->parameterArea());
     oddsTypeControl->hide();
 
-    QLabel *oddsCommonTitle = new QLabel("DRIVE / MIX");
+    QLabel *oddsCommonTitle = new QLabel(tr("DRIVE / MIX"));
     oddsCommonTitle->setObjectName("ParameterSectionTitle");
     oddsParameterLayout->addWidget(oddsCommonTitle);
     oddsParameterLayout->addWidget(createOddsBar("Drive", "72"));
@@ -1764,10 +1768,10 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     oddsParameterLayout->addWidget(createOddsBar("Direct", "76"));
     oddsParameterLayout->addWidget(createOddsBar("Solo Level", "78"));
 
-    QLabel *oddsSoloTitle = new QLabel("SOLO");
+    QLabel *oddsSoloTitle = new QLabel(tr("SOLO"));
     oddsSoloTitle->setObjectName("ParameterSectionTitle");
     oddsParameterLayout->addWidget(oddsSoloTitle);
-    EffectToggleControl *oddsSolo = new EffectToggleControl("Solo Switch");
+    EffectToggleControl *oddsSolo = new EffectToggleControl(tr("Solo Switch"));
     oddsSoloSwitch = oddsSolo->toggle();
     oddsSoloSwitch->setAccentColor(QColor(
         ModernTheme::activeEffectAccent("OD/DS")));
@@ -1780,7 +1784,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     QVBoxLayout *customLayout = new QVBoxLayout(customSection);
     customLayout->setContentsMargins(0, 0, 0, 0);
     customLayout->setSpacing(7);
-    QLabel *customTitle = new QLabel("CUSTOM");
+    QLabel *customTitle = new QLabel(tr("CUSTOM"));
     customTitle->setObjectName("ParameterSectionTitle");
     customLayout->addWidget(customTitle);
     customLayout->addWidget(createOddsCombo("Custom Type", "79"));
@@ -1794,7 +1798,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     oddsParameterLayout->addStretch(1);
     effectEditorStack->addWidget(oddsEditor);
 
-    delayEditor = new EffectEditorPanel("DELAY");
+    delayEditor = new EffectEditorPanel(tr("DELAY"));
     delayEditor->typeLabel()->hide();
     delayModelBrowser = new EffectModelBrowser;
     delayModelBrowser->setAccentColor(QColor(
@@ -1818,7 +1822,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     QHBoxLayout *delayPrimaryLayout = new QHBoxLayout(delayPrimaryControls);
     delayPrimaryLayout->setContentsMargins(0, 0, 0, 0);
     delayPrimaryLayout->setSpacing(0);
-    EffectToggleControl *delayToggle = new EffectToggleControl("State");
+    EffectToggleControl *delayToggle = new EffectToggleControl(tr("State"));
     delayOnOff = delayToggle->toggle();
     delayOnOff->setAccentColor(QColor(
         ModernTheme::activeEffectAccent("DELAY")));
@@ -1846,8 +1850,8 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
         delayQuickSlot->addItem(QStringLiteral("U%1").arg(
             slot, 2, 10, QChar('0')), slot);
     delayQuickLayout->addWidget(delayQuickSlot, 1, 0);
-    delayQuickLoad = new QPushButton("LOAD");
-    delayQuickSave = new QPushButton("SAVE");
+    delayQuickLoad = new QPushButton(tr("LOAD"));
+    delayQuickSave = new QPushButton(tr("SAVE"));
     for (QPushButton *button : {delayQuickLoad, delayQuickSave}) {
         button->setProperty("quickSettingEffect",
             static_cast<int>(QuickSettingEffect::Delay));
@@ -1872,7 +1876,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     QVBoxLayout *delayStandardLayout = new QVBoxLayout(delayStandardPage);
     delayStandardLayout->setContentsMargins(0, 0, 0, 0);
     delayStandardLayout->setSpacing(8);
-    QLabel *delayCommonTitle = new QLabel("DELAY");
+    QLabel *delayCommonTitle = new QLabel(tr("DELAY"));
     delayCommonTitle->setObjectName("ParameterSectionTitle");
     delayStandardLayout->addWidget(delayCommonTitle);
     delayStandardLayout->addWidget(createDelayBar("Time", "02", true));
@@ -1887,7 +1891,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     QVBoxLayout *delayPanLayout = new QVBoxLayout(delayPanSection);
     delayPanLayout->setContentsMargins(0, 0, 0, 0);
     delayPanLayout->setSpacing(7);
-    QLabel *delayPanTitle = new QLabel("PAN");
+    QLabel *delayPanTitle = new QLabel(tr("PAN"));
     delayPanTitle->setObjectName("ParameterSectionTitle");
     delayPanLayout->addWidget(delayPanTitle);
     delayPanLayout->addWidget(createDelayBar("Tap Time", "04"));
@@ -1897,11 +1901,11 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     QVBoxLayout *delayWarpLayout = new QVBoxLayout(delayWarpSection);
     delayWarpLayout->setContentsMargins(0, 0, 0, 0);
     delayWarpLayout->setSpacing(7);
-    QLabel *delayWarpTitle = new QLabel("WARP");
+    QLabel *delayWarpTitle = new QLabel(tr("WARP"));
     delayWarpTitle->setObjectName("ParameterSectionTitle");
     delayWarpLayout->addWidget(delayWarpTitle);
     EffectToggleControl *delayWarpToggle =
-        new EffectToggleControl("Warp Switch");
+        new EffectToggleControl(tr("Warp Switch"));
     delayWarpSwitch = delayWarpToggle->toggle();
     delayWarpSwitch->setAccentColor(QColor(
         ModernTheme::activeEffectAccent("DELAY")));
@@ -1918,7 +1922,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     QVBoxLayout *delayModLayout = new QVBoxLayout(delayModSection);
     delayModLayout->setContentsMargins(0, 0, 0, 0);
     delayModLayout->setSpacing(7);
-    QLabel *delayModTitle = new QLabel("MODULATION");
+    QLabel *delayModTitle = new QLabel(tr("MODULATION"));
     delayModTitle->setObjectName("ParameterSectionTitle");
     delayModLayout->addWidget(delayModTitle);
     delayModLayout->addWidget(createDelayBar("Rate", "15"));
@@ -1937,7 +1941,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     QVBoxLayout *delayOneLayout = new QVBoxLayout(delayOneSection);
     delayOneLayout->setContentsMargins(0, 0, 0, 0);
     delayOneLayout->setSpacing(7);
-    QLabel *delayOneTitle = new QLabel("DELAY 1");
+    QLabel *delayOneTitle = new QLabel(tr("DELAY 1"));
     delayOneTitle->setObjectName("ParameterSectionTitle");
     delayOneLayout->addWidget(delayOneTitle);
     delayOneLayout->addWidget(createDelayBar("Time", "07", true));
@@ -1949,7 +1953,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     QVBoxLayout *delayTwoLayout = new QVBoxLayout(delayTwoSection);
     delayTwoLayout->setContentsMargins(0, 0, 0, 0);
     delayTwoLayout->setSpacing(7);
-    QLabel *delayTwoTitle = new QLabel("DELAY 2");
+    QLabel *delayTwoTitle = new QLabel(tr("DELAY 2"));
     delayTwoTitle->setObjectName("ParameterSectionTitle");
     delayTwoLayout->addWidget(delayTwoTitle);
     delayTwoLayout->addWidget(createDelayBar("Time", "0C", true));
@@ -1959,7 +1963,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     delayDualArea->addSection(delayOneSection);
     delayDualArea->addSection(delayTwoSection);
     delayDualLayout->addWidget(delayDualArea);
-    QLabel *delayDualCommonTitle = new QLabel("COMMON");
+    QLabel *delayDualCommonTitle = new QLabel(tr("COMMON"));
     delayDualCommonTitle->setObjectName("ParameterSectionTitle");
     delayDualLayout->addWidget(delayDualCommonTitle);
     delayDualLayout->addWidget(createDelayBar("Direct", "18"));
@@ -1969,7 +1973,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     delayParameterLayout->addStretch(1);
     effectEditorStack->addWidget(delayEditor);
 
-    chorusEditor = new EffectEditorPanel("CHORUS");
+    chorusEditor = new EffectEditorPanel(tr("CHORUS"));
     chorusEditor->typeLabel()->hide();
     chorusModeBrowser = new EffectModelBrowser;
     chorusModeBrowser->setAccentColor(QColor(
@@ -2006,7 +2010,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
         new QHBoxLayout(chorusPrimaryControls);
     chorusPrimaryLayout->setContentsMargins(0, 0, 0, 0);
     chorusPrimaryLayout->setSpacing(0);
-    EffectToggleControl *chorusToggle = new EffectToggleControl("State");
+    EffectToggleControl *chorusToggle = new EffectToggleControl(tr("State"));
     chorusOnOff = chorusToggle->toggle();
     chorusOnOff->setAccentColor(QColor(
         ModernTheme::activeEffectAccent("CHORUS")));
@@ -2033,8 +2037,8 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
         chorusQuickSlot->addItem(QStringLiteral("U%1").arg(
             slot, 2, 10, QChar('0')), slot);
     chorusQuickLayout->addWidget(chorusQuickSlot, 1, 0);
-    chorusQuickLoad = new QPushButton("LOAD");
-    chorusQuickSave = new QPushButton("SAVE");
+    chorusQuickLoad = new QPushButton(tr("LOAD"));
+    chorusQuickSave = new QPushButton(tr("SAVE"));
     for (QPushButton *button : {chorusQuickLoad, chorusQuickSave}) {
         button->setProperty("quickSettingEffect",
             static_cast<int>(QuickSettingEffect::Chorus));
@@ -2050,18 +2054,18 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     quickSettingDialog->addEffectPage(
         QuickSettingEffect::Chorus, "CHORUS", chorusQuickPanel);
 
-    QLabel *chorusModulationTitle = new QLabel("MODULATION");
+    QLabel *chorusModulationTitle = new QLabel(tr("MODULATION"));
     chorusModulationTitle->setObjectName("ParameterSectionTitle");
     chorusParameterLayout->addWidget(chorusModulationTitle);
     chorusParameterLayout->addWidget(createChorusBar("Rate", "22"));
     chorusParameterLayout->addWidget(createChorusBar("Depth", "23"));
 
-    QLabel *chorusTimingTitle = new QLabel("TIMING");
+    QLabel *chorusTimingTitle = new QLabel(tr("TIMING"));
     chorusTimingTitle->setObjectName("ParameterSectionTitle");
     chorusParameterLayout->addWidget(chorusTimingTitle);
     chorusParameterLayout->addWidget(createChorusBar("Pre Delay", "24"));
 
-    QLabel *chorusFilterTitle = new QLabel("FILTER");
+    QLabel *chorusFilterTitle = new QLabel(tr("FILTER"));
     chorusFilterTitle->setObjectName("ParameterSectionTitle");
     chorusParameterLayout->addWidget(chorusFilterTitle);
     QWidget *chorusFilterControls = new QWidget;
@@ -2073,7 +2077,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     chorusFilterLayout->addStretch(1);
     chorusParameterLayout->addWidget(chorusFilterControls);
 
-    QLabel *chorusOutputTitle = new QLabel("OUTPUT");
+    QLabel *chorusOutputTitle = new QLabel(tr("OUTPUT"));
     chorusOutputTitle->setObjectName("ParameterSectionTitle");
     chorusParameterLayout->addWidget(chorusOutputTitle);
     chorusParameterLayout->addWidget(createChorusBar("Effect Level", "27"));
@@ -2091,11 +2095,11 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     QHBoxLayout *eqHeaderLayout = new QHBoxLayout(eqHeader);
     eqHeaderLayout->setContentsMargins(0, 0, 0, 0);
     eqHeaderLayout->setSpacing(12);
-    QLabel *eqTitle = new QLabel("EQ");
+    QLabel *eqTitle = new QLabel(tr("EQ"));
     eqTitle->setObjectName("EditorTitle");
     eqTitle->setStyleSheet(QString("color:%1;").arg(
         ModernTheme::activeEffectAccent("EQ")));
-    EffectToggleControl *eqToggle = new EffectToggleControl("State");
+    EffectToggleControl *eqToggle = new EffectToggleControl(tr("State"));
     eqOnOff = eqToggle->toggle();
     eqOnOff->setAccentColor(QColor(
         ModernTheme::activeEffectAccent("EQ")));
@@ -2123,8 +2127,8 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
         eqQuickSlot->addItem(QStringLiteral("U%1").arg(
             slot, 2, 10, QChar('0')), slot);
     eqQuickLayout->addWidget(eqQuickSlot, 1, 0);
-    eqQuickLoad = new QPushButton("LOAD");
-    eqQuickSave = new QPushButton("SAVE");
+    eqQuickLoad = new QPushButton(tr("LOAD"));
+    eqQuickSave = new QPushButton(tr("SAVE"));
     for (QPushButton *button : {eqQuickLoad, eqQuickSave}) {
         button->setProperty("quickSettingEffect",
             static_cast<int>(QuickSettingEffect::Equalizer));
@@ -2150,30 +2154,30 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
 
     EqBandArea *eqBandArea = new EqBandArea;
 
-    EqBandColumn *eqLow = new EqBandColumn("LOW");
+    EqBandColumn *eqLow = new EqBandColumn(tr("LOW"));
     eqLow->addControl(createEqCombo("Low Cut", "71"));
     eqLow->addControl(createEqBar("Low Gain", "72"));
     eqBandArea->addBand(eqLow);
 
-    EqBandColumn *eqLowMid = new EqBandColumn("LOW-MID");
+    EqBandColumn *eqLowMid = new EqBandColumn(tr("LOW-MID"));
     eqLowMid->addControl(createEqCombo("Frequency", "73"));
     eqLowMid->addControl(createEqCombo("Q", "74"));
     eqLowMid->addControl(createEqBar("Gain", "75"));
     eqBandArea->addBand(eqLowMid);
 
-    EqBandColumn *eqHighMid = new EqBandColumn("HIGH-MID");
+    EqBandColumn *eqHighMid = new EqBandColumn(tr("HIGH-MID"));
     eqHighMid->addControl(createEqCombo("Frequency", "76"));
     eqHighMid->addControl(createEqCombo("Q", "77"));
     eqHighMid->addControl(createEqBar("Gain", "78"));
     eqBandArea->addBand(eqHighMid);
 
-    EqBandColumn *eqHigh = new EqBandColumn("HIGH");
+    EqBandColumn *eqHigh = new EqBandColumn(tr("HIGH"));
     eqHigh->addControl(createEqCombo("High Cut", "7A"));
     eqHigh->addControl(createEqBar("High Gain", "79"));
     eqBandArea->addBand(eqHigh);
     eqControlsLayout->addWidget(eqBandArea);
 
-    EqBandColumn *eqOutput = new EqBandColumn("OUTPUT");
+    EqBandColumn *eqOutput = new EqBandColumn(tr("OUTPUT"));
     eqOutput->addControl(createEqBar("Level", "7B"));
     QWidget *eqOutputRow = new QWidget;
     QHBoxLayout *eqOutputLayout = new QHBoxLayout(eqOutputRow);
@@ -2279,8 +2283,8 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
         sendReturnQuickSlot->addItem(QStringLiteral("U%1").arg(
             slot, 2, 10, QChar('0')), slot);
     sendReturnQuickLayout->addWidget(sendReturnQuickSlot, 1, 0);
-    sendReturnQuickLoad = new QPushButton("LOAD");
-    sendReturnQuickSave = new QPushButton("SAVE");
+    sendReturnQuickLoad = new QPushButton(tr("LOAD"));
+    sendReturnQuickSave = new QPushButton(tr("SAVE"));
     for (QPushButton *button : {sendReturnQuickLoad,
                                 sendReturnQuickSave}) {
         button->setProperty(
@@ -2407,7 +2411,7 @@ EffectEditorPanel *modernFloorBoard::createPreampEditor(
     QHBoxLayout *primaryLayout = new QHBoxLayout(primary);
     primaryLayout->setContentsMargins(0, 0, 0, 0);
     EffectToggleControl *globalControl =
-        new EffectToggleControl("State (A/B)");
+        new EffectToggleControl(tr("State (A/B)"));
     state.globalState = globalControl->toggle();
     state.globalState->setAccentColor(accent);
     state.globalState->setProperty("preampChannel", channelValue);
@@ -2439,8 +2443,8 @@ EffectEditorPanel *modernFloorBoard::createPreampEditor(
         state.quickSlot->addItem(QStringLiteral("U%1").arg(slot, 2, 10,
                                                            QChar('0')), slot);
     quickLayout->addWidget(state.quickSlot, 1, 0);
-    state.quickLoad = new QPushButton("LOAD");
-    state.quickSave = new QPushButton("SAVE");
+    state.quickLoad = new QPushButton(tr("LOAD"));
+    state.quickSave = new QPushButton(tr("SAVE"));
     for (QPushButton *button : {state.quickLoad, state.quickSave}) {
         button->setProperty("preampChannel", channelValue);
         button->setProperty("quickSettingEffect", channelValue);
@@ -2504,7 +2508,7 @@ EffectEditorPanel *modernFloorBoard::createPreampEditor(
         new QVBoxLayout(state.customSpeakerSection);
     customSpeaker->setContentsMargins(0, 0, 0, 0);
     customSpeaker->setSpacing(8);
-    QLabel *customSpeakerTitle = new QLabel("CUSTOM SPEAKER");
+    QLabel *customSpeakerTitle = new QLabel(tr("CUSTOM SPEAKER"));
     customSpeakerTitle->setObjectName("ParameterSectionTitle");
     customSpeaker->addWidget(customSpeakerTitle);
     customSpeaker->addWidget(createPreampBar(channel, "Size", 0x18));
@@ -2532,7 +2536,7 @@ EffectEditorPanel *modernFloorBoard::createPreampEditor(
         new QVBoxLayout(state.customPreampSection);
     customPreamp->setContentsMargins(0, 0, 0, 0);
     customPreamp->setSpacing(8);
-    QLabel *customPreampTitle = new QLabel("CUSTOM PREAMP");
+    QLabel *customPreampTitle = new QLabel(tr("CUSTOM PREAMP"));
     customPreampTitle->setObjectName("ParameterSectionTitle");
     customPreamp->addWidget(customPreampTitle);
     customPreamp->addWidget(createPreampCombo(
@@ -2584,7 +2588,7 @@ QWidget *modernFloorBoard::createPreampCombo(PreampChannel channel,
             if (browserLabel.startsWith("(Combo)"))
                 browserLabel.replace(0, 7, "(VOX COMBO)");
             else if (!browserLabel.trimmed().startsWith('('))
-                browserLabel = QString("(OTHER) %1").arg(browserLabel);
+        browserLabel = tr("(OTHER) %1").arg(browserLabel);
         }
         labels.append(browserLabel);
     }
@@ -2671,11 +2675,11 @@ QWidget *modernFloorBoard::createChannelRoutingEditor()
     QVBoxLayout *diagramLayout = new QVBoxLayout(diagramPane);
     diagramLayout->setContentsMargins(12, 12, 12, 12);
     diagramLayout->setSpacing(5);
-    QLabel *title = new QLabel("CHANNEL ROUTING");
+    QLabel *title = new QLabel(tr("CHANNEL ROUTING"));
     title->setObjectName("EditorTitle");
     title->setStyleSheet(QString("color:%1;").arg(
         ModernTheme::color(ModernTheme::AccentCyan)));
-    QLabel *subtitle = new QLabel("PREAMP A/B");
+    QLabel *subtitle = new QLabel(tr("PREAMP A/B"));
     subtitle->setObjectName("EffectTypeDisplay");
     diagramLayout->addWidget(title);
     diagramLayout->addWidget(subtitle);
@@ -2702,7 +2706,7 @@ QWidget *modernFloorBoard::createChannelRoutingEditor()
     scroll->setWidget(createParameterScrollContent(parameters));
     parameterPaneLayout->addWidget(scroll, 1);
 
-    ParameterCombo *modeControl = new ParameterCombo("Mode");
+    ParameterCombo *modeControl = new ParameterCombo(tr("Mode"));
     channelMode = modeControl->comboBox();
     const Midi modeParameter = MidiTable::Instance()->getMidiMap(
         "Structure", "01", "00", "01");
@@ -2714,7 +2718,7 @@ QWidget *modernFloorBoard::createChannelRoutingEditor()
             this, SLOT(channelModeChanged(int)));
     modeControl->hide();
 
-    QLabel *modeLabel = new QLabel("CHANNEL MODE");
+    QLabel *modeLabel = new QLabel(tr("CHANNEL MODE"));
     modeLabel->setObjectName("ParameterLabel");
     layout->addWidget(modeLabel);
     QWidget *modeSelector = new QWidget;
@@ -2758,15 +2762,15 @@ QWidget *modernFloorBoard::createChannelRoutingEditor()
     QVBoxLayout *singleLayout = new QVBoxLayout(singlePage);
     singleLayout->setContentsMargins(0, 0, 0, 0);
     singleLayout->setSpacing(9);
-    QLabel *channelLabel = new QLabel("CHANNEL");
+    QLabel *channelLabel = new QLabel(tr("CHANNEL"));
     channelLabel->setObjectName("ParameterLabel");
     singleLayout->addWidget(channelLabel);
     QWidget *selector = new QWidget;
     QHBoxLayout *selectorLayout = new QHBoxLayout(selector);
     selectorLayout->setContentsMargins(0, 0, 0, 0);
     selectorLayout->setSpacing(4);
-    channelAButton = new QPushButton("A");
-    channelBButton = new QPushButton("B");
+    channelAButton = new QPushButton(tr("A"));
+    channelBButton = new QPushButton(tr("B"));
     channelAButton->setCheckable(true);
     channelBButton->setCheckable(true);
     channelAButton->setFixedSize(72, 32);
@@ -2803,7 +2807,7 @@ QWidget *modernFloorBoard::createChannelRoutingEditor()
     QVBoxLayout *dualLayout = new QVBoxLayout(dualPage);
     dualLayout->setContentsMargins(0, 0, 0, 0);
     dualLayout->setSpacing(9);
-    channelDelay = new ParameterBar("Channel Delay");
+    channelDelay = new ParameterBar(tr("Channel Delay"));
     channelDelay->setRange(0, 100);
     channelDelay->setProperty("channelRoutingAddress", "03");
     channelDelay->setAccentColor(QColor(
@@ -2818,7 +2822,7 @@ QWidget *modernFloorBoard::createChannelRoutingEditor()
     QVBoxLayout *dynamicLayout = new QVBoxLayout(dynamicPage);
     dynamicLayout->setContentsMargins(0, 0, 0, 0);
     dynamicLayout->setSpacing(9);
-    dynamicSense = new ParameterBar("Dynamic Sense");
+    dynamicSense = new ParameterBar(tr("Dynamic Sense"));
     dynamicSense->setRange(0, 100);
     dynamicSense->setProperty("channelRoutingAddress", "04");
     dynamicSense->setAccentColor(QColor(
@@ -2953,7 +2957,7 @@ QWidget *modernFloorBoard::createOddsCombo(const QString &label,
         bool rawOk = false;
         const int raw = item.value.toInt(&rawOk, 16);
         browserLabels.append(address == "71" && rawOk && raw == 0x19
-            ? QString("(CUSTOM) %1").arg(text) : text);
+            ? tr("(CUSTOM) %1").arg(text) : text);
     }
 
     connect(combo, SIGNAL(currentIndexChanged(int)),
@@ -3517,7 +3521,8 @@ void modernFloorBoard::refreshOutputSelectHeader()
 
     outputSelectCombo->setCurrentIndex(comboIndex);
     outputSelectCombo->setToolTip(QString("%1\n%2")
-        .arg(patchScope ? "Patch Output Select" : "System Output Select",
+        .arg(patchScope ? tr("Patch Output Select")
+                        : tr("System Output Select"),
              outputSelectCombo->currentText()));
     outputSelectCombo->setEnabled(true);
 }
@@ -3741,8 +3746,8 @@ void modernFloorBoard::backendDisconnected()
     refreshNoiseSuppressors();
     refreshSendReturn();
     patchNumber->setText(QString::fromUtf8("—"));
-    patchName->setText("NO PATCH DATA");
-    patchName->setToolTip("NO PATCH DATA");
+    patchName->setText(tr("NO PATCH DATA"));
+    patchName->setToolTip(tr("NO PATCH DATA"));
     patchListModel.setCurrentPatch(0, 0);
     refreshQuickSettingControls();
 }
@@ -3759,7 +3764,7 @@ void modernFloorBoard::backendActivityChanged(int status)
 QPushButton *modernFloorBoard::createQuickSettingButton(
     QuickSettingEffect effect)
 {
-    auto *button = new QPushButton("QUICK");
+    auto *button = new QPushButton(tr("QUICK"));
     button->setProperty("quickSettingEffect", static_cast<int>(effect));
     button->setFixedSize(58, 27);
     button->setToolTip(tr("Open User Quick Settings"));
@@ -4063,7 +4068,7 @@ void modernFloorBoard::quickSettingSlotActivated(int)
         typeLabel = preampState(effect == QuickSettingEffect::PreampA
             ? PreampChannel::A : PreampChannel::B).quickType;
     if (typeLabel)
-        typeLabel->setText("READING…");
+    typeLabel->setText(tr("READING…"));
     quickSettingService->requestType(effect, slot);
 }
 
@@ -5121,7 +5126,8 @@ void modernFloorBoard::rebuildSignalChainView()
     signalFlowLayout->addWidget(inputConnector, 0, Qt::AlignVCenter);
 
     if (!signalChainModel.isValid()) {
-        QLabel *placeholder = new QLabel("Load a GT-10 patch to display its real signal chain");
+    QLabel *placeholder = new QLabel(
+        tr("Load a GT-10 patch to display its real signal chain"));
         placeholder->setAlignment(Qt::AlignCenter);
         placeholder->setStyleSheet(QString(
             "color:%1;font-size:12px;padding:30px;")
@@ -5171,7 +5177,7 @@ void modernFloorBoard::rebuildSignalChainView()
         signalPathsLayout->addWidget(module, 0, column++, Qt::AlignCenter);
     }
     if (column == 0) {
-        QLabel *empty = new QLabel("EMPTY PATH");
+    QLabel *empty = new QLabel(tr("EMPTY PATH"));
         empty->setStyleSheet(QString(
             "color:%1;font-size:9px;padding:20px;")
             .arg(ModernTheme::color(ModernTheme::DisabledText)));
@@ -5186,7 +5192,7 @@ void modernFloorBoard::rebuildSignalChainView()
         signalPathsLayout->addWidget(module, 1, column++, Qt::AlignCenter);
     }
     if (column == 0) {
-        QLabel *empty = new QLabel("EMPTY PATH");
+    QLabel *empty = new QLabel(tr("EMPTY PATH"));
         empty->setStyleSheet(QString(
             "color:%1;font-size:9px;padding:20px;")
             .arg(ModernTheme::color(ModernTheme::DisabledText)));

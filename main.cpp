@@ -25,6 +25,8 @@
 #include <QBitmap>
 #include <QDesktopWidget>
 #include <QScreen>
+#include <QTranslator>
+#include <QDebug>
 #include "mainWindow.h"
 #include "Preferences.h"
 #include "MidiTable.h"
@@ -38,19 +40,17 @@ int main(int argc, char **argv)
 	QCoreApplication::setApplicationName("GT Lab Editor");
 	app.setApplicationDisplayName("GT Lab Editor");
 
-	 Preferences *preferences = Preferences::Instance(); // Load the preferences.
-  QString lang = preferences->getPreferences("Language", "Locale", "select");
-	bool ok;
-	int choice = lang.toInt(&ok, 16);
- /* Loading translation */
+	Preferences *preferences = Preferences::Instance(); // Load the preferences.
+	const QString language = preferences->getPreferences(
+	        "Language", "Locale", "select");
 	QTranslator translator;
-	
-	if (choice == 3) {translator.load(":language_ch.qm");  }
-	else if (choice ==2) {translator.load(":language_ge.qm"); }
-	else if (choice ==1) {translator.load(":language_fr.qm"); }
-	else {translator.load(":language_en.qm"); };
-
-	app.installTranslator(&translator);
+	if (language == QLatin1String("pt_BR")) {
+		if (translator.load(":/translations/gtlab_pt_BR.qm"))
+			app.installTranslator(&translator);
+		else
+			qWarning() << "Unable to load the pt-BR translation catalog";
+	}
+	bool ok;
 
 	/* Splash Screen setup uses subclassed QSplashScreen for message position controle. */
 	const QSize splashLogicalSize(640, 400);

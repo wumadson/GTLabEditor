@@ -364,14 +364,14 @@ void ModernFxEditor::buildEditor()
     stateRowLayout = new QHBoxLayout(stateRow);
     stateRowLayout->setContentsMargins(0, 0, 0, 0);
     stateRowLayout->setSpacing(0);
-    EffectToggleControl *stateControl = new EffectToggleControl("State");
+    EffectToggleControl *stateControl = new EffectToggleControl(tr("State"));
     stateToggle = stateControl->toggle();
     stateToggle->setAccentColor(accent);
     stateRowLayout->addWidget(stateControl, 0, Qt::AlignTop);
     stateRowLayout->addStretch(1);
     layout->addWidget(stateRow);
 
-    ParameterCombo *hiddenTypeControl = new ParameterCombo("Type");
+    ParameterCombo *hiddenTypeControl = new ParameterCombo(tr("Type"));
     hiddenType = hiddenTypeControl->comboBox();
     hiddenTypeControl->hide();
     layout->addWidget(hiddenTypeControl);
@@ -1083,7 +1083,7 @@ QWidget *ModernFxEditor::createPlaceholderPage(
     QLabel *name = new QLabel(algorithmName.trimmed().toUpper());
     name->setObjectName("ParameterSectionTitle");
     name->setAlignment(Qt::AlignCenter);
-    QLabel *pending = new QLabel("Modern editor migration pending");
+    QLabel *pending = new QLabel(tr("Modern editor migration pending"));
     pending->setObjectName("WorkspaceUnavailable");
     pending->setAlignment(Qt::AlignCenter);
     layout->addStretch(1);

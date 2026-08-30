@@ -155,7 +155,7 @@ EffectEditorPanel::EffectEditorPanel(const QString &effectName, QWidget *parent)
     QVBoxLayout *parameterPaneLayout = new QVBoxLayout(parameterPane);
     parameterPaneLayout->setContentsMargins(10, 10, 10, 10);
     parameterPaneLayout->setSpacing(6);
-    QLabel *parameterTitle = new QLabel("PARAMETERS");
+    QLabel *parameterTitle = new QLabel(QObject::tr("PARAMETERS"));
     parameterTitle->setObjectName("WorkspaceColumnTitle");
     parameterPaneLayout->addWidget(parameterTitle);
     parameters = new QWidget;
@@ -179,7 +179,8 @@ EffectEditorPanel::EffectEditorPanel(const QString &effectName, QWidget *parent)
     modelLayout->setContentsMargins(12, 12, 12, 12);
     modelLayout->setSpacing(8);
     const QString modelHeading = effectName == "OD/DS"
-        ? "OD/DS MODELS" : effectName + " TYPES";
+        ? QObject::tr("OD/DS MODELS")
+        : QObject::tr("%1 TYPES").arg(effectName);
     modelTitle = new QLabel(modelHeading);
     modelTitle->setObjectName("WorkspaceColumnTitle");
     modelLayout->addWidget(modelTitle);
@@ -187,7 +188,7 @@ EffectEditorPanel::EffectEditorPanel(const QString &effectName, QWidget *parent)
     modelRule->setObjectName("WorkspaceRule");
     modelRule->setFixedHeight(1);
     modelLayout->addWidget(modelRule);
-    modelState = new QLabel("MODEL BROWSER\nNOT INTEGRATED");
+    modelState = new QLabel(QObject::tr("MODEL BROWSER\nNOT INTEGRATED"));
     modelState->setObjectName("WorkspaceUnavailable");
     modelState->setAlignment(Qt::AlignCenter);
     modelState->setWordWrap(true);
@@ -446,7 +447,8 @@ BottomControlStrip::BottomControlStrip(QWidget *parent)
     layout->setSpacing(0);
 
     const QStringList titles = {
-        "EXPRESSION", "CONTROL ASSIGN", "PEDALBOARD", "TUNER"
+        QObject::tr("EXPRESSION"), QObject::tr("CONTROL ASSIGN"),
+        QObject::tr("PEDALBOARD"), QObject::tr("TUNER")
     };
     const int stretches[] = {17, 33, 33, 17};
     for (int i = 0; i < titles.size(); ++i) {
@@ -470,7 +472,7 @@ BottomControlStrip::BottomControlStrip(QWidget *parent)
             headerLayout->setSpacing(6);
             headerLayout->addWidget(title);
             headerLayout->addStretch(1);
-            QPushButton *editButton = new QPushButton("EDIT");
+            QPushButton *editButton = new QPushButton(QObject::tr("EDIT"));
             editButton->setObjectName(i == 0
                 ? "BottomExpressionEditButton" : i == 1
                     ? "BottomAssignEditButton" : "BottomPedalboardEditButton");
@@ -493,9 +495,9 @@ BottomControlStrip::BottomControlStrip(QWidget *parent)
             tunerLayout->setContentsMargins(0, 0, 0, 0);
             tunerLayout->setSpacing(4);
 
-            QLabel *referenceLabel = new QLabel("REFERENCE");
+            QLabel *referenceLabel = new QLabel(QObject::tr("REFERENCE"));
             referenceLabel->setObjectName("BottomTunerLabel");
-            QLabel *outputLabel = new QLabel("OUTPUT");
+            QLabel *outputLabel = new QLabel(QObject::tr("OUTPUT"));
             outputLabel->setObjectName("BottomTunerLabel");
 
             tunerReference = new QComboBox;
@@ -505,8 +507,8 @@ BottomControlStrip::BottomControlStrip(QWidget *parent)
 
             tunerOutput = new QComboBox;
             tunerOutput->setObjectName("BottomTunerCombo");
-            tunerOutput->addItem("MUTE", 0x00);
-            tunerOutput->addItem("BYPASSED", 0x01);
+            tunerOutput->addItem(QObject::tr("MUTE"), 0x00);
+            tunerOutput->addItem(QObject::tr("BYPASSED"), 0x01);
 
             const QList<QComboBox *> tunerCombos = {
                 tunerReference, tunerOutput
@@ -601,7 +603,7 @@ BottomControlStrip::BottomControlStrip(QWidget *parent)
             QHBoxLayout *assignLayout = new QHBoxLayout;
             assignLayout->setContentsMargins(0, 3, 0, 0);
             assignLayout->setSpacing(3);
-            QLabel *assigns = new QLabel("ASSIGNS");
+            QLabel *assigns = new QLabel(QObject::tr("ASSIGNS"));
             assigns->setObjectName("BottomExpressionLabel");
             assignLayout->addWidget(assigns);
             assignLayout->addStretch(1);
@@ -675,7 +677,7 @@ BottomControlStrip::BottomControlStrip(QWidget *parent)
             QHBoxLayout *assignLayout = new QHBoxLayout;
             assignLayout->setContentsMargins(0, 1, 0, 0);
             assignLayout->setSpacing(3);
-            QLabel *assigns = new QLabel("ASSIGNS");
+            QLabel *assigns = new QLabel(QObject::tr("ASSIGNS"));
             assigns->setObjectName("BottomAssignLabel");
             assignLayout->addWidget(assigns);
             assignLayout->addStretch(1);
@@ -735,7 +737,8 @@ BottomControlStrip::BottomControlStrip(QWidget *parent)
                 "background:#180D0F;border-color:#A65B62;}");
         } else {
             QLabel *state = new QLabel(i == 1
-                ? "DIRECT CONTROLS" : "NOT INTEGRATED");
+                ? QObject::tr("DIRECT CONTROLS")
+                : QObject::tr("NOT INTEGRATED"));
             state->setObjectName("WorkspaceUnavailable");
             state->setAlignment(Qt::AlignCenter);
             regionLayout->addWidget(state, 1);
@@ -1351,14 +1354,14 @@ void AudioGearSwitch::paintEvent(QPaintEvent *)
     p.setPen(QPen(QColor("#050607"),1));p.setBrush(ring);p.drawEllipse(c,10,10);p.setBrush(active?QColor("#26342C"):QColor("#171B1F"));p.drawEllipse(c,6,6);
     p.setPen(QPen(active
         ? QColor(ModernTheme::color(ModernTheme::ActiveGreen))
-        : QColor(ModernTheme::color(ModernTheme::SecondaryText)), 1));p.setFont(QFont("Helvetica Neue",8,QFont::DemiBold));p.drawText(QRectF(0,25,width(),10),Qt::AlignCenter,active?"ON":"OFF");
+    : QColor(ModernTheme::color(ModernTheme::SecondaryText)), 1));p.setFont(QFont("Helvetica Neue",8,QFont::DemiBold));p.drawText(QRectF(0,25,width(),10),Qt::AlignCenter,active?QObject::tr("ON"):QObject::tr("OFF"));
 }
 
 SignalConnector::SignalConnector(Direction d,QWidget *parent):QWidget(parent),connectorDirection(d){setFixedSize(42,76);}
 void SignalConnector::setCompactWidth(int w){setFixedSize(w,76);update();}
 void SignalConnector::paintEvent(QPaintEvent *)
 {
-    QPainter p(this);p.setRenderHint(QPainter::Antialiasing);p.setPen(QPen(QColor("#8D98A5"),1.5));p.setFont(QFont("Helvetica Neue",9,QFont::DemiBold));p.drawText(QRectF(0,4,width(),16),Qt::AlignCenter,connectorDirection==Input?"IN":"OUT");
+    QPainter p(this);p.setRenderHint(QPainter::Antialiasing);p.setPen(QPen(QColor("#8D98A5"),1.5));p.setFont(QFont("Helvetica Neue",9,QFont::DemiBold));p.drawText(QRectF(0,4,width(),16),Qt::AlignCenter,connectorDirection==Input?QObject::tr("IN"):QObject::tr("OUT"));
     const qreal y=height()/2.0;p.setPen(QPen(QColor("#080A0D"),8,Qt::SolidLine,Qt::RoundCap));p.drawLine(QPointF(7,y),QPointF(width()-7,y));p.setPen(QPen(QColor("#78848E"),2,Qt::SolidLine,Qt::RoundCap));p.drawLine(QPointF(7,y),QPointF(width()-7,y));
     p.setBrush(QColor("#11171D"));p.setPen(QPen(QColor("#65717C"),1));const QPointF jack(connectorDirection==Input?width()-7:7,y);p.drawEllipse(jack,5,5);
 }
@@ -1810,7 +1813,8 @@ void SignalChainModule::paintEvent(QPaintEvent *)
     p.setPen(stateOn
         ? QColor(ModernTheme::color(ModernTheme::ActiveGreen))
         : QColor(ModernTheme::color(ModernTheme::DisabledText)));
-    const QString stateText = stateAvailable ? (stateOn ? "ON" : "OFF")
+    const QString stateText = stateAvailable
+        ? (stateOn ? QObject::tr("ON") : QObject::tr("OFF"))
                                                : QString::fromUtf8("—");
     p.drawText(QRectF(body.left(), body.bottom() - 14,
                       body.width(), 12), Qt::AlignCenter, stateText);
@@ -1886,7 +1890,8 @@ void StatusBadge::setConnected(bool v)
 {
     const QString indicator = ModernTheme::color(
         v ? ModernTheme::ActiveGreen : ModernTheme::DangerRed);
-    const QString label = v ? "GT-10 CONNECTED" : "NOT CONNECTED";
+    const QString label = v ? QObject::tr("GT-10 CONNECTED")
+                            : QObject::tr("NOT CONNECTED");
     setText(QString(
         "<span style='color:%1'>●</span>&nbsp;&nbsp;"
         "<span style='color:%2'>%3</span>")
@@ -1905,7 +1910,7 @@ EffectModule::EffectModule(const QString &name,const QString &accent,bool availa
         : (kind == Equalizer ? 116 : ((effectName == "FX-1" || effectName == "FX-2") ? 100 : 106));
     setMinimumWidth(minimumWidth);setMaximumWidth(minimumWidth + 38);setFixedHeight(172);
     QVBoxLayout *layout=new QVBoxLayout(this);layout->setContentsMargins(12,15,12,9);layout->setSpacing(3);
-    nameLabel=new QLabel(name);nameLabel->setAlignment(Qt::AlignCenter);typeLabel=new QLabel(available?QString::fromUtf8("—"):"Unavailable");typeLabel->setAlignment(Qt::AlignCenter);
+    nameLabel=new QLabel(name);nameLabel->setAlignment(Qt::AlignCenter);typeLabel=new QLabel(available?QString::fromUtf8("—"):QObject::tr("Unavailable"));typeLabel->setAlignment(Qt::AlignCenter);
     QHBoxLayout *labels=new QHBoxLayout;leftLabel=new QLabel;rightLabel=new QLabel;leftLabel->setAlignment(Qt::AlignCenter);rightLabel->setAlignment(Qt::AlignCenter);labels->addWidget(leftLabel);labels->addWidget(rightLabel);
     led=new AudioGearLed;button=new AudioGearSwitch;button->setEnabled(available);
     layout->addWidget(nameLabel);layout->addWidget(typeLabel);layout->addSpacing(48);layout->addLayout(labels);layout->addStretch();layout->addWidget(led,0,Qt::AlignHCenter);layout->addWidget(button,0,Qt::AlignHCenter);

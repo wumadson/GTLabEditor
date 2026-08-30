@@ -154,8 +154,8 @@ AssignTargetValueEditor::AssignTargetValueEditor(
     QHBoxLayout *modeLayout = new QHBoxLayout;
     modeLayout->setContentsMargins(0, 0, 0, 0);
     modeLayout->setSpacing(4);
-    timeButton = new QPushButton("TIME");
-    rhythmButton = new QPushButton("RHYTHM");
+    timeButton = new QPushButton(QObject::tr("TIME"));
+    rhythmButton = new QPushButton(QObject::tr("RHYTHM"));
     for (QPushButton *button : {timeButton, rhythmButton}) {
         button->setObjectName("AssignTargetValueMode");
         button->setCheckable(true);
@@ -307,7 +307,7 @@ void AssignTargetValueEditor::configureTarget(int targetId)
     int numericMaximum = minimum;
     bool hasNumeric = false;
     bool hasRhythm = false;
-    rhythmSelector->addItem("SELECT RHYTHM");
+    rhythmSelector->addItem(QObject::tr("SELECT RHYTHM"));
     displays.reserve(maximum - minimum + 1);
     for (int raw = minimum; raw <= maximum; ++raw) {
         const QString originalDisplay = originalDisplayForRaw(raw);

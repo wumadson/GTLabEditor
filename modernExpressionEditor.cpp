@@ -40,7 +40,7 @@ EffectEditorPanel *ModernExpressionEditor::widget() const
 
 void ModernExpressionEditor::buildEditor()
 {
-    editor = new EffectEditorPanel("EXPRESSION");
+    editor = new EffectEditorPanel(tr("EXPRESSION"));
     editor->typeLabel()->hide();
 
     EffectArtworkWidget *artwork = new EffectArtworkWidget;
@@ -70,13 +70,13 @@ void ModernExpressionEditor::buildEditor()
     patchFunction.address = "46";
     rows.append(patchFunction);
     QHBoxLayout *patchRow = new QHBoxLayout;
-    QLabel *patchLabel = new QLabel("PATCH FUNCTION");
+    QLabel *patchLabel = new QLabel(tr("PATCH FUNCTION"));
     patchLabel->setObjectName("ExpressionFieldLabel");
     patchRow->addWidget(patchLabel);
     patchRow->addStretch(1);
     patchRow->addWidget(patchFunction.value);
     switchLayout->insertLayout(1, patchRow);
-    QPushButton *assignLink = new QPushButton("EDIT IN CONTROL ASSIGN");
+    QPushButton *assignLink = new QPushButton(tr("EDIT IN CONTROL ASSIGN"));
     assignLink->setObjectName("ExpressionLinkButton");
     connect(assignLink, &QPushButton::clicked, this,
             [this]() { emit openControlAssignRequested(-1); });
@@ -94,7 +94,7 @@ void ModernExpressionEditor::buildEditor()
     QVBoxLayout *pedalLayout = new QVBoxLayout(pedal);
     pedalLayout->setContentsMargins(12, 10, 12, 10);
     pedalLayout->setSpacing(6);
-    QLabel *pedalTitle = new QLabel("PEDAL FX / FOOT VOLUME");
+    QLabel *pedalTitle = new QLabel(tr("PEDAL FX / FOOT VOLUME"));
     pedalTitle->setObjectName("ExpressionSectionTitle");
     pedalLayout->addWidget(pedalTitle);
     pedalState = sectionValue();
@@ -114,7 +114,7 @@ void ModernExpressionEditor::buildEditor()
         line->addWidget(row.second);
         pedalLayout->addLayout(line);
     }
-    QPushButton *pedalLink = new QPushButton("EDIT P.FX/FV");
+    QPushButton *pedalLink = new QPushButton(tr("EDIT P.FX/FV"));
     pedalLink->setObjectName("ExpressionLinkButton");
     connect(pedalLink, &QPushButton::clicked, this,
             &ModernExpressionEditor::openPedalFxRequested);
@@ -127,7 +127,7 @@ void ModernExpressionEditor::buildEditor()
     QVBoxLayout *assignLayout = new QVBoxLayout(assignList);
     assignLayout->setContentsMargins(0, 0, 0, 0);
     assignLayout->setSpacing(6);
-    assignEmpty = new QLabel("NO EXP ASSIGNS");
+    assignEmpty = new QLabel(tr("NO EXP ASSIGNS"));
     assignEmpty->setObjectName("WorkspaceUnavailable");
     assignEmpty->setAlignment(Qt::AlignCenter);
     assignLayout->addWidget(assignEmpty, 1);
@@ -263,18 +263,18 @@ void ModernExpressionEditor::refreshPedalSummary(bool ready)
         "Structure", "0A", "00", "45");
     QStringList details;
     if (mode == 1 || mode == 4 || mode == 5) {
-        details << QString("FV %1 / %2 · %3")
+        details << tr("FV %1 / %2 · %3")
             .arg(displayValue("Structure", "0A", "00", "5B"),
                  displayValue("Structure", "0A", "00", "5C"),
                  displayValue("Structure", "0A", "00", "5D"));
     }
     if (mode == 3 || mode == 5) {
-        details << QString("WAH %1 / %2")
+        details << tr("WAH %1 / %2")
             .arg(displayValue("Structure", "0A", "00", "4B"),
                  displayValue("Structure", "0A", "00", "4C"));
     }
     if (mode == 2 || mode == 4) {
-        details << QString("PB %1 / %2")
+        details << tr("PB %1 / %2")
             .arg(displayValue("Structure", "0A", "00", "54"),
                  displayValue("Structure", "0A", "00", "55"));
     }
@@ -302,7 +302,7 @@ void ModernExpressionEditor::refreshAssigns(bool ready)
                 continue;
             currentAssigns.append(index);
             QPushButton *button = new QPushButton(
-                QString("A%1   %2  →  %3")
+            tr("A%1   %2  →  %3")
                     .arg(index + 1).arg(record.sourceDisplay,
                                         record.targetName));
             button->setObjectName("ExpressionAssignButton");

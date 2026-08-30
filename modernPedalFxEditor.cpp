@@ -125,7 +125,7 @@ PedalEditorContext ModernPedalFxEditor::context() const
 void ModernPedalFxEditor::buildEditor()
 {
     const QColor accent(ModernTheme::activeEffectAccent("PEDAL FX"));
-    editor = new EffectEditorPanel("PEDAL / EXP");
+    editor = new EffectEditorPanel(tr("PEDAL / EXP"));
     editor->typeLabel()->hide();
     editor->setRightPanelTitle("P.FX MODES");
 
@@ -146,7 +146,7 @@ void ModernPedalFxEditor::buildEditor()
     QWidget *stateRow = new QWidget;
     QHBoxLayout *stateLayout = new QHBoxLayout(stateRow);
     stateLayout->setContentsMargins(0, 0, 0, 0);
-    EffectToggleControl *stateControl = new EffectToggleControl("State");
+    EffectToggleControl *stateControl = new EffectToggleControl(tr("State"));
     stateToggle = stateControl->toggle();
     stateToggle->setAccentColor(accent);
     stateLayout->addWidget(stateControl, 0, Qt::AlignTop);
@@ -502,9 +502,9 @@ void ModernPedalFxEditor::updateContextPresentation()
         || currentMode == 4 || currentMode == 5;
     if (contextMessage) {
         if (editorContext == PedalEditorContext::General)
-            contextMessage->setText("GENERAL PEDAL FX CONTEXT");
+        contextMessage->setText(tr("GENERAL PEDAL FX CONTEXT"));
         else if (footVolumeInMode)
-            contextMessage->setText("FOOT VOLUME SECTION ACTIVE");
+        contextMessage->setText(tr("FOOT VOLUME SECTION ACTIVE"));
         else
             contextMessage->setText(
                 "FOOT VOLUME IS NOT ACTIVE IN THE CURRENT MODE");

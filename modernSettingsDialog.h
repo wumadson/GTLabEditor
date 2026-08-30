@@ -15,6 +15,8 @@ class QStackedWidget;
 
 class ModernSettingsDialog : public QDialog
 {
+    Q_OBJECT
+
 public:
     explicit ModernSettingsDialog(QWidget *parent = 0);
 
@@ -59,7 +61,7 @@ private:
     int initialMidiDelay;
     bool initialRestoreWindow;
     bool initialSplashScreen;
-    int initialLanguage;
+    QString initialLanguage;
 };
 
 #endif // MODERNSETTINGSDIALOG_H

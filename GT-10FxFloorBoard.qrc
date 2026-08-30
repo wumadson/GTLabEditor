@@ -80,6 +80,7 @@
         <file>language_fr.qm</file>
         <file>language_ge.qm</file>
         <file>language_ch.qm</file>
+        <file>translations/gtlab_pt_BR.qm</file>
         <file>LICENSE.GPL-2.0</file>
         <file>license.txt</file>
         <file>midi.xml</file>

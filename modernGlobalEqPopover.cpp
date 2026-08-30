@@ -40,7 +40,7 @@ ModernGlobalEqPopover::ModernGlobalEqPopover(QWidget *parent)
     root->setContentsMargins(18, 16, 18, 18);
     root->setSpacing(14);
 
-    QLabel *title = new QLabel("GLOBAL EQ");
+    QLabel *title = new QLabel(tr("GLOBAL EQ"));
     title->setObjectName("GlobalEqTitle");
     root->addWidget(title);
 

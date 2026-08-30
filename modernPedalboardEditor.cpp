@@ -24,7 +24,8 @@ namespace {
 QString stateBadgeText(ModernPedalboardModel::LogicalState state)
 {
     switch (state) {
-    case ModernPedalboardModel::LogicalState::Momentary: return "MOMENTARY";
+    case ModernPedalboardModel::LogicalState::Momentary:
+        return QObject::tr("MOMENTARY");
     case ModernPedalboardModel::LogicalState::Unknown: return QString();
     default: return QString();
     }
@@ -33,7 +34,7 @@ QString stateBadgeText(ModernPedalboardModel::LogicalState state)
 QString scopeText(ModernPedalboardModel::DataScope scope)
 {
     return scope == ModernPedalboardModel::DataScope::System
-        ? "SYSTEM" : "PATCH";
+        ? QObject::tr("SYSTEM") : QObject::tr("PATCH");
 }
 }
 
@@ -56,7 +57,7 @@ public:
         layout->addWidget(title);
 
         search = new QLineEdit;
-        search->setPlaceholderText("Search function...");
+        search->setPlaceholderText(QObject::tr("Search function..."));
         search->setClearButtonEnabled(true);
         layout->addWidget(search);
 
@@ -112,7 +113,7 @@ public:
         items = newItems;
         currentRaw = raw;
         selected = callback;
-        title->setText(context.toUpper() + " FUNCTION");
+        title->setText(QObject::tr("%1 FUNCTION").arg(context.toUpper()));
         search->clear();
         rebuildResults();
 
@@ -301,7 +302,7 @@ public:
         footer->addWidget(stateBadge);
         footer->addStretch(1);
 
-        navigationLabel = new QLabel("CONTROL ASSIGN  ›");
+        navigationLabel = new QLabel(QObject::tr("CONTROL ASSIGN  ›"));
         navigationLabel->setObjectName("PedalboardNavigationLabel");
         navigationLabel->setVisible(false);
         footer->addWidget(navigationLabel);
@@ -339,10 +340,10 @@ public:
             && state.dataValid;
         setCursor(editable || navigable
             ? Qt::PointingHandCursor : Qt::ArrowCursor);
-        setToolTip(editable ? state.label + " FUNCTION"
-                            : navigable ? "OPEN CONTROL ASSIGN"
+        setToolTip(editable ? QObject::tr("%1 FUNCTION").arg(state.label)
+                            : navigable ? QObject::tr("OPEN CONTROL ASSIGN")
                                         : state.dataValid ? QString()
-                                                          : "Data unavailable");
+                                          : QObject::tr("Data unavailable"));
         style()->unpolish(this);
         style()->polish(this);
     }
@@ -399,7 +400,7 @@ void ModernPedalboardEditor::buildEditor()
     layout->setContentsMargins(18, 16, 18, 16);
     layout->setSpacing(14);
 
-    QLabel *title = new QLabel("PEDALBOARD");
+    QLabel *title = new QLabel(tr("PEDALBOARD"));
     title->setObjectName("PedalboardTitle");
     layout->addWidget(title);
 
