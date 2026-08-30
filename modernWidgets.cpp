@@ -1675,20 +1675,40 @@ void SignalChainModule::paintEvent(QPaintEvent *)
     if (modulePending)
         p.setOpacity(.66);
     const QRectF body = rect().adjusted(2, 2, -2, -3);
+    const qreal dpr = devicePixelRatioF();
+    const int normalOutlinePixels = qMax(1, qRound(dpr));
+    const int selectedOutlinePixels = qMax(
+        normalOutlinePixels + 1, qRound(1.25 * dpr));
+    const qreal outlineWidth = (moduleSelected
+        ? selectedOutlinePixels : normalOutlinePixels) / dpr;
+    const auto alignStrokeRect = [dpr](const QRectF &source,
+                                       qreal penWidth) {
+        const int physicalWidth = qMax(1, qRound(penWidth * dpr));
+        const qreal offset = physicalWidth % 2 ? 0.5 : 0.0;
+        const auto align = [dpr, offset](qreal coordinate) {
+            return (qRound(coordinate * dpr - offset) + offset) / dpr;
+        };
+        return QRectF(QPointF(align(source.left()), align(source.top())),
+                      QPointF(align(source.right()), align(source.bottom())));
+    };
+    const QRectF alignedBody = alignStrokeRect(body, outlineWidth);
 
     if (moduleSelected) {
         QColor edgeLight(ModernTheme::color(ModernTheme::AccentCyanDim));
         edgeLight.setAlpha(24);
-        p.setPen(QPen(edgeLight, 3));
+        const qreal edgeWidth = qMax(1, qRound(3.0 * dpr)) / dpr;
+        p.setPen(QPen(edgeLight, edgeWidth));
         p.setBrush(Qt::NoBrush);
-        p.drawRoundedRect(body.adjusted(1, 1, -1, -1), 7, 7);
+        p.drawRoundedRect(alignStrokeRect(
+                              body.adjusted(1, 1, -1, -1), edgeWidth),
+                          7, 7);
     }
 
     p.setPen(Qt::NoPen);
     p.setBrush(QColor(0, 0, 0, 120));
     p.drawRoundedRect(body.translated(0, 2), 6, 6);
 
-    QLinearGradient surface(body.topLeft(), body.bottomLeft());
+    QLinearGradient surface(alignedBody.topLeft(), alignedBody.bottomLeft());
     const bool visuallyPresent = stateAvailable || structuralModule;
     QColor faceTop = moduleFaceColor;
     QColor faceMiddle = moduleFaceColor.darker(
@@ -1704,9 +1724,9 @@ void SignalChainModule::paintEvent(QPaintEvent *)
     QColor outline = moduleSelected
         ? QColor(ModernTheme::color(ModernTheme::AccentCyan))
         : categoryOutline;
-    p.setPen(QPen(outline, moduleSelected ? 1.25 : 1.0));
+    p.setPen(QPen(outline, outlineWidth));
     p.setBrush(surface);
-    p.drawRoundedRect(body, 6, 6);
+    p.drawRoundedRect(alignedBody, 6, 6);
 
     QColor accent = moduleAccent;
     accent.setAlpha(moduleSelected ? 235 : stateOn ? 220
