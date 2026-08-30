@@ -512,10 +512,6 @@ void mainWindow::createMenus()
         helpMenu->addAction(manualAct);
         helpMenu->addAction(sourceCodeAct);
         helpMenu->addSeparator();
-        QMenu *legacyProjectMenu = helpMenu->addMenu(tr("&Legacy Project"));
-        legacyProjectMenu->addAction(homepageAct);
-        legacyProjectMenu->addAction(donationAct);
-        helpMenu->addSeparator();
         helpMenu->addAction(licenseAct);
         helpMenu->addAction(thirdPartyAct);
         helpMenu->addAction(whatsThisAct);

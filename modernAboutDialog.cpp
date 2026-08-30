@@ -119,34 +119,38 @@ QWidget *ModernAboutDialog::createAboutPage()
     layout->setContentsMargins(28, 25, 28, 24);
     layout->setSpacing(6);
 
-    auto *product = new QLabel("GT Lab Editor", page);
+    auto *product = new QLabel("GT LAB", page);
     product->setObjectName("AboutProduct");
-    auto *subtitle = new QLabel(tr("Modern editor for the BOSS GT-10"), page);
+    auto *subtitle = new QLabel("GT Lab Editor", page);
     subtitle->setObjectName("AboutSubtitle");
-    const QString applicationVersion = qApp->applicationVersion().trimmed();
-    auto *build = new QLabel(applicationVersion.isEmpty()
-                                 ? tr("Development Build")
-                                 : tr("Version %1").arg(applicationVersion), page);
+    auto *build = new QLabel(tr("Version 1.0.0"), page);
     build->setObjectName("AboutBuild");
 
     auto *text = new QTextBrowser(page);
     text->setObjectName("AboutText");
     text->setOpenExternalLinks(true);
     text->setHtml(
-        paragraph(tr("GT Lab Editor is derived from the open-source "
-                     "GT-10 FxFloorBoard / FxFloorBoard project.")) +
-        section(tr("ORIGINAL GT-10 FXFLOORBOARD"),
-                tr("Colin Willcocks<br>Copyright 2007–2010")) +
-        section(tr("ORIGINAL FXFLOORBOARD"),
-                tr("Uco Mesdag<br>Copyright 2005–2007")) +
-        section(tr("GT LAB MODERNIZATION"), tr("Wumadson Cardoso")) +
-        section(tr("LICENSE"),
-                tr("GNU GPL family / licensing information. License information "
-                   "is being consolidated; see License and Third-Party Software.")) +
-        // TODO: Review trademark wording before a public release.
-        paragraph(tr("GT Lab Editor is an independent community project and is "
-                     "not affiliated with or endorsed by BOSS Corporation or "
-                     "Roland Corporation.")));
+        paragraph(tr("Modern editor for the BOSS GT-10.")) +
+        paragraph(tr("Based on the GT-10 FxFloorBoard / FXFloorBoard project.")) +
+        section(tr("ORIGINAL DEVELOPMENT"),
+                tr("Colin Willcocks and Uco Mesdag")) +
+        section(tr("MODERNIZATION AND ADDITIONAL DEVELOPMENT"),
+                tr("Wumadson Cardoso / GT LAB")) +
+        paragraph(tr("Distributed under the GNU General Public License.")) +
+        section(tr("CURRENT PROJECT"),
+                QStringLiteral("<a href=\"https://github.com/wumadson/GTLabEditor\">"
+                               "github.com/wumadson/GTLabEditor</a>")) +
+        section(tr("ORIGINAL PROJECT"),
+                QStringLiteral("Original source code:<br>"
+                               "<a href=\"https://sourceforge.net/p/fxfloorboard/"
+                               "fxfloorboard/ci/gt-10/tree/\">"
+                               "sourceforge.net/p/fxfloorboard/fxfloorboard/"
+                               "ci/gt-10/tree/</a>")) +
+        section(tr("TRADEMARK DISCLAIMER"),
+                tr("BOSS and GT-10 are trademarks or registered trademarks of "
+                   "their respective owners.<br>"
+                   "GT Lab Editor is an independent project and is not affiliated "
+                   "with, endorsed by, or sponsored by Roland Corporation or BOSS.")));
 
     auto *links = new QHBoxLayout;
     const QList<QPair<QString, Page>> buttons = {
@@ -172,18 +176,25 @@ QWidget *ModernAboutDialog::createAboutPage()
 QWidget *ModernAboutDialog::createCreditsPage()
 {
     const QString html =
-        section(tr("ORIGINAL GT-10 FXFLOORBOARD"), tr("Colin Willcocks")) +
-        section(tr("ORIGINAL FXFLOORBOARD"), tr("Uco Mesdag")) +
-        section(tr("RTMIDI"), tr("Gary P. Scavone")) +
-        section(tr("OSDAB XMLWRITER"), tr("Fabrizio Angius")) +
-        section(tr("GT LAB MODERNIZATION"), tr("Wumadson Cardoso")) +
+        section(tr("ORIGINAL GT-10 FXFLOORBOARD"),
+                tr("Colin Willcocks<br>Copyright 2007–2010")) +
+        section(tr("ORIGINAL FXFLOORBOARD"),
+                tr("Uco Mesdag<br>Copyright 2005–2007")) +
+        section(tr("RTMIDI"),
+                tr("Gary P. Scavone<br>Copyright 2003–2010")) +
+        section(tr("OSDAB XMLWRITER"),
+                tr("Fabrizio Angius<br>Copyright 2005 and 2007")) +
+        section(tr("QTRACTOR-DERIVED EQ MATERIAL"),
+                tr("Rui Nuno Capela<br>Copyright 2005–2009")) +
+        section(tr("GT LAB MODERNIZATION AND ADDITIONAL DEVELOPMENT"),
+                tr("Wumadson Cardoso / GT LAB")) +
         section(tr("ADDITIONAL CONTRIBUTORS"), tr("See source history."));
     return createTextPage(tr("CREDITS"), html);
 }
 
 QWidget *ModernAboutDialog::createLicensePage()
 {
-    QFile file(":license.txt");
+    QFile file(":LICENSE.GPL-2.0");
     QString licenseText;
     if (file.open(QIODevice::ReadOnly | QIODevice::Text))
         licenseText = QString::fromUtf8(file.readAll());
@@ -197,8 +208,10 @@ QWidget *ModernAboutDialog::createLicensePage()
     auto *title = new QLabel(tr("LICENSE"), page);
     title->setObjectName("AboutPageTitle");
     auto *notice = new QLabel(
-        tr("License information is being consolidated. Source files declare "
-           "GPL v2 or later; bundled components may have additional licensing terms."),
+        tr("GT Lab Editor is distributed under the GNU General Public License "
+           "version 2 or, at your option, any later version. The official GNU "
+           "GPL version 2 text appears below. Components listed under "
+           "Third-Party Software retain their own terms."),
         page);
     notice->setObjectName("AboutSubtitle");
     notice->setWordWrap(true);
@@ -216,33 +229,40 @@ QWidget *ModernAboutDialog::createThirdPartyPage()
     const QString qtVersion = QString::fromLatin1(qVersion());
     const QString html =
         section(tr("QT %1").arg(qtVersion),
-                tr("This application is built with Qt. Distribution licensing "
-                   "details must accompany the deployment selected for each release; "
-                   "this build does not assert LGPL, GPL, or commercial licensing.")) +
+                tr("The Qt Company Ltd. and Qt contributors.<br>"
+                   "Open Source build. The Qt modules used by GT Lab Editor are "
+                   "available under open-source license options; this GPL "
+                   "distribution uses the compatible GNU GPL option.")) +
         section(tr("RTMIDI 1.0.11"),
                 tr("Realtime MIDI I/O C++ classes by Gary P. Scavone. "
-                   "Copyright 2003–2010. The copyright and permission notice "
-                   "contained in the source must be preserved.")) +
+                   "Copyright 2003–2010. Distributed under the permissive terms "
+                   "in RtMidi.h; its copyright and permission notice must be "
+                   "preserved in copies or substantial portions.")) +
         section(tr("OSDAB XMLWRITER"),
-                tr("XML generation component by Fabrizio Angius. Its component "
-                   "header declares GNU GPL version 2.")) +
-        paragraph(tr("Project licensing information is being consolidated. The "
-                     "bundled license text and component-specific notices remain "
-                     "available and have not been reclassified."));
+                tr("XML generation component by Fabrizio Angius. Copyright 2005 "
+                   "and 2007. Its component headers declare GNU GPL version 2.")) +
+        section(tr("QTRACTOR-DERIVED EQ MATERIAL"),
+                tr("Material credited to Rui Nuno Capela in "
+                   "customGraphicEQGraph.h. Copyright 2005–2009. Distributed "
+                   "under GNU GPL version 2 or, at your option, any later version.")) +
+        section(tr("ORIGINAL FXFLOORBOARD PROJECT"),
+                tr("GT-10 FxFloorBoard / FXFloorBoard source by Colin Willcocks "
+                   "and Uco Mesdag. The retained source headers grant GNU GPL "
+                   "version 2 or later."));
     return createTextPage(tr("THIRD-PARTY SOFTWARE"), html);
 }
 
 QWidget *ModernAboutDialog::createSourceCodePage()
 {
     const QString html =
-        section(tr("MODERN SOURCE"),
-                QStringLiteral("<a href=\"https://github.com/wumadson/"
-                               "GT10-FXFloorBoard-Modern\">"
-                               "github.com/wumadson/GT10-FXFloorBoard-Modern</a>")) +
+        section(tr("CURRENT PROJECT"),
+                QStringLiteral("<a href=\"https://github.com/wumadson/GTLabEditor\">"
+                               "github.com/wumadson/GTLabEditor</a>")) +
         section(tr("ORIGINAL PROJECT"),
-                QStringLiteral("<a href=\"https://git.code.sf.net/p/"
-                               "fxfloorboard/fxfloorboard\">"
-                               "git.code.sf.net/p/fxfloorboard/fxfloorboard</a>")) +
+                QStringLiteral("<a href=\"https://sourceforge.net/p/fxfloorboard/"
+                               "fxfloorboard/ci/gt-10/tree/\">"
+                               "sourceforge.net/p/fxfloorboard/fxfloorboard/"
+                               "ci/gt-10/tree/</a>")) +
         paragraph(tr("The original project remains part of the GT Lab Editor "
                      "history and attribution."));
     return createTextPage(tr("SOURCE CODE"), html);

@@ -1,0 +1,25 @@
+GT Lab Editor
+Modern editor for the BOSS GT-10.
+
+Based on the GT-10 FxFloorBoard / FXFloorBoard project.
+
+Original development:
+Colin Willcocks and Uco Mesdag.
+
+Modernization and additional development:
+Wumadson Cardoso / GT LAB.
+
+Distributed under the GNU General Public License version 2 or,
+at your option, any later version.
+
+This project is independent and is not affiliated with, endorsed by,
+or sponsored by Roland Corporation or BOSS.
+
+BOSS and GT-10 are trademarks or registered trademarks of their
+respective owners.
+
+Current project:
+https://github.com/wumadson/GTLabEditor
+
+Original project source:
+https://sourceforge.net/p/fxfloorboard/fxfloorboard/ci/gt-10/tree/
