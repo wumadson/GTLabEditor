@@ -29,6 +29,9 @@
 #include "Preferences.h"
 #include "MidiTable.h"
 #include <QDebug>
+#ifdef Q_OS_WIN
+#include "gt10WinUsbBackend.h"
+#endif
 
 int midiIO::bytesTotal = 0;
 int midiIO::bytesReceived = 0;
@@ -47,7 +50,8 @@ QString midiIO::msgType = "name";
 #endif
 
 midiIO::midiIO(QObject *parent)
-    : QThread(parent), expectedReplyPayloadSize(-1), shortMidiIn(0)
+    : QThread(parent), expectedReplyPayloadSize(-1), shortMidiIn(0),
+      winUsbShortListener(false)
 {
         this->midi = false; // Set this to false until required;
         /* Connect signals */
@@ -64,6 +68,39 @@ midiIO::midiIO(QObject *parent)
 midiIO::~midiIO()
 {
         stopShortMidiListener();
+}
+
+static QByteArray hexStringToBytes(const QString &hexString)
+{
+        const QString clean = hexString.simplified().remove(' ');
+        QByteArray bytes;
+        for (int index = 0; index + 1 < clean.size(); index += 2) {
+                bool ok = false;
+                const int value = clean.mid(index, 2).toInt(&ok, 16);
+                if (!ok)
+                        return QByteArray();
+                bytes.append(char(value));
+        }
+        return bytes;
+}
+
+static QString bytesToHexString(const QByteArray &bytes)
+{
+        return QString::fromLatin1(bytes.toHex().toUpper());
+}
+
+bool midiIO::winUsbBackendAvailable()
+{
+#ifdef Q_OS_WIN
+        return Gt10WinUsbBackend::isAvailable();
+#else
+        return false;
+#endif
+}
+
+bool midiIO::usingWinUsbBackend()
+{
+        return winUsbBackendAvailable();
 }
 
 static void shortMidiCallback(double, std::vector<unsigned char> *message, void *userData)
@@ -92,6 +129,27 @@ static void shortMidiCallback(double, std::vector<unsigned char> *message, void 
 
 bool midiIO::startShortMidiListener()
 {
+#ifdef Q_OS_WIN
+        if (usingWinUsbBackend()) {
+                QString error;
+                Gt10WinUsbBackend &backend = Gt10WinUsbBackend::instance();
+                if (!backend.open(&error))
+                        return false;
+                backend.setPersistentCallback([this](const QByteArray &message) {
+                        if (message.isEmpty())
+                                return;
+                        const int status = static_cast<unsigned char>(message.at(0));
+                        const int data1 = message.size() > 1
+                                ? static_cast<unsigned char>(message.at(1)) : 0;
+                        const int data2 = message.size() > 2
+                                ? static_cast<unsigned char>(message.at(2)) : 0;
+                        QMetaObject::invokeMethod(this, "dispatchShortMidi", Qt::QueuedConnection,
+                                                  Q_ARG(int, status), Q_ARG(int, data1), Q_ARG(int, data2));
+                });
+                winUsbShortListener = true;
+                return true;
+        }
+#endif
         if (shortMidiIn)
                 return true;
 
@@ -135,6 +193,14 @@ bool midiIO::startShortMidiListener()
 
 void midiIO::stopShortMidiListener()
 {
+#ifdef Q_OS_WIN
+        if (winUsbShortListener) {
+                Gt10WinUsbBackend::instance().setPersistentCallback(
+                        Gt10WinUsbBackend::ReceiveCallback());
+                winUsbShortListener = false;
+                return;
+        }
+#endif
         if (!shortMidiIn)
                 return;
         shortMidiIn->cancelCallback();
@@ -392,6 +458,19 @@ void midiIO::receiveMsg(QString sysxInMsg, int midiInPort)
    else if (msgType == "identity") { loopCount = x*100; count = 15; }
                          else  { loopCount = x*10; count = 0; };
 
+#ifdef Q_OS_WIN
+    if (usingWinUsbBackend()) {
+        QString error;
+        const QByteArray response = Gt10WinUsbBackend::instance().transact(
+                hexStringToBytes(sysxOutMsg), qMax(500, loopCount * 5), count, &error);
+        sysxBuffer = bytesToHexString(response);
+        this->sysxInMsg = sysxBuffer;
+        dataReceive = true;
+        emit setStatusProgress(100);
+        return;
+    }
+#endif
+
     RtMidiIn *midiin = 0;
     const std::string clientName = "FxFloorBoard";
           midiin = new RtMidiIn(clientName);		   //RtMidi constructor
@@ -468,6 +547,14 @@ void midiIO::run()
   int repeat = 0;
         if(midi && midiMsg.size() > 1)	// Check if we are going to send sysx or midi data & have an actual midi message to send.
         {
+#ifdef Q_OS_WIN
+                if (usingWinUsbBackend()) {
+                        QString error;
+                        Gt10WinUsbBackend::instance().send(
+                                hexStringToBytes(midiMsg), &error);
+                }
+                else
+#endif
                 if (midiMsg.size() <= 6)		// if the midi message is <= 3 words
                         {
                         sysxOutMsg = midiMsg;   // use the same sending routine as sysx messages.
@@ -567,7 +654,14 @@ void midiIO::run()
                 {
                         emit setStatusSymbol(2);
                         emit setStatusMessage(tr("Sending"));
-                        sendSyxMsg(sysxOutMsg, midiOutPort);
+#ifdef Q_OS_WIN
+                        if (usingWinUsbBackend()) {
+                                QString error;
+                                Gt10WinUsbBackend::instance().send(
+                                        hexStringToBytes(sysxOutMsg), &error);
+                        } else
+#endif
+                                sendSyxMsg(sysxOutMsg, midiOutPort);
                         Preferences *preferences = Preferences::Instance(); bool ok;// Load the preferences.
                         const int minWait = preferences->getPreferences("Midi", "Delay", "set").toInt(&ok, 10);
                         emit setStatusProgress(33);  // do the statusbar progress thing
@@ -650,7 +744,7 @@ void midiIO::sendSysxMsg(QString sysxOutMsg, int midiOutPort, int midiInPort,
         this->midi = false;
         Preferences *preferences = Preferences::Instance();// Load the preferences.
         QString midiOut = preferences->getPreferences("Midi", "MidiOut", "device");
-  if(midiOut!="") {start();} else {
+  if(midiOut!="" || usingWinUsbBackend()) {start();} else {
   emit setStatusSymbol(0);
   emit setStatusMessage(tr("no midi device set"));
   emit replyMsg("");
@@ -670,7 +764,7 @@ void midiIO::sendMidi(QString midiMsg, int midiOutPort)
         this->midi = true;
   Preferences *preferences = Preferences::Instance();// Load the preferences.
         QString midiOut = preferences->getPreferences("Midi", "MidiOut", "device");
-  if(midiOut!="") {start();} else {
+  if(midiOut!="" || usingWinUsbBackend()) {start();} else {
   emit setStatusSymbol(0);
   emit setStatusMessage(tr("no midi device set"));   };
 };

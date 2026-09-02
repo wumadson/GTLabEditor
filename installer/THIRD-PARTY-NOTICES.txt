@@ -1,0 +1,49 @@
+GT Lab Editor 1.0.0 - Third-Party Notices
+============================================================
+
+GT-10 FxFloorBoard / FXFloorBoard
+Original development by Colin Willcocks and Uco Mesdag.
+Copyright (C) 2007-2010 Colin Willcocks.
+Copyright (C) 2005-2007 Uco Mesdag.
+Licensed under the GNU General Public License version 2 or,
+at your option, any later version.
+
+Qt 5.15.2
+Copyright (C) The Qt Company Ltd. and Qt contributors.
+This distribution uses an Open Source build of Qt. The Qt modules used
+by GT Lab Editor are distributed under the compatible GNU GPL option.
+The GNU GPL version 2 text is included as LICENSE.GPL-2.0.
+
+RtMidi 1.0.11
+Copyright (c) 2003-2010 Gary P. Scavone
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+Any person wishing to distribute modifications to the Software is
+requested to send the modifications to the original developer so that
+they can be incorporated into the canonical version.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+
+OSDaB XMLWriter
+Copyright (C) 2005 Fabrizio Angius. All rights reserved.
+Licensed under the GNU General Public License version 2.
+
+Qtractor-derived EQ material
+Copyright (C) 2005-2009 Rui Nuno Capela.
+Licensed under the GNU General Public License version 2 or,
+at your option, any later version.

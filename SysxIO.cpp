@@ -923,7 +923,7 @@ void SysxIO::sendSysx(QString sysxMsg, int expectedReplyPayloadSize,
 #ifdef Q_OS_WIN
 	const bool needsMidiInput =
 		sysxMsg.mid(sysxAddressOffset * 2 - 2, 2) != "12";
-	if (needsMidiInput)
+	if (needsMidiInput && !midiIO::usingWinUsbBackend())
 	{
 		++pendingMidiInputTransactions;
 		emit midiInputTransactionStarted();
@@ -958,7 +958,7 @@ void SysxIO::sendSysx(QString sysxMsg, int expectedReplyPayloadSize,
 void SysxIO::receiveSysx(QString sysxMsg)
 {
 #ifdef Q_OS_WIN
-	if (pendingMidiInputTransactions > 0)
+	if (!midiIO::usingWinUsbBackend() && pendingMidiInputTransactions > 0)
 	{
 		--pendingMidiInputTransactions;
 		emit midiInputTransactionFinished();

@@ -48,6 +48,8 @@ public:
 	QList<QString> getMidiInDevices();
 	bool startShortMidiListener();
 	void stopShortMidiListener();
+	static bool winUsbBackendAvailable();
+	static bool usingWinUsbBackend();
 
 signals:
 	void errorSignal(QString windowTitle, QString errorMsg);
@@ -92,6 +94,7 @@ private:
 	int expectedReplyPayloadSize;
 	QString expectedReplyAddress;
 	RtMidiIn *shortMidiIn;
+	bool winUsbShortListener;
 };
 
 #endif // MIDIIO_H

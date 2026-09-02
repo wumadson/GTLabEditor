@@ -50,9 +50,9 @@ QT += core gui widgets xml printsupport
 
 #Platform dependent file(s)
 win32 {
-	LIBS += winmm.lib
-	 HEADERS += 
-	 SOURCES += ./windows/RtMidi.cpp                        
+	LIBS += winmm.lib winusb.lib setupapi.lib
+	 HEADERS += gt10UsbMidiCodec.h gt10WinUsbBackend.h
+	 SOURCES += ./windows/RtMidi.cpp gt10UsbMidiCodec.cpp gt10WinUsbBackend.cpp
 	 INCLUDEPATH += ./windows
 	message(Including Windows specific headers and sources...)
 }
