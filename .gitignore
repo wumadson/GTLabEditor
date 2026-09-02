@@ -6,6 +6,7 @@ build/
 build-*/
 dist/staging/
 dist/windows/*.exe
+dist/windows/*.zip
 dist/windows/*.txt
 packager/*.app/
 *.o

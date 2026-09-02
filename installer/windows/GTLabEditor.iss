@@ -3,8 +3,12 @@
 #define AppPublisher "GT LAB"
 #define AppExeName "GTLabEditor.exe"
 #define SourceRoot "..\.."
+#ifndef StagingDir
 #define StagingDir SourceRoot + "\dist\staging\windows\GTLabEditor"
+#endif
+#ifndef OutputDir
 #define OutputDir SourceRoot + "\dist\windows"
+#endif
 
 [Setup]
 AppId={{A3A86BF7-C1FB-4D16-A7B3-AB672F8B52A1}

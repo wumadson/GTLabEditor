@@ -1,0 +1,62 @@
+name: Windows unsigned build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - modern-ui
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Qt 5.15.2 / MSVC v142 / x64
+    runs-on: windows-2022
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Record source identity
+        shell: pwsh
+        run: |
+          git rev-parse HEAD
+          git branch --show-current
+          Write-Host "GITHUB_REF=$env:GITHUB_REF"
+          Write-Host "GITHUB_SHA=$env:GITHUB_SHA"
+
+      - name: Install Qt 5.15.2
+        uses: jurplel/install-qt-action@48d3ad6db93f3627c8ee7a0454bc6f3744f7e730 # v4.3.1
+        with:
+          version: '5.15.2'
+          host: windows
+          target: desktop
+          arch: win64_msvc2019_64
+          aqtversion: '==3.3.0'
+          py7zrversion: '==1.1.0'
+          cache: false
+
+      - name: Install pinned Inno Setup
+        shell: pwsh
+        run: .\scripts\windows\install-inno.ps1 -InstallRoot "$env:RUNNER_TEMP\inno-setup-6.7.3"
+
+      - name: Build, stage, and package unsigned artifacts
+        shell: pwsh
+        env:
+          INNO_SETUP_ROOT: ${{ runner.temp }}\inno-setup-6.7.3
+        run: .\scripts\windows\build-all.ps1 -QtRoot "$env:QT_ROOT_DIR" -InnoRoot "$env:INNO_SETUP_ROOT"
+
+      - name: Upload unsigned Windows artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: GTLabEditor-1.0.0-Windows-x64-unsigned
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            dist/staging/windows/GTLabEditor/GTLabEditor.exe
+            dist/windows/GTLabEditor-1.0.0-Windows-x64-Portable.zip
+            dist/windows/GTLabEditor-1.0.0-Windows-x64-Setup.exe
+            dist/windows/SHA256SUMS.txt
+            dist/windows/build-manifest.txt
