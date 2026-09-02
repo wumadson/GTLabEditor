@@ -23,6 +23,38 @@ function Assert-SafeChildPath([string]$Path, [string]$Parent, [string]$Label) {
     }
 }
 
+function Add-CrtCandidate(
+    [System.Collections.Generic.List[string]]$Candidates,
+    [string]$Path
+) {
+    if (-not $Path) { return }
+    $fullPath = [IO.Path]::GetFullPath($Path)
+    if (-not ($Candidates | Where-Object { $_.Equals($fullPath, [StringComparison]::OrdinalIgnoreCase) })) {
+        $Candidates.Add($fullPath)
+    }
+}
+
+function Add-VersionedCrtCandidates(
+    [System.Collections.Generic.List[string]]$Candidates,
+    [string]$RedistRoot
+) {
+    if (-not $RedistRoot -or -not (Test-Path -LiteralPath $RedistRoot)) { return }
+    Get-ChildItem -LiteralPath $RedistRoot -Directory -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -like '14.29.*' } |
+        Sort-Object { [version]$_.Name } -Descending |
+        ForEach-Object { Add-CrtCandidate $Candidates (Join-Path $_.FullName 'x64\Microsoft.VC142.CRT') }
+}
+
+function Test-Vc142CrtCandidate([string]$Path) {
+    if (-not $Path -or -not (Test-Path -LiteralPath $Path -PathType Container)) { return $false }
+    $requiredDlls = @('msvcp140.dll', 'vcruntime140.dll', 'vcruntime140_1.dll', 'concrt140.dll')
+    foreach ($dll in $requiredDlls) {
+        if (-not (Test-Path -LiteralPath (Join-Path $Path $dll) -PathType Leaf)) { return $false }
+    }
+    $version = (Get-Item -LiteralPath (Join-Path $Path 'vcruntime140.dll')).VersionInfo.FileVersion
+    return $version -match '^14\.29\.'
+}
+
 $RepoRoot = [IO.Path]::GetFullPath($RepoRoot)
 if (-not $BuildRoot) { $BuildRoot = Join-Path $RepoRoot 'build\windows-release' }
 if (-not $StagingRoot) { $StagingRoot = Join-Path $RepoRoot 'dist\staging\windows\GTLabEditor' }
@@ -53,25 +85,41 @@ Assert-LastExitCode 'windeployqt'
 # windeployqt may deploy the redistributable installer instead of the app-local
 # CRT DLLs. Copy the complete VC142 CRT assembly so the portable staging tree
 # does not depend on a machine-wide Visual C++ installation.
-if (-not $CrtRoot -and $env:VCToolsRedistDir) {
-    $CrtRoot = Join-Path $env:VCToolsRedistDir 'x64\Microsoft.VC142.CRT'
+$requestedCrtRoot = $CrtRoot
+$crtCandidates = New-Object 'System.Collections.Generic.List[string]'
+Add-CrtCandidate $crtCandidates $requestedCrtRoot
+if ($env:VCToolsRedistDir) {
+    Add-CrtCandidate $crtCandidates (Join-Path $env:VCToolsRedistDir 'x64\Microsoft.VC142.CRT')
 }
-if (-not $CrtRoot) {
-    $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
-    if (Test-Path -LiteralPath $vswhere) {
-        $vsRoot = (& $vswhere -latest -products '*' -property installationPath | Select-Object -First 1)
-        $redistVersion = Get-ChildItem -LiteralPath (Join-Path $vsRoot 'VC\Redist\MSVC') -Directory -ErrorAction SilentlyContinue |
-            Where-Object { $_.Name -like '14.29.*' } | Sort-Object Name -Descending | Select-Object -First 1
-        if ($redistVersion) { $CrtRoot = Join-Path $redistVersion.FullName 'x64\Microsoft.VC142.CRT' }
+if ($env:VCINSTALLDIR) {
+    Add-VersionedCrtCandidates $crtCandidates (Join-Path $env:VCINSTALLDIR 'Redist\MSVC')
+}
+
+$vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+if (Test-Path -LiteralPath $vswhere) {
+    & $vswhere -all -products '*' -property installationPath | Where-Object { $_ } | ForEach-Object {
+        Add-VersionedCrtCandidates $crtCandidates (Join-Path $_ 'VC\Redist\MSVC')
     }
 }
-if (-not $CrtRoot -or -not (Test-Path -LiteralPath $CrtRoot)) {
-    throw "VC142 app-local CRT directory not found. Pass -CrtRoot or initialize the v142 build environment."
+
+Write-Host 'MSVC CRT discovery:'
+Write-Host "  Requested: $(if ($requestedCrtRoot) { $requestedCrtRoot } else { '<auto>' })"
+Write-Host "  VCToolsRedistDir: $(if ($env:VCToolsRedistDir) { $env:VCToolsRedistDir } else { '<unset>' })"
+Write-Host "  VCINSTALLDIR: $(if ($env:VCINSTALLDIR) { $env:VCINSTALLDIR } else { '<unset>' })"
+Write-Host '  Candidates:'
+if ($crtCandidates.Count -eq 0) { Write-Host '    <none>' }
+$crtCandidates | ForEach-Object { Write-Host "    $_" }
+
+$CrtRoot = $crtCandidates | Where-Object { Test-Vc142CrtCandidate $_ } | Select-Object -First 1
+if (-not $CrtRoot) {
+    $searched = if ($crtCandidates.Count) { $crtCandidates -join '; ' } else { '<none>' }
+    throw "VC142 app-local runtime is not installed on this runner. Searched: $searched"
 }
-$CrtRoot = [IO.Path]::GetFullPath($CrtRoot)
+Write-Host "  Selected: $CrtRoot"
 $crtDlls = Get-ChildItem -LiteralPath $CrtRoot -Filter '*.dll' -File
 if (-not $crtDlls) { throw "No app-local CRT DLLs found: $CrtRoot" }
 $crtDlls | Copy-Item -Destination $StagingRoot
+Write-Host "  Files copied: $($crtDlls.Name -join ', ')"
 $redistributable = Join-Path $StagingRoot 'vc_redist.x64.exe'
 if (Test-Path -LiteralPath $redistributable) { Remove-Item -LiteralPath $redistributable -Force }
 
