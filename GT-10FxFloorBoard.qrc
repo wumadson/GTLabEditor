@@ -4,7 +4,6 @@
         <file>default.gxg</file>
         <file>default.syx</file>
         <file>HexLookupTable.hex</file>
-        <file>images/GT-10FxFloorBoard.png</file>
         <file>images/ampswitch.png</file>
         <file>images/button.png</file>
         <file>images/ce.png</file>
@@ -60,7 +59,6 @@
         <file>images/preferences.png</file>
         <file>images/pushbutton.png</file>
         <file>images/pushbutton_dark.png</file>
-        <file>images/qt-logo.png</file>
         <file>images/rv.png</file>
         <file>images/slide.png</file>
         <file>images/sliderbutton.png</file>
@@ -104,7 +102,6 @@
         <file>assets/effects/amp_b.png</file>
         <file>assets/pedals/expression_pedal.png</file>
         <file>assets/pedalboard/gt10_footswitch.png</file>
-        <file>assets/pedalboard/bossgt10.png</file>
         <file>assets/menu/load.png</file>
         <file>assets/menu/save.png</file>
         <file>assets/menu/exit.png</file>

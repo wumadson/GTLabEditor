@@ -8,11 +8,19 @@ dist/staging/
 dist/windows/*.exe
 dist/windows/*.zip
 dist/windows/*.txt
+Makefile
+Makefile.*
 packager/*.app/
+*.app/
+*.dSYM/
 *.o
 *.obj
+*.pdb
+*.ilk
+*.exp
 
 # Qt generated
+.qmake.stash
 moc_*
 qrc_*
 ui_*
@@ -23,9 +31,19 @@ ui_*
 .vscode/
 .idea/
 
-# Logs
+# Logs / dumps
 *.log
+*.dmp
+*.dump
 
 # Private signing material
 *.pfx
 *.p12
+*.key
+*.pem
+
+# Local Windows 11 WinUSB laboratory files
+installer/windows/GTLabEditor-WinUSB-Lab.iss
+installer/windows/WINDOWS11-TEST-CHECKLIST.txt
+installer/windows/WINDOWS11-TEST-CHECKLIST-R2.txt
+installer/windows/winusb-lab/
