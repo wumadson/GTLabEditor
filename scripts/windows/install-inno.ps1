@@ -19,8 +19,14 @@ if ($actual -ne $ExpectedSha256) {
     throw "Inno Setup SHA-256 mismatch. Expected $ExpectedSha256, got $actual."
 }
 
-& $installer /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP- /CURRENTUSER "/DIR=$InstallRoot"
-if ($LASTEXITCODE -ne 0) { throw "Inno Setup installation failed with exit code $LASTEXITCODE." }
+$process = Start-Process `
+    -FilePath $installer `
+    -ArgumentList @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-', '/CURRENTUSER', "/DIR=$InstallRoot") `
+    -Wait `
+    -PassThru
+if ($process.ExitCode -ne 0) {
+    throw "Inno Setup installer failed with exit code $($process.ExitCode)."
+}
 $iscc = Join-Path $InstallRoot 'ISCC.exe'
 if (-not (Test-Path -LiteralPath $iscc)) { throw "ISCC.exe not found after install: $iscc" }
 Write-Host "INNO SETUP $Version READY: $iscc"
