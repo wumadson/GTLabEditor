@@ -140,8 +140,11 @@ QByteArray QuickSettingCodec::effectNameAddress(
         address[3] = static_cast<char>(0x3C);
         return address;
     }
-    if (effect == QuickSettingEffect::OverdriveDistortion)
+    if (effect == QuickSettingEffect::OverdriveDistortion) {
+        address[2] = static_cast<char>(0x40);
+        address[3] = static_cast<char>(0x18);
         return address;
+    }
     if (effect == QuickSettingEffect::Delay) {
         address[2] = static_cast<char>(0x44);
         address[3] = static_cast<char>(0x04);
@@ -190,7 +193,9 @@ QByteArray QuickSettingCodec::effectNameAddress(
 
 bool QuickSettingCodec::hasPresentationName(QuickSettingEffect effect)
 {
-    return effect == QuickSettingEffect::OverdriveDistortion
+    return effect == QuickSettingEffect::PreampA
+        || effect == QuickSettingEffect::PreampB
+        || effect == QuickSettingEffect::OverdriveDistortion
         || effect == QuickSettingEffect::Delay
         || effect == QuickSettingEffect::Chorus
         || effect == QuickSettingEffect::Reverb
@@ -212,7 +217,9 @@ QByteArray QuickSettingCodec::presentationFallbackAddress(
     QByteArray address = effectAddress(slot, effect, error);
     if (address.isEmpty())
         return address;
-    if (hasPresentationName(effect))
+    if (hasPresentationName(effect)
+        && effect != QuickSettingEffect::PreampA
+        && effect != QuickSettingEffect::PreampB)
         address = addRolandAddress(address, 1);
     return address;
 }

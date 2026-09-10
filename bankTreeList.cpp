@@ -965,7 +965,9 @@ void bankTreeList::requestPhysicalPatchReadback(int bank, int patch)
 void bankTreeList::requestPatchNamesForBank(int bank)
 {
         QTreeWidgetItem *item = patchBankItems.value(bank, 0);
-        if (item)
+        if (item && item->isExpanded())
+                updateTree(item);
+        else if (item)
                 item->setExpanded(true);
 }
 
@@ -1042,6 +1044,8 @@ void bankTreeList::updatePatchNames(QString name)
              }
                   else
                     {
+                        QObject::disconnect(sysxIO, SIGNAL(patchName(QString)),
+                                            this, SLOT(updatePatchNames(QString)));
                         sysxIO->setDeviceReady(true);
 
                         this->currentPatchTreeItems.clear(); // We are done so we can safely reset items that need to be named.
@@ -1054,6 +1058,11 @@ void bankTreeList::updatePatchNames(QString name)
                     };
              }
                 else {SysxIO *sysxIO = SysxIO::Instance();
+                          QObject::disconnect(sysxIO, SIGNAL(patchName(QString)),
+                                              this, SLOT(updatePatchNames(QString)));
+                          this->currentPatchTreeItems.clear();
+                          this->listIndex = 0;
+                          this->itemIndex = 0;
                           sysxIO->setDeviceReady(true);
                           emit setStatusSymbol(1);
         emit setStatusMessage(tr("Ready"));

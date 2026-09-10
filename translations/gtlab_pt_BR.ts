@@ -1508,6 +1508,11 @@ Previously verified patches remain overwritten.</source>
         <translation>BIBLIOTECA DE PATCHES</translation>
     </message>
     <message>
+        <location filename="../patchSidebar.cpp" line="191"/>
+        <source>To change patches from the Editor, keep the GT-10 on the Play screen.</source>
+        <translation>Para trocar patches pelo Editor, mantenha a GT-10 na tela Play.</translation>
+    </message>
+    <message>
         <location filename="../patchSidebar.cpp" line="193"/>
         <source>Search patches...</source>
         <translation>Pesquisar Patches...</translation>
@@ -4619,6 +4624,30 @@ Destino: U01-1 → U50-4</translation>
 </context>
 <context>
     <name>modernFloorBoard</name>
+    <message>
+        <source>PATCH LOADED</source>
+        <translation>PATCH CARREGADO</translation>
+    </message>
+    <message>
+        <source>PATCH LOAD FAILED</source>
+        <translation>FALHA AO CARREGAR PATCH</translation>
+    </message>
+    <message>
+        <source>Patch loaded successfully.</source>
+        <translation>Patch carregado com sucesso.</translation>
+    </message>
+    <message>
+        <source>Click Write to save it to the GT-10.</source>
+        <translation>Clique em Gravar para salvá-lo na GT-10.</translation>
+    </message>
+    <message>
+        <source>The selected file could not be loaded.</source>
+        <translation>Não foi possível carregar o arquivo selecionado.</translation>
+    </message>
+    <message>
+        <source>Choose a supported GT-10 patch file and try again.</source>
+        <translation>Escolha um arquivo de patch compatível com a GT-10 e tente novamente.</translation>
+    </message>
     <message>
         <location filename="../modernFloorBoard.cpp" line="1109"/>
         <source>BOSS GT-10</source>

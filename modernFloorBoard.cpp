@@ -3798,6 +3798,7 @@ void modernFloorBoard::showQuickSettings()
         return;
     const QuickSettingEffect effect = static_cast<QuickSettingEffect>(
         button->property("quickSettingEffect").toInt());
+    invalidateQuickSettingPresentationCache();
     quickSettingDialog->showEffect(effect);
     startQuickSettingPrefetch(effect);
 }
@@ -4168,8 +4169,10 @@ void modernFloorBoard::saveQuickSetting()
     const bool eq = effect == QuickSettingEffect::Equalizer;
     const bool fx1 = effect == QuickSettingEffect::Fx1;
     const bool sendReturn = effect == QuickSettingEffect::SendReturn;
-    const bool namedEffect = comp || odds || delay || chorus || reverb || eq
-        || fx1 || sendReturn;
+    const bool preamp = effect == QuickSettingEffect::PreampA
+        || effect == QuickSettingEffect::PreampB;
+    const bool namedEffect = preamp || comp || odds || delay || chorus
+        || reverb || eq || fx1 || sendReturn;
     const QString typeBank = (odds || comp) ? QStringLiteral("00")
         : ((delay || chorus || reverb || sendReturn) ? QStringLiteral("0A")
             : (fx1 ? QStringLiteral("02") : QStringLiteral("01")));
@@ -4329,7 +4332,17 @@ void modernFloorBoard::quickSettingIdentityReady(
         slotCombo = sendReturnQuickSlot;
         typeLabel = sendReturnQuickMode;
     }
+    if (effect == QuickSettingEffect::PreampA
+        || effect == QuickSettingEffect::PreampB) {
+        PreampEditorState &state = preampState(
+            effect == QuickSettingEffect::PreampA
+                ? PreampChannel::A : PreampChannel::B);
+        slotCombo = state.quickSlot;
+        typeLabel = state.quickType;
+    }
     if ((effect != QuickSettingEffect::OverdriveDistortion
+         && effect != QuickSettingEffect::PreampA
+         && effect != QuickSettingEffect::PreampB
          && effect != QuickSettingEffect::Compressor
          && effect != QuickSettingEffect::Delay
          && effect != QuickSettingEffect::Chorus
@@ -4486,6 +4499,28 @@ void modernFloorBoard::quickSettingSaveFinished(QuickSettingEffect effect,
 void modernFloorBoard::patchNameResolved(int bank, int patch, QString name)
 {
     patchListModel.setPatchName(bank, patch, name);
+}
+
+void modernFloorBoard::patchImportFinished(bool success)
+{
+    if (success) {
+        // An imported patch is valid Temporary Buffer content even though it
+        // did not originate from a device read and remains unsaved in User
+        // memory. Restore the normal UI/write state after writeToBuffer().
+        backendHasPatchData = true;
+        refreshReverbState();
+    }
+
+    ModernMessageDialog message(
+        success ? ModernDialogIcon::Success : ModernDialogIcon::Error,
+        success ? tr("PATCH LOADED") : tr("PATCH LOAD FAILED"),
+        QString(),
+        success ? tr("Patch loaded successfully.")
+                : tr("The selected file could not be loaded."),
+        success ? tr("Click Write to save it to the GT-10.")
+                : tr("Choose a supported GT-10 patch file and try again."),
+        this);
+    message.addOkButton();
 }
 
 void modernFloorBoard::refreshReverbState()

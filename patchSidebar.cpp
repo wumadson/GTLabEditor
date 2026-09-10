@@ -188,6 +188,7 @@ PatchSidebar::PatchSidebar(ModernPatchListModel *model, QWidget *parent)
     layout->setSpacing(6);
     QLabel *title = new QLabel(tr("PATCH LIBRARY"));
     title->setObjectName("PatchLibraryTitle");
+    title->setToolTip(tr("To change patches from the Editor, keep the GT-10 on the Play screen."));
     QLineEdit *search = new QLineEdit;
     search->setObjectName("PatchSearch");
     search->setPlaceholderText(tr("Search patches..."));

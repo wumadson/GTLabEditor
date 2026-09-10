@@ -281,7 +281,9 @@ void QuickSettingService::save(QuickSettingEffect effect, int slot,
         return;
     }
     savedNamePayload.clear();
-    if (effect == QuickSettingEffect::Compressor
+    if (effect == QuickSettingEffect::PreampA
+        || effect == QuickSettingEffect::PreampB
+        || effect == QuickSettingEffect::Compressor
         || effect == QuickSettingEffect::OverdriveDistortion
         || effect == QuickSettingEffect::Delay
         || effect == QuickSettingEffect::Chorus
@@ -643,7 +645,9 @@ void QuickSettingService::handleReply(QString reply)
         if (loadTimingActive)
             logLoadTiming("TYPE validation", valid ? QStringLiteral("valid") : QStringLiteral("invalid"));
         if (valid
-            && (activeEffect == QuickSettingEffect::Compressor
+            && (activeEffect == QuickSettingEffect::PreampA
+                || activeEffect == QuickSettingEffect::PreampB
+                || activeEffect == QuickSettingEffect::Compressor
                 || activeEffect == QuickSettingEffect::OverdriveDistortion
                 || activeEffect == QuickSettingEffect::Delay
                 || activeEffect == QuickSettingEffect::Chorus

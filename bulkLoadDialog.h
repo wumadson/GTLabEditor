@@ -48,6 +48,7 @@ signals:
   void setStatusProgress(int value);
   void setStatusSymbol(int value);
   void setdeBugStatusMessage(QString message);
+  void transferCompleted(int firstBank);
                     
 public slots:
   void sendData();

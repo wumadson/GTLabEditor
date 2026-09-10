@@ -58,13 +58,24 @@ int main(int argc, char **argv)
                      == "30094024",
                  "U10 shared name address");
     ok &= expect(QuickSettingCodec::effectNameAddress(
+        1, QuickSettingEffect::PreampA).toHex().toUpper() == "30004024",
+        "U01 PREAMP A uses the shared PREAMP name");
+    ok &= expect(QuickSettingCodec::effectNameAddress(
+        1, QuickSettingEffect::PreampB).toHex().toUpper() == "30004024",
+        "U01 PREAMP B uses the shared PREAMP name");
+    ok &= expect(QuickSettingCodec::hasPresentationName(
+        QuickSettingEffect::PreampA)
+        && QuickSettingCodec::hasPresentationName(
+            QuickSettingEffect::PreampB),
+        "PREAMP A/B presentation reads the shared native name");
+    ok &= expect(QuickSettingCodec::effectNameAddress(
         1, QuickSettingEffect::OverdriveDistortion).toHex().toUpper()
-                     == "30000000",
-                 "U01 OD/DS name starts at the User Quick Setting base");
+                     == "30004018",
+                 "U01 OD/DS name starts at Quick Setting NAME 40:18");
     ok &= expect(QuickSettingCodec::effectNameAddress(
         10, QuickSettingEffect::OverdriveDistortion).toHex().toUpper()
-                     == "30090000",
-                 "U10 OD/DS name starts at the User Quick Setting base");
+                     == "30094018",
+                 "U10 OD/DS name starts at Quick Setting NAME 40:18");
     ok &= expect(QuickSettingCodec::effectAddress(
         1, QuickSettingEffect::Delay).toHex().toUpper() == "30000A00",
         "U01 DELAY starts at 30:00:0A:00");
@@ -708,17 +719,17 @@ int main(int argc, char **argv)
     ok &= expect(QuickSettingCodec::hasPresentationName(
                      QuickSettingEffect::Equalizer),
                  "EQ presentation uses NAME-only");
-    ok &= expect(!QuickSettingCodec::hasPresentationName(
+    ok &= expect(QuickSettingCodec::hasPresentationName(
                      QuickSettingEffect::PreampA),
-                 "PREAMP presentation does not invent a NAME");
+                 "PREAMP presentation uses the shared native NAME");
     ok &= expect(QuickSettingCodec::presentationFallbackAddress(
                      1, QuickSettingEffect::PreampA).toHex().toUpper()
                          == "30000110",
-                 "PREAMP A presentation reads one TYPE byte at 01:10");
+                 "PREAMP A empty NAME falls back to TYPE at 01:10");
     ok &= expect(QuickSettingCodec::presentationFallbackAddress(
                      10, QuickSettingEffect::PreampB).toHex().toUpper()
                          == "30090130",
-                 "PREAMP B presentation preserves U10 and TYPE address");
+                 "PREAMP B empty NAME preserves U10 and TYPE address");
     ok &= expect(QuickSettingCodec::presentationFallbackAddress(
                      1, QuickSettingEffect::Chorus).toHex().toUpper()
                          == "30000A21",

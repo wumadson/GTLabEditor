@@ -398,7 +398,8 @@ void bulkLoadDialog::sendSequence(QString value)
   QObject::disconnect(sysxIO, SIGNAL(sysxReply(QString)), this, SLOT(sendSequence(QString)));
   sysxIO->setDeviceReady(true); // Free the device after finishing interaction.
   setStatusMessage(tr("Ready"));
-  close();  
+  emit transferCompleted(((bankStart - 1) / patchPerBank) + 1);
+  close();
   };      
 };
 

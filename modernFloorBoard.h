@@ -64,6 +64,7 @@ public slots:
     void backendDisconnected();
     void backendActivityChanged(int status);
     void refreshReverbState();
+    void patchImportFinished(bool success);
     void patchNameResolved(int bank, int patch, QString name);
     void persistentWriteFinished(int result, int bank, int patch,
                                  QString verifiedName, QString detail);

@@ -572,6 +572,11 @@ void mainWindow::open()
                         emit updateSignal();
                         if(sysxIO->isConnected())
                         {sysxIO->writeToBuffer();};
+                        modernFloorBoardWidget->patchImportFinished(true);
+                }
+                else
+                {
+                        modernFloorBoardWidget->patchImportFinished(false);
                 };
         };
 };
@@ -885,6 +890,9 @@ void mainWindow::bulkLoad()
      if (sysxIO->isConnected())
                {
                 bulkLoadDialog *loadDialog = new bulkLoadDialog();
+            QObject::connect(loadDialog, SIGNAL(transferCompleted(int)),
+                             legacyFloorBoard,
+                             SLOT(requestPatchNamesForBank(int)));
             loadDialog->exec();
         }
          else

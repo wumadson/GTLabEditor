@@ -6,6 +6,7 @@
 #include <QComboBox>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QLineEdit>
 #include <QPushButton>
 #include <QRegularExpression>
 #include <QSignalBlocker>
@@ -67,6 +68,14 @@ public:
     {
         displays = newDisplays;
         displayMinimum = rawMinimum;
+    }
+
+    void setValueFromBackend(int raw)
+    {
+        if (lineEdit()->hasFocus() && lineEdit()->isModified()
+            && value() == raw)
+            return;
+        setValue(raw);
     }
 
 protected:
@@ -376,7 +385,7 @@ void AssignTargetValueEditor::setTargetValue(
                 rhythmSelector->setCurrentIndex(0);
                 rhythmSelector->setToolTip(QString());
                 const QSignalBlocker blocker(hybridSpinBox);
-                hybridSpinBox->setValue(raw);
+                hybridSpinBox->setValueFromBackend(raw);
             }
             hybridTimeDirty = false;
         } else if (selectorMode) {
@@ -385,7 +394,7 @@ void AssignTargetValueEditor::setTargetValue(
             selector->setCurrentIndex(index);
         } else {
             const QSignalBlocker blocker(spinBox);
-            spinBox->setValue(raw);
+            spinBox->setValueFromBackend(raw);
         }
     }
     updating = false;
