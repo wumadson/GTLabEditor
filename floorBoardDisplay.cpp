@@ -32,6 +32,9 @@
 #include "customComboBox.h"
 #include "globalVariables.h"
 #include "patchTransferCodec.h"
+#ifdef Q_OS_WIN
+#include "gt10WinUsbMonitor.h"
+#endif
 
 
 
@@ -252,6 +255,17 @@ floorBoardDisplay::floorBoardDisplay(QWidget *parent, QPoint pos)
 
         QString midiIn = preferences->getPreferences("Midi", "MidiIn", "device");
         QString midiOut = preferences->getPreferences("Midi", "MidiOut", "device");
+#ifdef Q_OS_WIN
+        new Gt10WinUsbMonitor(this,
+            [this] { notConnected(); },
+            [this] {
+                SysxIO *state = SysxIO::Instance();
+                if (!state->isConnected() && state->deviceReady()) {
+                    state->setNoError(true);
+                    autoconnect();
+                }
+            });
+#endif
         if(midiIn!="" && midiOut!="")
         {autoconnect(); };
         }

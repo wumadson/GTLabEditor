@@ -95,6 +95,10 @@ private:
 	QString expectedReplyAddress;
 	RtMidiIn *shortMidiIn;
 	bool winUsbShortListener;
+#ifdef Q_OS_WIN
+    unsigned long winUsbEpoch = 0;
+    bool winUsbOperationLost() const;
+#endif
 };
 
 #endif // MIDIIO_H

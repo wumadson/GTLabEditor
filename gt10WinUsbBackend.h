@@ -19,6 +19,14 @@ public:
 
     static Gt10WinUsbBackend &instance();
     static bool isAvailable();
+    static const GUID &interfaceGuid();
+    bool wasSelected() const { return selected; }
+    bool hasDeviceLoss() const { return deviceLost; }
+    unsigned long connectionEpoch() const { return lossEpoch; }
+    bool prepareReconnect();
+    void confirmDeviceRemoval();
+    // Callback must only queue work; never close/join from the reader thread.
+    void setDeviceLostCallback(const std::function<void ()> &callback);
 
     bool open(QString *errorMessage = 0);
     void close();
@@ -39,8 +47,18 @@ private:
     bool configure(QString *errorMessage);
     bool writeEvent(const QByteArray &event, QString *errorMessage);
     void receiveLoop();
+    void handleDeviceError(DWORD error);
+    void markDeviceLost();
     void processMidiBytes(const QByteArray &bytes);
 
+    // Serializes handle lifecycle with callers; receiveLoop never takes it.
+    mutable QMutex ioMutex;
+    QMutex callbackMutex;
+    std::function<void ()> deviceLostCallback;
+    std::atomic<bool> selected{false};
+    std::atomic<bool> closing{true};
+    std::atomic<bool> deviceLost{false};
+    std::atomic<unsigned long> lossEpoch{0};
     mutable QMutex mutex;
     QWaitCondition responseReady;
     QList<QByteArray> responses;

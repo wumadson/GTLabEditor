@@ -100,8 +100,22 @@ bool midiIO::winUsbBackendAvailable()
 
 bool midiIO::usingWinUsbBackend()
 {
+#ifdef Q_OS_WIN
+        // A lost WinUSB session must not fall through to WinMM on removal.
+        if (Gt10WinUsbBackend::instance().wasSelected())
+                return true;
+#endif
         return winUsbBackendAvailable();
 }
+
+#ifdef Q_OS_WIN
+bool midiIO::winUsbOperationLost() const
+{
+        const Gt10WinUsbBackend &backend = Gt10WinUsbBackend::instance();
+        return backend.wasSelected() && (backend.hasDeviceLoss()
+                || backend.connectionEpoch() != winUsbEpoch);
+}
+#endif
 
 static void shortMidiCallback(double, std::vector<unsigned char> *message, void *userData)
 {
@@ -466,6 +480,7 @@ void midiIO::receiveMsg(QString sysxInMsg, int midiInPort)
         sysxBuffer = bytesToHexString(response);
         this->sysxInMsg = sysxBuffer;
         dataReceive = true;
+        if (winUsbOperationLost()) return;
         emit setStatusProgress(100);
         return;
     }
@@ -544,6 +559,10 @@ bool midiIO::explicitReplyMatches() const
  *************************************************************************/
 void midiIO::run()
 {
+#ifdef Q_OS_WIN
+  winUsbEpoch = Gt10WinUsbBackend::instance().connectionEpoch();
+  if (winUsbOperationLost()) return;
+#endif
   int repeat = 0;
         if(midi && midiMsg.size() > 1)	// Check if we are going to send sysx or midi data & have an actual midi message to send.
         {
@@ -578,6 +597,9 @@ void midiIO::run()
                                  sysxOutMsg.append(midiMsg.mid(z+4,2));  // skip every second byte
                                  sendMidiMsg(sysxOutMsg, midiOutPort);
                          };
+#ifdef Q_OS_WIN
+                if (winUsbOperationLost()) return;
+#endif
                 emit setStatusSymbol(2);
                 emit setStatusProgress(33); // time wasting sinusidal statusbar progress animation
                 SLEEP(40);
@@ -623,6 +645,11 @@ void midiIO::run()
       };
       dataReceive = true;
                         receiveMsg(sysxInMsg, midiInPort);
+#ifdef Q_OS_WIN
+                        // The common loss transition releases the UI. Do not
+                        // retry or publish a partial reply from the old session.
+                        if (winUsbOperationLost()) return;
+#endif
       Preferences *preferences = Preferences::Instance(); // Load the preferences.
 			const bool replyMatched = expectedReplyPayloadSize >= 0
 				? explicitReplyMatches()
@@ -662,6 +689,9 @@ void midiIO::run()
                         } else
 #endif
                                 sendSyxMsg(sysxOutMsg, midiOutPort);
+#ifdef Q_OS_WIN
+                        if (winUsbOperationLost()) return;
+#endif
                         Preferences *preferences = Preferences::Instance(); bool ok;// Load the preferences.
                         const int minWait = preferences->getPreferences("Midi", "Delay", "set").toInt(&ok, 10);
                         emit setStatusProgress(33);  // do the statusbar progress thing
@@ -674,6 +704,9 @@ void midiIO::run()
                         SLEEP((100/minWait)*2);
                         emit midiFinished(); // We are finished so we send a signal to free the device.
                 };
+#ifdef Q_OS_WIN
+                if (winUsbOperationLost()) return;
+#endif
                 this->sysxInMsg = sysxInMsg;
                 emit replyMsg(sysxInMsg);
                 emit setStatusSymbol(1);

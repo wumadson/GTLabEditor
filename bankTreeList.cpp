@@ -798,6 +798,11 @@ void bankTreeList::disconnectedSignal()
 #ifdef Q_OS_WIN
         shortMidiListenerActive = false;
         restartShortMidiListener = false;
+        if (midiIO::usingWinUsbBackend()) {
+                preserveLoadedPatchOnNextRead = false;
+                QObject::disconnect(SysxIO::Instance(), SIGNAL(sysxReply(QString)),
+                                    this, SLOT(updatePatch(QString)));
+        }
 #endif
         lastBankMsb = -1;
         lastBankLsb = -1;

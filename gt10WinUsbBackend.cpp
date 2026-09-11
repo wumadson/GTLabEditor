@@ -25,6 +25,17 @@ QString windowsError(const QString &operation, DWORD code = GetLastError())
     return QStringLiteral("%1 failed (%2)").arg(operation).arg(code);
 }
 
+// CancelIoEx only requests cancellation (ERROR_NOT_FOUND may mean completion
+// won the race). Keep OVERLAPPED, buffer and its manual-reset event alive until
+// GetOverlappedResult observes the terminal result, including OPERATION_ABORTED.
+void cancelAndDrain(HANDLE device, WINUSB_INTERFACE_HANDLE defaultInterface,
+                    OVERLAPPED *operation)
+{
+    CancelIoEx(device, operation);
+    ULONG transferred = 0;
+    WinUsb_GetOverlappedResult(defaultInterface, operation, &transferred, TRUE);
+}
+
 int midiMessageLength(unsigned char status)
 {
     if (status < 0xF0)
@@ -76,8 +87,59 @@ bool Gt10WinUsbBackend::isAvailable()
     return !devicePaths().isEmpty();
 }
 
+const GUID &Gt10WinUsbBackend::interfaceGuid()
+{
+    return kGt10WinUsbGuid;
+}
+
+void Gt10WinUsbBackend::setDeviceLostCallback(const std::function<void ()> &callback)
+{
+    QMutexLocker locker(&callbackMutex);
+    deviceLostCallback = callback;
+}
+
+void Gt10WinUsbBackend::markDeviceLost()
+{
+    if (closing || deviceLost.exchange(true))
+        return;
+    ++lossEpoch;
+    receiving = false;
+    {
+        QMutexLocker locker(&mutex);
+        responseReady.wakeAll();
+    }
+    // Clearing the callback synchronizes with enqueueing, including destruction.
+    QMutexLocker locker(&callbackMutex);
+    if (deviceLostCallback)
+        deviceLostCallback();
+}
+
+void Gt10WinUsbBackend::handleDeviceError(DWORD error)
+{
+    // Unplug measured ERROR_GEN_FAILURE. It is generic: require PnP absence.
+    // IO_PENDING and voluntary OPERATION_ABORTED are not removal signals.
+    if (!closing && error == ERROR_GEN_FAILURE && !isAvailable())
+        markDeviceLost();
+}
+
+void Gt10WinUsbBackend::confirmDeviceRemoval()
+{
+    // PnP removal also covers an I/O error arriving before enumeration settles.
+    if (selected && !closing && !isAvailable())
+        markDeviceLost();
+}
+
+bool Gt10WinUsbBackend::prepareReconnect()
+{
+    QMutexLocker locker(&ioMutex);
+    if (!isAvailable())
+        return false;
+    deviceLost = false;
+    return true;
+}
+
 Gt10WinUsbBackend::Gt10WinUsbBackend()
-    : device(INVALID_HANDLE_VALUE), defaultInterface(0), midiInterface(0),
+    : ioMutex(QMutex::Recursive), device(INVALID_HANDLE_VALUE), defaultInterface(0), midiInterface(0),
       midiIsDefault(false), stopEvent(0), receiving(false)
 {
 }
@@ -89,6 +151,11 @@ Gt10WinUsbBackend::~Gt10WinUsbBackend()
 
 bool Gt10WinUsbBackend::open(QString *errorMessage)
 {
+    QMutexLocker ioLocker(&ioMutex);
+    if (deviceLost) {
+        if (errorMessage) *errorMessage = QStringLiteral("GT-10 WinUSB device disconnected");
+        return false;
+    }
     QMutexLocker locker(&mutex);
     if (device != INVALID_HANDLE_VALUE && receiving)
         return true;
@@ -118,6 +185,8 @@ bool Gt10WinUsbBackend::open(QString *errorMessage)
         close();
         return false;
     }
+    selected = true;
+    closing = false;
     receiving = true;
     receiveThread = std::thread(&Gt10WinUsbBackend::receiveLoop, this);
     return true;
@@ -180,7 +249,8 @@ bool Gt10WinUsbBackend::configure(QString *errorMessage)
 
 bool Gt10WinUsbBackend::isOpen() const
 {
-    return device != INVALID_HANDLE_VALUE && receiving;
+    QMutexLocker ioLocker(&ioMutex);
+    return device != INVALID_HANDLE_VALUE && receiving && !deviceLost;
 }
 
 bool Gt10WinUsbBackend::writeEvent(const QByteArray &event, QString *errorMessage)
@@ -192,17 +262,22 @@ bool Gt10WinUsbBackend::writeEvent(const QByteArray &event, QString *errorMessag
     BOOL started = WinUsb_WritePipe(midiInterface, kOutPipe,
         reinterpret_cast<PUCHAR>(const_cast<char *>(event.constData())), 4, 0, &operation);
     if (!started && GetLastError() != ERROR_IO_PENDING) {
-        if (errorMessage) *errorMessage = windowsError(QStringLiteral("WinUsb_WritePipe"));
+        const DWORD error = GetLastError();
+        handleDeviceError(error);
+        if (errorMessage) *errorMessage = windowsError(QStringLiteral("WinUsb_WritePipe"), error);
         CloseHandle(operation.hEvent);
         return false;
     }
     const DWORD wait = WaitForSingleObject(operation.hEvent, 1000);
     ULONG transferred = 0;
-    const bool ok = wait == WAIT_OBJECT_0 &&
-        WinUsb_GetOverlappedResult(midiInterface, &operation, &transferred, FALSE) &&
-        transferred == 4;
+    const bool completed = wait == WAIT_OBJECT_0 &&
+        WinUsb_GetOverlappedResult(defaultInterface, &operation, &transferred, FALSE);
+    const DWORD completionError = GetLastError();
+    const bool ok = completed && transferred == 4;
     if (!ok) {
-        CancelIoEx(device, &operation);
+        cancelAndDrain(device, defaultInterface, &operation);
+        if (wait == WAIT_OBJECT_0 && !completed)
+            handleDeviceError(completionError);
         if (errorMessage && errorMessage->isEmpty())
             *errorMessage = QStringLiteral("WinUSB write failed or timed out");
     }
@@ -212,6 +287,11 @@ bool Gt10WinUsbBackend::writeEvent(const QByteArray &event, QString *errorMessag
 
 bool Gt10WinUsbBackend::send(const QByteArray &midi, QString *errorMessage)
 {
+    QMutexLocker ioLocker(&ioMutex);
+    if (deviceLost) {
+        if (errorMessage) *errorMessage = QStringLiteral("GT-10 WinUSB device disconnected");
+        return false;
+    }
     if (!isOpen() && !open(errorMessage))
         return false;
     QVector<QByteArray> events;
@@ -228,6 +308,7 @@ QByteArray Gt10WinUsbBackend::transact(const QByteArray &midi, int timeoutMs,
                                        int expectedResponseBytes,
                                        QString *errorMessage)
 {
+    QMutexLocker ioLocker(&ioMutex);
     {
         QMutexLocker locker(&mutex);
         responses.clear();
@@ -296,20 +377,20 @@ void Gt10WinUsbBackend::receiveLoop()
         BOOL started = WinUsb_ReadPipe(midiInterface, kInPipe, buffer,
                                        sizeof(buffer), 0, &operation);
         if (!started && GetLastError() != ERROR_IO_PENDING) {
+            handleDeviceError(GetLastError());
             CloseHandle(operation.hEvent);
             break;
         }
         HANDLE waits[2] = { stopEvent, operation.hEvent };
         const DWORD wait = WaitForMultipleObjects(2, waits, FALSE, INFINITE);
-        if (wait == WAIT_OBJECT_0) {
-            CancelIoEx(device, &operation);
-            WaitForSingleObject(operation.hEvent, INFINITE);
+        if (wait != WAIT_OBJECT_0 + 1) {
+            cancelAndDrain(device, defaultInterface, &operation);
             CloseHandle(operation.hEvent);
             break;
         }
         ULONG transferred = 0;
-        if (wait != WAIT_OBJECT_0 + 1 ||
-            !WinUsb_GetOverlappedResult(midiInterface, &operation, &transferred, FALSE)) {
+        if (!WinUsb_GetOverlappedResult(defaultInterface, &operation, &transferred, FALSE)) {
+            handleDeviceError(GetLastError());
             CloseHandle(operation.hEvent);
             break;
         }
@@ -336,6 +417,8 @@ QString Gt10WinUsbBackend::deviceName() const
 
 void Gt10WinUsbBackend::close()
 {
+    QMutexLocker ioLocker(&ioMutex);
+    closing = true;
     receiving = false;
     if (stopEvent) SetEvent(stopEvent);
     if (device != INVALID_HANDLE_VALUE) CancelIoEx(device, 0);
