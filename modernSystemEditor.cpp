@@ -369,6 +369,7 @@ void ModernSystemEditor::addControllerSection(
     const auto addressAt = [base](int offset) {
         return rawHex(base + offset);
     };
+    const int firstField = fields.size();
     addSelector(section, tr("Scope"), "00", scopePage, scopeAddress);
     addSelector(section, tr("Setting"), "00", "01", addressAt(0x00));
     addSelector(section, tr("Function"), "00", "01", addressAt(0x01));
@@ -379,6 +380,14 @@ void ModernSystemEditor::addControllerSection(
         section, tr("Active Range Low"), "00", "01", addressAt(0x08));
     ParameterBar *rangeHigh = addBar(
         section, tr("Active Range High"), "00", "01", addressAt(0x09));
+    // Use the legacy catalog's DATA semantics only for controller fields.
+    for (int i = firstField; i < fields.size(); ++i) {
+        const Field &field = fields.at(i);
+        if (field.catalogAvailable && MidiTable::Instance()->isData(
+                "System", field.bank, field.page, field.address))
+            controllerMultiByteFields.insert(
+                field.bank + field.page + field.address);
+    }
     if (rangeLow && rangeHigh) {
         activeRanges.append({rangeLow, rangeHigh,
                              rangeLow->minimum(), rangeHigh->maximum()});
@@ -624,6 +633,20 @@ bool ModernSystemEditor::containsValue(const QString &bank,
         return false;
     const SysxData source = SysxIO::Instance()->getSystemSource();
     const int block = source.address.indexOf(bank + page);
+    if (controllerMultiByteFields.contains(bank + page + address)) {
+        // Require both data bytes; checksum/footer are not parameter data.
+        if (block < 0 || block >= source.hex.size()
+            || sysxDataOffset + offset + 2 > source.hex.at(block).size() - 2)
+            return false;
+        for (int i = 0; i < 2; ++i) {
+            bool byteOk = false;
+            const int byte = source.hex.at(block).at(
+                sysxDataOffset + offset + i).toInt(&byteOk, 16);
+            if (!byteOk || byte < 0 || byte > 0x7F)
+                return false;
+        }
+        return true;
+    }
     return block >= 0 && block < source.hex.size()
         && source.hex.at(block).size() > sysxDataOffset + offset;
 }
@@ -633,6 +656,8 @@ int ModernSystemEditor::rawValue(const QString &bank, const QString &page,
 {
     if (!containsValue(bank, page, address))
         return -1;
+    if (controllerMultiByteFields.contains(bank + page + address))
+        return SysxIO::Instance()->getSourceValue("System", bank, page, address);
     bool offsetOk = false;
     const int offset = address.toInt(&offsetOk, 16);
     const SysxData source = SysxIO::Instance()->getSystemSource();
@@ -761,7 +786,15 @@ void ModernSystemEditor::writeValue(const QString &bank, const QString &page,
         || !containsValue(bank, page, address)
         || rawValue(bank, page, address) == raw)
         return;
-    sysxIO->setFileSource("System", bank, page, address, rawHex(raw));
+    if (controllerMultiByteFields.contains(bank + page + address)) {
+        if (raw < 0 || raw > 0x3FFF)
+            return;
+        // Same 7-bit MSB/LSB encoding as the legacy controller widgets.
+        sysxIO->setFileSource("System", bank, page, address,
+                             rawHex(raw / 128), rawHex(raw % 128));
+    } else {
+        sysxIO->setFileSource("System", bank, page, address, rawHex(raw));
+    }
 }
 
 void ModernSystemEditor::commitCategoryName(int index)

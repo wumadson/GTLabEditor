@@ -2,6 +2,7 @@
 #define MODERNSYSTEMEDITOR_H
 
 #include <QList>
+#include <QSet>
 #include <QWidget>
 
 class QLabel;
@@ -84,6 +85,7 @@ private:
     QStackedWidget *pages = nullptr;
     QLabel *availability = nullptr;
     QList<Field> fields;
+    QSet<QString> controllerMultiByteFields;
     QList<CategoryField> categories;
     QList<ActiveRangePair> activeRanges;
     QButtonGroup *inputProfileGroup = nullptr;
