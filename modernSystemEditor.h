@@ -13,6 +13,7 @@ class QButtonGroup;
 class QComboBox;
 class QLineEdit;
 class ParameterBar;
+class QPushButton;
 
 class ModernSystemEditor final : public QWidget
 {
@@ -21,6 +22,10 @@ class ModernSystemEditor final : public QWidget
 public:
     explicit ModernSystemEditor(QWidget *parent = nullptr);
     void refresh(bool backendConnected, bool systemDataReady);
+    void setReadState(bool connected, bool reading);
+
+signals:
+    void readSystemRequested();
 
 private:
     enum class FieldKind { Selector, Bar };
@@ -84,6 +89,7 @@ private:
     QListWidget *navigation = nullptr;
     QStackedWidget *pages = nullptr;
     QLabel *availability = nullptr;
+    QPushButton *readSystemButton = nullptr;
     QList<Field> fields;
     QSet<QString> controllerMultiByteFields;
     QList<CategoryField> categories;

@@ -2256,6 +2256,8 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
             controlAssignEditor->focusDirectControl(address);
     });
     systemEditor = new ModernSystemEditor;
+    connect(systemEditor, &ModernSystemEditor::readSystemRequested,
+            this, &modernFloorBoard::readSystemData);
     effectEditorStack->addWidget(systemEditor);
     ns1Editor = new ModernNoiseSuppressorEditor(
         NoiseSuppressorSlot::NS1, this);
@@ -3674,6 +3676,42 @@ void modernFloorBoard::requestOutputSystemData()
     QTimer::singleShot(200, this, &modernFloorBoard::pollOutputSystemData);
 }
 
+void modernFloorBoard::readSystemData()
+{
+    SysxIO *sysxIO = SysxIO::Instance();
+    if (manualSystemReadInFlight || !backendIsConnected || !sysxIO->isConnected())
+        return;
+    if (!backendHasPatchData || !sysxIO->deviceReady()
+            || readRequestInFlight || writeRequestInFlight
+            || (quickSettingService && quickSettingService->isBusy())) {
+        emit sysxIO->setStatusMessage(tr("Device busy — retry READ SYSTEM when ready"));
+        return;
+    }
+
+    // Explicit reread only: keep the automatic startup request guard intact.
+    manualSystemReadInFlight = true;
+    outputSystemDataRequested = true;
+    outputSystemDataReady = false;
+    tunerSystemDataReady = false;
+    refreshSystem();
+    sysxIO->systemDataRequest();
+    // systemDataRequest disconnects sysxReply observers and installs systemReply.
+    // Connect afterwards so the existing parser runs before the UI is refreshed.
+    manualSystemReadConnection = connect(sysxIO, &SysxIO::sysxReply, this,
+        [this, sysxIO](const QString &reply) {
+            disconnect(manualSystemReadConnection);
+            manualSystemReadInFlight = false;
+            const bool valid = backendIsConnected && sysxIO->isConnected()
+                && sysxIO->noError() && reply.size() == 2236 * 2;
+            if (valid) {
+                refreshSystemDataViews();
+            } else {
+                refreshSystem();
+                emit sysxIO->setStatusMessage(tr("SYSTEM read failed — retry READ SYSTEM"));
+            }
+        });
+}
+
 void modernFloorBoard::pollOutputSystemData()
 {
     SysxIO *sysxIO = SysxIO::Instance();
@@ -3681,21 +3719,26 @@ void modernFloorBoard::pollOutputSystemData()
         return;
 
     if (sysxIO->deviceReady()) {
-        outputSystemDataReady =
-            hasSourceValue("System", "00", "00", "4E")
-            && hasSourceValue("System", "00", "00", "4F");
-        tunerSystemDataReady =
-            hasSourceValue("System", "00", "00", "30")
-            && hasSourceValue("System", "00", "00", "31");
-        refreshOutputSelectHeader();
-        refreshTunerSettings();
-        refreshExpression();
-        refreshPedalboard();
-        refreshSystem();
+        refreshSystemDataViews();
         return;
     }
 
     QTimer::singleShot(200, this, &modernFloorBoard::pollOutputSystemData);
+}
+
+void modernFloorBoard::refreshSystemDataViews()
+{
+    outputSystemDataReady =
+        hasSourceValue("System", "00", "00", "4E")
+        && hasSourceValue("System", "00", "00", "4F");
+    tunerSystemDataReady =
+        hasSourceValue("System", "00", "00", "30")
+        && hasSourceValue("System", "00", "00", "31");
+    refreshOutputSelectHeader();
+    refreshTunerSettings();
+    refreshExpression();
+    refreshPedalboard();
+    refreshSystem();
 }
 
 void modernFloorBoard::backendConnected()
@@ -3735,6 +3778,8 @@ void modernFloorBoard::backendConnected()
 
 void modernFloorBoard::backendDisconnected()
 {
+    disconnect(manualSystemReadConnection);
+    manualSystemReadInFlight = false;
     cancelQuickSettingPrefetch();
     invalidateQuickSettingPresentationCache();
     backendIsConnected = false;
@@ -6404,8 +6449,10 @@ void modernFloorBoard::showSystemEditor()
 
 void modernFloorBoard::refreshSystem()
 {
-    if (systemEditor)
+    if (systemEditor) {
         systemEditor->refresh(backendIsConnected, outputSystemDataReady);
+        systemEditor->setReadState(backendIsConnected, manualSystemReadInFlight);
+    }
 }
 
 void modernFloorBoard::refreshPedalboardSummary()

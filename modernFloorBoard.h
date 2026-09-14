@@ -314,7 +314,9 @@ private:
     void commitPatchLevelEdit();
     void refreshTunerSettings();
     void requestOutputSystemData();
+    void readSystemData();
     void pollOutputSystemData();
+    void refreshSystemDataViews();
     bool hasSourceValue(const QString &area,
                         const QString &hex1,
                         const QString &hex2,
@@ -356,6 +358,8 @@ private:
     QComboBox *tunerOutputCombo = nullptr;
     BottomControlStrip *bottomControlStrip = nullptr;
     bool outputSystemDataRequested = false;
+    bool manualSystemReadInFlight = false;
+    QMetaObject::Connection manualSystemReadConnection;
     bool outputSystemDataReady = false;
     bool tunerSystemDataReady = false;
     PatchSidebar *patchSidebar = nullptr;

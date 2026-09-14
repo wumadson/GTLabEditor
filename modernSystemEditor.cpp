@@ -112,7 +112,16 @@ ModernSystemEditor::ModernSystemEditor(QWidget *parent)
     headerLayout->setSpacing(2);
     headerLayout->addWidget(title);
     headerLayout->addWidget(availability);
-    frameLayout->addLayout(headerLayout);
+    readSystemButton = new QPushButton(tr("READ SYSTEM"), this);
+    readSystemButton->setObjectName("SystemReadButton");
+    readSystemButton->setEnabled(false);
+    readSystemButton->setToolTip(tr("Reload SYSTEM parameters from the GT-10"));
+    connect(readSystemButton, &QPushButton::clicked,
+            this, &ModernSystemEditor::readSystemRequested);
+    auto *headerRow = new QHBoxLayout;
+    headerRow->addLayout(headerLayout, 1);
+    headerRow->addWidget(readSystemButton, 0, Qt::AlignVCenter);
+    frameLayout->addLayout(headerRow);
     auto *content = new QHBoxLayout;
     content->setContentsMargins(0, 0, 0, 0);
     content->setSpacing(18);
@@ -140,6 +149,10 @@ ModernSystemEditor::ModernSystemEditor(QWidget *parent)
         "QLabel#SystemWorkspaceTitle{color:%2;font-size:20px;font-weight:700;letter-spacing:1px;}"
         "QLabel#SystemAvailability{color:%7;font-size:9px;font-weight:600;letter-spacing:.7px;}"
         "QFrame#SystemContentFrame{background:#060708;border:1px solid %5;border-radius:10px;}"
+        "QPushButton#SystemReadButton{color:%2;background:%4;border:1px solid %5;"
+        "border-radius:6px;padding:6px 10px;font-size:10px;font-weight:600;}"
+        "QPushButton#SystemReadButton:hover{background:#151D26;border-color:%8;}"
+        "QPushButton#SystemReadButton:disabled{color:%7;}"
         "QListWidget#SystemNavigation{background:%4;border:1px solid %5;border-radius:8px;"
         "padding:9px 7px;outline:none;}"
         "QListWidget#SystemNavigation::item{color:%6;height:34px;padding-left:10px;"
@@ -844,6 +857,14 @@ void ModernSystemEditor::updateActiveRangeConstraints()
         pair.high->setRange(qMin(pair.maximum, pair.low->value() + 1),
                             pair.maximum);
     }
+}
+
+void ModernSystemEditor::setReadState(bool connected, bool reading)
+{
+    readSystemButton->setEnabled(connected && !reading);
+    readSystemButton->setText(reading ? tr("READING…") : tr("READ SYSTEM"));
+    if (reading)
+        availability->setText(tr("READING SYSTEM…"));
 }
 
 void ModernSystemEditor::refresh(bool backendConnected, bool systemDataReady)
