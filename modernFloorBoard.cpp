@@ -1022,34 +1022,38 @@ protected:
         const int mode = property("routingMode").toInt();
         const int channel = property("routingChannel").toInt();
         const bool valid = mode >= 0 && mode <= 3;
-        const QRectF area = rect().adjusted(20, 20, -20, -20);
+        const QRectF area = rect().adjusted(16, 20, -16, -20);
         const qreal nodeX = area.left() + area.width() * 0.38;
         const qreal endX = area.right() - 18;
         const qreal centerY = area.center().y();
-        const qreal pathAY = centerY - 45;
-        const qreal pathBY = centerY + 45;
+        const qreal branchOffset = qMin<qreal>(54, area.height() / 2 - 26);
+        const qreal pathAY = centerY - branchOffset;
+        const qreal pathBY = centerY + branchOffset;
         const QColor active(ModernTheme::color(ModernTheme::AccentCyan));
-        QColor inactive(ModernTheme::color(ModernTheme::Border));
-        inactive.setAlpha(135);
+        const QColor inactive(ModernTheme::color(ModernTheme::DisabledText));
         const bool aActive = valid && (mode != 0 || channel == 0);
         const bool bActive = valid && (mode != 0 || channel == 1);
 
-        auto drawCable = [&painter](const QLineF &line,
-                                    const QColor &color) {
-            painter.setPen(QPen(QColor(0, 0, 0, 175), 7,
-                                Qt::SolidLine, Qt::RoundCap));
-            painter.drawLine(line.translated(0, 3));
-            painter.setPen(QPen(color, 2.5, Qt::SolidLine,
-                                Qt::RoundCap, Qt::RoundJoin));
-            painter.drawLine(line);
+        const QLineF cables[] = {
+            QLineF(area.left(), centerY, nodeX, centerY),
+            QLineF(nodeX, pathAY, nodeX, pathBY),
+            QLineF(nodeX, pathAY, endX, pathAY),
+            QLineF(nodeX, pathBY, endX, pathBY)
         };
-
-        drawCable(QLineF(area.left(), centerY, nodeX, centerY), active);
-        drawCable(QLineF(nodeX, pathAY, nodeX, pathBY), active);
-        drawCable(QLineF(nodeX, pathAY, endX, pathAY),
-                  aActive ? active : inactive);
-        drawCable(QLineF(nodeX, pathBY, endX, pathBY),
-                  bActive ? active : inactive);
+        const QColor cableColors[] = {
+            active, active, aActive ? active : inactive,
+            bActive ? active : inactive
+        };
+        // Paint all shadows first so they cannot obscure another cable's join.
+        painter.setPen(QPen(QColor(0, 0, 0, 175), 7,
+                            Qt::SolidLine, Qt::RoundCap));
+        for (const QLineF &line : cables)
+            painter.drawLine(line.translated(0, 3));
+        for (int index = 0; index < 4; ++index) {
+            painter.setPen(QPen(cableColors[index], 2.5, Qt::SolidLine,
+                                Qt::RoundCap, Qt::RoundJoin));
+            painter.drawLine(cables[index]);
+        }
 
         painter.setPen(QPen(active, 2));
         painter.setBrush(QColor(ModernTheme::color(
@@ -2701,12 +2705,14 @@ QWidget *modernFloorBoard::createChannelRoutingEditor()
     QVBoxLayout *diagramLayout = new QVBoxLayout(diagramPane);
     diagramLayout->setContentsMargins(12, 12, 12, 12);
     diagramLayout->setSpacing(5);
-    QLabel *title = new QLabel(tr("CHANNEL ROUTING"));
+    QLabel *title = new QLabel(tr("PREAMP A/B"));
     title->setObjectName("EditorTitle");
     title->setStyleSheet(QString("color:%1;").arg(
-        ModernTheme::color(ModernTheme::AccentCyan)));
-    QLabel *subtitle = new QLabel(tr("PREAMP A/B"));
+        ModernTheme::color(ModernTheme::PrimaryText)));
+    QLabel *subtitle = new QLabel(tr("CHANNEL ROUTING"));
     subtitle->setObjectName("EffectTypeDisplay");
+    subtitle->setStyleSheet(QString("color:%1;font-size:11px;").arg(
+        ModernTheme::color(ModernTheme::AccentCyan)));
     diagramLayout->addWidget(title);
     diagramLayout->addWidget(subtitle);
     channelRoutingDiagram = new ChannelRoutingDiagram;
