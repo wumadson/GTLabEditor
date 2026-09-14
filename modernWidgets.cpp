@@ -243,13 +243,24 @@ void EffectEditorPanel::setRightPanelWidget(QWidget *widget)
     }
     if (rightPanelWidget == modelState)
         modelState = nullptr;
-    rightPanelWidget = widget;
-    modelLayout->addWidget(widget, 1);
+    // Custom right-hand panels (notably ASSIGNS 1–8) must remain reachable
+    // without imposing their full content height on every stacked editor.
+    QScrollArea *scroll = new QScrollArea;
+    scroll->setObjectName("EffectParameterScroll");
+    scroll->setFrameShape(QFrame::NoFrame);
+    scroll->setWidgetResizable(true);
+    scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    scroll->setWidget(widget);
+    rightPanelWidget = scroll;
+    modelLayout->addWidget(scroll, 1);
 }
 
 QSize EffectEditorPanel::minimumSizeHint() const
 {
-    return QSize(840, qMax(330, parameters->minimumSizeHint().height() + 46));
+    // Parameters have their own scroll area; only the visible shell, artwork
+    // and browser should contribute to the outer panel's minimum height.
+    return QSize(840, layout()->minimumSize().height());
 }
 
 namespace {

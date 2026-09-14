@@ -23,7 +23,6 @@
 
 #include <QApplication>
 #include <QBitmap>
-#include <QDesktopWidget>
 #include <QScreen>
 #include <QTranslator>
 #include <QDebug>
@@ -182,16 +181,10 @@ int main(int argc, char **argv)
 	else
 	{
 		splash->showStatusMessage(QObject::tr("Preparing window..."));
-		QDesktopWidget *desktop = new QDesktopWidget;
-		QRect screen = desktop->availableGeometry(desktop->primaryScreen()); 
-		int screenWidth = screen.width();                    // returns available screen width
-		int screenHeight = screen.height();                  // returns available screen height
-
-		windowHeight = preferences->getPreferences("Window", "Size", "minheight").toInt(&ok, 10);
-
-		int x = (screenWidth - windowWidth) / 2;
-		int y = (screenHeight - windowHeight) / 2;
-		window.setGeometry(x, y, window.width(), window.height());
+		if (QScreen *screen = QGuiApplication::primaryScreen()) {
+			const QRect available = screen->availableGeometry();
+			window.move(available.center() - window.rect().center());
+		}
 	};
 	
 	app.processEvents();
@@ -199,6 +192,21 @@ int main(int argc, char **argv)
 	splash->showStatusMessage(QObject::tr("Ready"));
 
 	window.show();
+	// Native frame margins are available after show(). Keep valid saved
+	// geometry unchanged, but fit oversized/off-screen windows to this monitor.
+	QScreen *windowScreen = QGuiApplication::screenAt(window.frameGeometry().center());
+	if (!windowScreen)
+		windowScreen = QGuiApplication::primaryScreen();
+	if (windowScreen) {
+		const QRect available = windowScreen->availableGeometry();
+		const QSize decoration = window.frameGeometry().size() - window.size();
+		window.resize(window.size().boundedTo(available.size() - decoration));
+		const QRect frame = window.frameGeometry();
+		window.move(qBound(available.left(), frame.left(),
+		                   qMax(available.left(), available.right() - frame.width() + 1)),
+		            qBound(available.top(), frame.top(),
+		                   qMax(available.top(), available.bottom() - frame.height() + 1)));
+	}
 	splash->finish(&window);
 
 	/* PREVIEW WARNING 

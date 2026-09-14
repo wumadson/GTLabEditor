@@ -1081,7 +1081,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     : QWidget(parent)
 {
     setObjectName("ModernFloorBoard");
-    setMinimumSize(1280, 800);
+    setMinimumWidth(1280); // Vertical minimum comes from the visible layout.
 
     setStyleSheet(ModernTheme::applicationStyleSheet());
     quickSettingDialog = new ModernQuickSettingDialog(this);
@@ -2320,7 +2320,21 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
         refreshPedalboard();
     });
 
-    mainLayout->addWidget(effectEditorStack, 1);
+    // Keep the navigation strip reachable even when an editor's artwork or
+    // other non-parameter content cannot shrink further on a short display.
+    QScrollArea *editorScroll = new QScrollArea;
+    editorScroll->setObjectName("EffectParameterScroll");
+    editorScroll->setFrameShape(QFrame::NoFrame);
+    editorScroll->setWidgetResizable(true);
+    editorScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    editorScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    editorScroll->setMinimumHeight(200);
+    editorScroll->setWidget(effectEditorStack);
+    connect(effectEditorStack, &QStackedWidget::currentChanged,
+            editorScroll, [editorScroll](int) {
+        editorScroll->verticalScrollBar()->setValue(0);
+    });
+    mainLayout->addWidget(editorScroll, 1);
 
     bottomControlStrip = new BottomControlStrip;
     tunerReferenceCombo = bottomControlStrip->tunerReferenceComboBox();
