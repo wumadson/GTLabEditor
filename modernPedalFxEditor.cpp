@@ -130,7 +130,7 @@ void ModernPedalFxEditor::buildEditor()
     editor->setRightPanelTitle("P.FX MODES");
 
     artwork = new EffectArtworkWidget;
-    artwork->setArtwork(":/assets/pedals/exp_generic.png");
+    artwork->setArtwork(":/assets/pedals/expression_pedal.png");
     editor->setArtworkWidget(artwork);
 
     browser = new EffectModelBrowser;
