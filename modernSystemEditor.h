@@ -83,6 +83,7 @@ private:
                     const QString &address, int raw);
     void commitCategoryName(int index);
     void updateActiveRangeConstraints();
+    void refreshExp2TargetText();
     void selectInputProfile(int profile);
     void refreshInputPage();
 

@@ -317,8 +317,11 @@ void ModernSystemEditor::addSelector(QWidget *section, const QString &label,
             return;
         bool ok = false;
         const int raw = combo->itemData(index).toInt(&ok);
-        if (ok)
+        if (ok) {
             writeValue(bank, page, address, raw);
+            if (bank == "00" && page == "01" && address == "51")
+                refreshExp2TargetText();
+        }
     });
     addControlToGrid(sectionGrid(section), container);
     fields.append({FieldKind::Selector, container, combo, nullptr,
@@ -685,6 +688,17 @@ QString ModernSystemEditor::displayForRaw(
     const QString &bank, const QString &page, const QString &address,
     int raw) const
 {
+    if (bank == "00" && page == "01" && (address == "53" || address == "55")) {
+        // Both targets use raw 0..100. Only Patch Level Max displays 0..200.
+        if (raw < 0 || raw > 100)
+            return QString::fromUtf8("—");
+        if (address == "55" && rawValue("00", "01", "51") == 2) {
+            QString display = MidiTable::Instance()->getValue(
+                "Structure", "0A", "00", "60", rawHex(raw));
+            return display.remove('%').trimmed();
+        }
+        return QString::number(raw);
+    }
     Midi catalog;
     if (!systemParameter(bank, page, address, &catalog))
         return QString::fromUtf8("—");
@@ -856,6 +870,19 @@ void ModernSystemEditor::updateActiveRangeConstraints()
                            qMax(pair.minimum, pair.high->value() - 1));
         pair.high->setRange(qMin(pair.maximum, pair.low->value() + 1),
                             pair.maximum);
+    }
+}
+
+void ModernSystemEditor::refreshExp2TargetText()
+{
+    for (const Field &field : fields) {
+        if (!field.bar || field.bank != "00" || field.page != "01"
+            || (field.address != "53" && field.address != "55"))
+            continue;
+        // Function changes affect presentation only, never the stored target.
+        const int raw = rawValue(field.bank, field.page, field.address);
+        field.bar->setDisplayText(displayForRaw(
+            field.bank, field.page, field.address, raw));
     }
 }
 

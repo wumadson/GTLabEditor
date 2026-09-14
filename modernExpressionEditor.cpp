@@ -216,6 +216,19 @@ QString ModernExpressionEditor::displayValue(
         return QString::fromUtf8("—");
     const int raw = SysxIO::Instance()->getSourceValue(
         area, bank, middle, address);
+    if (area == "System" && bank == "00" && middle == "01"
+        && (address == "53" || address == "55")) {
+        // Same raw/display mapping as the main Patch Level, for EXP2 Max only.
+        if (raw < 0 || raw > 100)
+            return QString::fromUtf8("—");
+        if (address == "55" && SysxIO::Instance()->getSourceValue(
+                "System", "00", "01", "51") == 2) {
+            QString display = MidiTable::Instance()->getValue(
+                "Structure", "0A", "00", "60", rawHex(raw));
+            return display.remove('%').trimmed();
+        }
+        return QString::number(raw);
+    }
     const QString display = MidiTable::Instance()->getValue(
         area, bank, middle, address, rawHex(raw)).trimmed();
     return display.isEmpty() ? QString::fromUtf8("—") : display;
