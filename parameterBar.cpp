@@ -31,7 +31,7 @@ ParameterBar::ParameterBar(const QString &label, QWidget *parent)
     setFocusPolicy(Qt::StrongFocus);
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     setMinimumWidth(220);
-    setMinimumHeight(52);
+    setMinimumHeight(48);
 }
 
 void ParameterBar::setDisplayText(const QString &text)
@@ -139,17 +139,17 @@ void ParameterBar::setValueReadoutFollowsHandle(bool enabled)
 
 QSize ParameterBar::sizeHint() const
 {
-    return QSize(520, 56);
+    return QSize(520, 48);
 }
 
 QSize ParameterBar::minimumSizeHint() const
 {
-    return QSize(220, 52);
+    return QSize(220, 48);
 }
 
 QRectF ParameterBar::trackRect() const
 {
-    return QRectF(4.5, 33.5, qMax(1.0, width() - 9.0), 7.0);
+    return QRectF(4.5, 33.5, qMax(1.0, width() - 9.0), 8.0);
 }
 
 qreal ParameterBar::positionForValue(int rawValue) const
@@ -323,7 +323,7 @@ void ParameterBar::paintEvent(QPaintEvent *)
     painter.setPen(Qt::NoPen);
     painter.setBrush(QColor(ModernTheme::color(
         ModernTheme::BorderSubtle)));
-    painter.drawRoundedRect(track, 3.5, 3.5);
+    painter.drawRoundedRect(track, 4.0, 4.0);
 
     const qreal valuePosition = positionForValue(value());
     const qreal startPosition = centerEnabled
@@ -333,7 +333,7 @@ void ParameterBar::paintEvent(QPaintEvent *)
     if (fill.width() > 0.5) {
         painter.setBrush(enabled ? parameterAccent
             : QColor(ModernTheme::color(ModernTheme::DisabledText)));
-        painter.drawRoundedRect(fill, 3.5, 3.5);
+        painter.drawRoundedRect(fill, 4.0, 4.0);
     }
 
     if (centerEnabled) {
