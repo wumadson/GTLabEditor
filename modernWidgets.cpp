@@ -269,13 +269,6 @@ class BottomActionRegion final : public QFrame
 public:
     explicit BottomActionRegion(QWidget *parent = nullptr) : QFrame(parent) {}
     std::function<void()> activated;
-protected:
-    void mouseReleaseEvent(QMouseEvent *event) override
-    {
-        QFrame::mouseReleaseEvent(event);
-        if (rect().contains(event->pos()) && activated)
-            activated();
-    }
 };
 
 class BottomAssignBadge final : public QPushButton
@@ -630,7 +623,6 @@ BottomControlStrip::BottomControlStrip(QWidget *parent)
             }
             regionLayout->addLayout(assignLayout);
             expressionRegion = region;
-            region->setCursor(Qt::PointingHandCursor);
             region->setStyleSheet(
                 "QFrame#BottomExpressionControlCard{"
                 "background:rgba(14,30,42,205);"
@@ -737,7 +729,6 @@ BottomControlStrip::BottomControlStrip(QWidget *parent)
             }
             regionLayout->addLayout(footsLayout, 1);
             pedalboardRegion = region;
-            region->setCursor(Qt::PointingHandCursor);
             region->setStyleSheet(
                 "QPushButton#BottomPedalboardEditButton{color:#E6C8C8;"
                 "background:#211315;border:1px solid #63363A;"
@@ -756,7 +747,6 @@ BottomControlStrip::BottomControlStrip(QWidget *parent)
         }
         if (i == 1) {
             controlAssignRegion = region;
-            region->setCursor(Qt::PointingHandCursor);
         }
         layout->addWidget(region, stretches[i]);
     }
