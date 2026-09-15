@@ -51,12 +51,12 @@ jobs:
       - name: Upload unsigned Windows artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: GTLabEditor-1.0.0-Windows-x64-unsigned
+          name: GTLabEditor-1.1.0-Windows-x64-unsigned
           if-no-files-found: error
           retention-days: 14
           path: |
             dist/staging/windows/GTLabEditor/GTLabEditor.exe
-            dist/windows/GTLabEditor-1.0.0-Windows-x64-Portable.zip
-            dist/windows/GTLabEditor-1.0.0-Windows-x64-Setup.exe
+            dist/windows/GTLabEditor-1.1.0-Windows-x64-Portable.zip
+            dist/windows/GTLabEditor-1.1.0-Windows-x64-Setup.exe
             dist/windows/SHA256SUMS.txt
             dist/windows/build-manifest.txt

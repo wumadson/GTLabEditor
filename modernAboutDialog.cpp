@@ -123,7 +123,7 @@ QWidget *ModernAboutDialog::createAboutPage()
     product->setObjectName("AboutProduct");
     auto *subtitle = new QLabel("GT Lab Editor", page);
     subtitle->setObjectName("AboutSubtitle");
-    auto *build = new QLabel(tr("Version 1.0.0"), page);
+    auto *build = new QLabel(tr("Version 1.1.0"), page);
     build->setObjectName("AboutBuild");
 
     auto *text = new QTextBrowser(page);

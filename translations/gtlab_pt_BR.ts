@@ -191,8 +191,8 @@ Previously verified patches remain overwritten.</source>
     </message>
     <message>
         <location filename="../modernAboutDialog.cpp" line="126"/>
-        <source>Version 1.0.0</source>
-        <translation>Version 1.0.0</translation>
+        <source>Version 1.1.0</source>
+        <translation>Versão 1.1.0</translation>
     </message>
     <message>
         <location filename="../modernAboutDialog.cpp" line="133"/>
@@ -1078,6 +1078,22 @@ Previously verified patches remain overwritten.</source>
 </context>
 <context>
     <name>ModernSystemEditor</name>
+    <message>
+        <source>READ SYSTEM</source>
+        <translation>LER SYSTEM</translation>
+    </message>
+    <message>
+        <source>Reload SYSTEM parameters from the GT-10</source>
+        <translation>Reler os parâmetros SYSTEM da GT-10</translation>
+    </message>
+    <message>
+        <source>READING…</source>
+        <translation>LENDO…</translation>
+    </message>
+    <message>
+        <source>READING SYSTEM…</source>
+        <translation>LENDO SYSTEM…</translation>
+    </message>
     <message>
         <location filename="../modernSystemEditor.cpp" line="74"/>
         <source>SYSTEM</source>
@@ -4624,6 +4640,14 @@ Destino: U01-1 → U50-4</translation>
 </context>
 <context>
     <name>modernFloorBoard</name>
+    <message>
+        <source>Device busy — retry READ SYSTEM when ready</source>
+        <translation>Dispositivo ocupado — tente LER SYSTEM novamente quando estiver pronto</translation>
+    </message>
+    <message>
+        <source>SYSTEM read failed — retry READ SYSTEM</source>
+        <translation>Falha na leitura de SYSTEM — tente LER SYSTEM novamente</translation>
+    </message>
     <message>
         <source>PATCH LOADED</source>
         <translation>PATCH CARREGADO</translation>

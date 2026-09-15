@@ -1,5 +1,5 @@
 #define AppName "GT Lab Editor"
-#define AppVersion "1.0.0"
+#define AppVersion "1.1.0"
 #define AppPublisher "GT LAB"
 #define AppExeName "GTLabEditor.exe"
 #define SourceRoot "..\.."
@@ -23,18 +23,18 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 PrivilegesRequired=admin
 OutputDir={#OutputDir}
-OutputBaseFilename=GTLabEditor-1.0.0-Windows-x64-Setup
+OutputBaseFilename=GTLabEditor-1.1.0-Windows-x64-Setup
 SetupIconFile={#SourceRoot}\GTLabEditor.ico
 UninstallDisplayIcon={app}\{#AppExeName}
 InfoBeforeFile=LICENSE-PTBR.txt
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
-VersionInfoVersion=1.0.0.0
+VersionInfoVersion=1.1.0.0
 VersionInfoCompany=GT LAB
 VersionInfoDescription=GT Lab Editor Setup
 VersionInfoProductName=GT Lab Editor
-VersionInfoProductVersion=1.0.0
+VersionInfoProductVersion=1.1.0
 VersionInfoCopyright=See bundled notices and license.
 
 [Languages]

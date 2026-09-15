@@ -144,7 +144,7 @@ $compilerVersion = ([regex]::Match($compilerText, '\b(19\.29\.[0-9.]+)\b')).Grou
 
 $buildInfo = [ordered]@{
     product = 'GT Lab Editor'
-    version = '1.0.0'
+    version = '1.1.0'
     commit = $gitCommit
     ref = $gitBranch
     timestampUtc = [DateTime]::UtcNow.ToString('o')

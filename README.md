@@ -4,7 +4,8 @@
 
 GT Lab Editor is an independent open-source editor and librarian for the
 BOSS GT-10. It is a cross-platform project maintained by Wumadson Cardoso /
-GT LAB. The current version is **1.0.0**.
+GT LAB. The source version is **1.1.0**, in release preparation; the current
+public release remains v1.0.0 until final artifacts are validated and published.
 
 Project repository: <https://github.com/wumadson/GTLabEditor>
 
@@ -44,9 +45,11 @@ communication. It has been physically validated on Windows 11 x64 with
 HVCI/Memory Integrity enabled. It uses the Microsoft inbox WinUSB driver and
 does not require disabling Windows security features.
 
-The backend already exists and has been physically validated. What remains
-future work is its final signed public packaging. The public installer will
-offer the WinUSB component only after explicit user confirmation. Activating
+The backend already exists and has been physically validated. The universal
+installer prepared for v1.1.0 preserves the v1.0.0 model and offers the WinUSB
+component only after explicit user confirmation. It reuses the validated local
+packaging inputs, including the disclosed self-signed laboratory certificate;
+this does not represent new public driver signing approval. Activating
 WinUSB changes the driver binding for the GT-10 USB device. While that binding
 is active:
 
@@ -75,10 +78,11 @@ Windows WinUSB backend and Windows version resources are not used on macOS.
 On Windows 10, GT Lab Editor can be installed normally and used with an
 independently installed Roland/BOSS driver.
 
-For Windows 11, a future public installer may offer the GT LAB WinUSB component
-with a clear description of the driver change and its audio limitation before
-making any system change. Laboratory certificates and laboratory driver
-packages are not public release components.
+For Windows 11, the universal installer describes the driver change, local
+certificate trust and audio limitation before requesting consent. Its WinUSB
+payload and helpers are local packaging inputs, excluded from public Git.
+See [BUILDING.md](BUILDING.md) for the distinction between the official universal
+installer and the automated app-only build.
 
 The Windows installer registers GT Lab Editor in Apps & Features / Add or
 Remove Programs. Uninstallation removes the installed GT LAB application. If a

@@ -1,4 +1,4 @@
-GT Lab Editor 1.0.0 - Third-Party Notices
+GT Lab Editor 1.1.0 - Third-Party Notices
 ============================================================
 
 GT-10 FxFloorBoard / FXFloorBoard

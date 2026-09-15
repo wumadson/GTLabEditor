@@ -34,8 +34,8 @@ if ($InnoRoot) { $installerArguments.InnoRoot = $InnoRoot }
 & (Join-Path $PSScriptRoot 'build-installer.ps1') @installerArguments | Out-Host
 
 $exe = Join-Path $stagingRoot 'GTLabEditor.exe'
-$setup = Join-Path $outputRoot 'GTLabEditor-1.0.0-Windows-x64-Setup.exe'
-$zip = Join-Path $outputRoot 'GTLabEditor-1.0.0-Windows-x64-Portable.zip'
+$setup = Join-Path $outputRoot 'GTLabEditor-1.1.0-Windows-x64-Setup.exe'
+$zip = Join-Path $outputRoot 'GTLabEditor-1.1.0-Windows-x64-Portable.zip'
 if (Test-Path -LiteralPath $zip) { Remove-Item -LiteralPath $zip -Force }
 Compress-Archive -Path (Join-Path $stagingRoot '*') -DestinationPath $zip -CompressionLevel Optimal
 

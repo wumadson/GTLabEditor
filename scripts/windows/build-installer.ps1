@@ -41,7 +41,7 @@ if (($compilerOutput -join "`n") -notmatch 'Compiler engine version:\s+Inno Setu
     throw "Expected the pinned Inno Setup 6.7.3 compiler."
 }
 
-$setup = Join-Path $OutputRoot 'GTLabEditor-1.0.0-Windows-x64-Setup.exe'
+$setup = Join-Path $OutputRoot 'GTLabEditor-1.1.0-Windows-x64-Setup.exe'
 if (-not (Test-Path -LiteralPath $setup)) { throw "Expected installer not found: $setup" }
 $hash = (Get-FileHash -LiteralPath $setup -Algorithm SHA256).Hash.ToLowerInvariant()
 Write-Host "INSTALLER PASS: $setup"
