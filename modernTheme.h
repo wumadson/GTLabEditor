@@ -15,7 +15,10 @@ public:
         AccentCyanDim, EditorAccent, EditorAccentHover, EditorAccentDim,
         ActiveGreen, ActiveGreenDim, WarningOrange, DangerRed,
         BorderSelected, HoverSurface, PressedSurface, SelectedBackground,
-        PendingBackground, BankDivider, PrimaryButton, SecondaryButton
+        PendingBackground, BankDivider, PrimaryButton, SecondaryButton,
+        ChainSurface, ChainBorder, ChainModuleSurface, ChainModuleOff,
+        ChainSelected, ChainConnector, ChainConnectorActive,
+        ChainOnIndicator, ChainOffIndicator
     };
     enum RadiusRole { SmallRadius, ControlRadius, PanelRadius, ContainerRadius };
 

@@ -31,6 +31,33 @@
 namespace {
 const qreal kPi = 3.14159265358979323846;
 
+QColor blendColor(const QColor &base, const QColor &overlay, qreal amount)
+{
+    amount = qBound<qreal>(0.0, amount, 1.0);
+    return QColor(qRound(base.red() * (1.0 - amount)
+                         + overlay.red() * amount),
+                  qRound(base.green() * (1.0 - amount)
+                         + overlay.green() * amount),
+                  qRound(base.blue() * (1.0 - amount)
+                         + overlay.blue() * amount));
+}
+
+QPainterPath chainModuleShape(const QRectF &bounds)
+{
+    const qreal chamfer = qBound<qreal>(5.0, bounds.width() * .085, 8.0);
+    QPainterPath path;
+    path.moveTo(bounds.left() + chamfer, bounds.top());
+    path.lineTo(bounds.right() - chamfer, bounds.top());
+    path.lineTo(bounds.right(), bounds.top() + chamfer);
+    path.lineTo(bounds.right(), bounds.bottom() - chamfer);
+    path.lineTo(bounds.right() - chamfer, bounds.bottom());
+    path.lineTo(bounds.left() + chamfer, bounds.bottom());
+    path.lineTo(bounds.left(), bounds.bottom() - chamfer);
+    path.lineTo(bounds.left(), bounds.top() + chamfer);
+    path.closeSubpath();
+    return path;
+}
+
 class CompactComboBox final : public QComboBox
 {
 public:
@@ -1362,9 +1389,30 @@ SignalConnector::SignalConnector(Direction d,QWidget *parent):QWidget(parent),co
 void SignalConnector::setCompactWidth(int w){setFixedSize(w,76);update();}
 void SignalConnector::paintEvent(QPaintEvent *)
 {
-    QPainter p(this);p.setRenderHint(QPainter::Antialiasing);p.setPen(QPen(QColor("#8D98A5"),1.5));p.setFont(QFont("Helvetica Neue",9,QFont::DemiBold));p.drawText(QRectF(0,4,width(),16),Qt::AlignCenter,connectorDirection==Input?QObject::tr("IN"):QObject::tr("OUT"));
-    const qreal y=height()/2.0;p.setPen(QPen(QColor("#080A0D"),8,Qt::SolidLine,Qt::RoundCap));p.drawLine(QPointF(7,y),QPointF(width()-7,y));p.setPen(QPen(QColor("#78848E"),2,Qt::SolidLine,Qt::RoundCap));p.drawLine(QPointF(7,y),QPointF(width()-7,y));
-    p.setBrush(QColor("#11171D"));p.setPen(QPen(QColor("#65717C"),1));const QPointF jack(connectorDirection==Input?width()-7:7,y);p.drawEllipse(jack,5,5);
+    QPainter p(this);
+    p.setRenderHint(QPainter::Antialiasing);
+    p.setPen(QColor(ModernTheme::color(ModernTheme::SecondaryText)));
+    p.setFont(QFont("Helvetica Neue", 8, QFont::DemiBold));
+    p.drawText(QRectF(0, 4, width(), 14), Qt::AlignCenter,
+               connectorDirection == Input ? QObject::tr("IN")
+                                           : QObject::tr("OUT"));
+
+    const qreal y = height() / 2.0;
+    const QPointF from(7, y);
+    const QPointF to(width() - 7, y);
+    p.setPen(QPen(QColor(0, 0, 0, 150), 5,
+                  Qt::SolidLine, Qt::RoundCap));
+    p.drawLine(from + QPointF(0, 1.5), to + QPointF(0, 1.5));
+    p.setPen(QPen(QColor(ModernTheme::color(
+                      ModernTheme::ChainConnectorActive)),
+                  2, Qt::SolidLine, Qt::RoundCap));
+    p.drawLine(from, to);
+
+    const QPointF jack(connectorDirection == Input ? width() - 7 : 7, y);
+    p.setBrush(QColor(ModernTheme::color(ModernTheme::ChainModuleSurface)));
+    p.setPen(QPen(QColor(ModernTheme::color(
+                      ModernTheme::ChainConnectorActive)), 1));
+    p.drawEllipse(jack, 4.5, 4.5);
 }
 
 SignalChainPanel::SignalChainPanel(QWidget *parent):QFrame(parent){setObjectName("SignalChain");}
@@ -1422,7 +1470,7 @@ void SignalChainContent::paintEvent(QPaintEvent *)
     // complete opaque surface first so no cable/preview pixels survive from
     // the preceding frame on raster-backed Retina displays.
     p.fillRect(rect(), QColor(ModernTheme::color(
-        ModernTheme::ControlBackground)));
+        ModernTheme::ChainSurface)));
     p.setRenderHint(QPainter::Antialiasing);
     const qreal y = height() / 2.0;
 
@@ -1439,16 +1487,19 @@ void SignalChainContent::paintEvent(QPaintEvent *)
 
     const auto drawCable = [&p](const QPointF &from, const QPointF &to,
                                 const QBrush &brush) {
-        p.setPen(QPen(QColor(0, 0, 0, 175), 7, Qt::SolidLine,
+        p.setPen(QPen(QColor(0, 0, 0, 155), 5, Qt::SolidLine,
                       Qt::RoundCap));
         p.drawLine(from + QPointF(0, 3), to + QPointF(0, 3));
-        p.setPen(QPen(brush, 3, Qt::SolidLine, Qt::RoundCap));
+        p.setPen(QPen(brush, 2, Qt::SolidLine, Qt::RoundCap));
         p.drawLine(from, to);
     };
     QLinearGradient commonCable(18, y, width() - 18, y);
-    commonCable.setColorAt(0, QColor("#394550"));
-    commonCable.setColorAt(.5, QColor("#9AA5AE"));
-    commonCable.setColorAt(1, QColor("#394550"));
+    commonCable.setColorAt(0, QColor(ModernTheme::color(
+        ModernTheme::ChainConnector)));
+    commonCable.setColorAt(.5, QColor(ModernTheme::color(
+        ModernTheme::ChainConnectorActive)));
+    commonCable.setColorAt(1, QColor(ModernTheme::color(
+        ModernTheme::ChainConnector)));
     if (parallelSplitAnchor && parallelMergeAnchor
         && parallelPathAY >= 0.0 && parallelPathBY >= 0.0) {
         // The painter works in SignalChainContent coordinates. Resolve both
@@ -1462,9 +1513,12 @@ void SignalChainContent::paintEvent(QPaintEvent *)
         drawCable(QPointF(mergeX, y), QPointF(width() - 24, y),
                   QBrush(commonCable));
         QLinearGradient pathCable(splitX, 0, mergeX, 0);
-        pathCable.setColorAt(0, QColor("#56636E"));
-        pathCable.setColorAt(.5, QColor("#AAB3BA"));
-        pathCable.setColorAt(1, QColor("#56636E"));
+        pathCable.setColorAt(0, QColor(ModernTheme::color(
+            ModernTheme::ChainConnector)));
+        pathCable.setColorAt(.5, QColor(ModernTheme::color(
+            ModernTheme::ChainConnectorActive)));
+        pathCable.setColorAt(1, QColor(ModernTheme::color(
+            ModernTheme::ChainConnector)));
         const auto drawParallelRoute = [&p, splitX, mergeX, y, &pathCable](
                                            qreal pathY) {
             QPainterPath route;
@@ -1475,10 +1529,10 @@ void SignalChainContent::paintEvent(QPaintEvent *)
 
             QTransform shadowTransform;
             shadowTransform.translate(0, 3);
-            p.setPen(QPen(QColor(0, 0, 0, 175), 7, Qt::SolidLine,
+            p.setPen(QPen(QColor(0, 0, 0, 155), 5, Qt::SolidLine,
                           Qt::RoundCap, Qt::RoundJoin));
             p.drawPath(shadowTransform.map(route));
-            p.setPen(QPen(QBrush(pathCable), 3, Qt::SolidLine,
+            p.setPen(QPen(QBrush(pathCable), 2, Qt::SolidLine,
                           Qt::RoundCap, Qt::RoundJoin));
             p.drawPath(route);
         };
@@ -1596,18 +1650,18 @@ void SignalJunction::paintEvent(QPaintEvent *)
     const qreal x = width() / 2.0;
     const qreal centerY = height() / 2.0;
 
-    QColor nodeOutline("#17C7E8");
+    QColor nodeOutline(ModernTheme::color(ModernTheme::ChainSelected));
     nodeOutline.setAlpha(junctionSelected ? 245
         : isDown() ? 235 : underMouse() ? 205 : 150);
-    QColor nodeFill("#101820");
+    QColor nodeFill(ModernTheme::color(ModernTheme::ChainModuleSurface));
     if (underMouse())
         nodeFill = nodeFill.lighter(isDown() ? 132 : 118);
     p.setPen(QPen(nodeOutline,
                   junctionSelected || isDown() ? 2.0 : 1.5));
     p.setBrush(nodeFill);
     p.drawEllipse(QPointF(x, centerY),
-                  junctionSelected || underMouse() ? 6.5 : 6.0,
-                  junctionSelected || underMouse() ? 6.5 : 6.0);
+                  junctionSelected || underMouse() ? 6.0 : 5.5,
+                  junctionSelected || underMouse() ? 6.0 : 5.5);
 
 }
 
@@ -1677,7 +1731,7 @@ void SignalChainModule::paintEvent(QPaintEvent *)
     QPainter p(this);
     p.setRenderHint(QPainter::Antialiasing);
     if (modulePending)
-        p.setOpacity(.66);
+        p.setOpacity(.70);
     const QRectF body = rect().adjusted(2, 2, -2, -3);
     const qreal dpr = devicePixelRatioF();
     const int normalOutlinePixels = qMax(1, qRound(dpr));
@@ -1696,72 +1750,87 @@ void SignalChainModule::paintEvent(QPaintEvent *)
                       QPointF(align(source.right()), align(source.bottom())));
     };
     const QRectF alignedBody = alignStrokeRect(body, outlineWidth);
+    const QPainterPath moduleShape = chainModuleShape(alignedBody);
+    const bool visuallyPresent = stateAvailable || structuralModule;
 
     if (moduleSelected) {
-        QColor edgeLight(ModernTheme::color(ModernTheme::AccentCyanDim));
-        edgeLight.setAlpha(24);
-        const qreal edgeWidth = qMax(1, qRound(3.0 * dpr)) / dpr;
+        QColor edgeLight(ModernTheme::color(ModernTheme::ChainSelected));
+        edgeLight.setAlpha(44);
+        const qreal edgeWidth = qMax(1, qRound(3.5 * dpr)) / dpr;
         p.setPen(QPen(edgeLight, edgeWidth));
         p.setBrush(Qt::NoBrush);
-        p.drawRoundedRect(alignStrokeRect(
-                              body.adjusted(1, 1, -1, -1), edgeWidth),
-                          7, 7);
+        p.drawPath(chainModuleShape(alignStrokeRect(
+            body.adjusted(1, 1, -1, -1), edgeWidth)));
     }
 
+    QPainterPath shadow = moduleShape;
+    shadow.translate(0, 2);
     p.setPen(Qt::NoPen);
-    p.setBrush(QColor(0, 0, 0, 120));
-    p.drawRoundedRect(body.translated(0, 2), 6, 6);
+    p.setBrush(QColor(0, 0, 0, 135));
+    p.drawPath(shadow);
 
+    const QColor moduleSurface(ModernTheme::color(
+        ModernTheme::ChainModuleSurface));
+    const QColor offSurface(ModernTheme::color(ModernTheme::ChainModuleOff));
+    QColor base = stateOn
+        ? blendColor(moduleFaceColor, moduleSurface, .20)
+        : blendColor(offSurface, moduleAccent, visuallyPresent ? .075 : .035);
+    if (underMouse())
+        base = base.lighter(isDown() ? 106 : 112);
     QLinearGradient surface(alignedBody.topLeft(), alignedBody.bottomLeft());
-    const bool visuallyPresent = stateAvailable || structuralModule;
-    QColor faceTop = moduleFaceColor;
-    QColor faceMiddle = moduleFaceColor.darker(
-        stateOn ? 108 : visuallyPresent ? 125 : 145);
-    QColor faceBottom = moduleFaceColor.darker(
-        stateOn ? 145 : visuallyPresent ? 165 : 185);
-    if (stateOn) faceTop = faceTop.lighter(112);
-    surface.setColorAt(0, faceTop);
-    surface.setColorAt(.52, faceMiddle);
-    surface.setColorAt(1, faceBottom);
-    QColor categoryOutline = moduleAccent.darker(185);
-    categoryOutline.setAlpha(visuallyPresent ? 145 : 90);
+    surface.setColorAt(0, base.lighter(stateOn ? 108 : 104));
+    surface.setColorAt(.55, base);
+    surface.setColorAt(1, base.darker(stateOn ? 118 : 112));
+    QColor categoryOutline = blendColor(
+        QColor(ModernTheme::color(ModernTheme::ChainBorder)),
+        moduleAccent, stateOn ? .50 : .18);
+    categoryOutline.setAlpha(visuallyPresent ? 220 : 150);
     QColor outline = moduleSelected
-        ? QColor(ModernTheme::color(ModernTheme::AccentCyan))
+        ? QColor(ModernTheme::color(ModernTheme::ChainSelected))
         : categoryOutline;
     p.setPen(QPen(outline, outlineWidth));
     p.setBrush(surface);
-    p.drawRoundedRect(alignedBody, 6, 6);
+    p.drawPath(moduleShape);
 
     QColor accent = moduleAccent;
-    accent.setAlpha(moduleSelected ? 235 : stateOn ? 220
-        : visuallyPresent ? 165 : 130);
+    accent.setAlpha(stateOn ? 235 : visuallyPresent ? 118 : 72);
+    p.save();
+    p.setClipPath(moduleShape);
     p.setPen(Qt::NoPen);
     p.setBrush(accent);
-    p.drawRoundedRect(QRectF(body.left() + 8, body.top() + 5,
-                             body.width() - 16, 2.5), 1.25, 1.25);
+    p.drawRect(QRectF(body.left(), body.top(), body.width(),
+                      stateOn ? 6.0 : 4.0));
+    p.restore();
 
-    QColor detail = accent;
-    detail.setAlpha(qMax(70, accent.alpha() - 35));
-    p.setBrush(detail);
-    p.drawRoundedRect(QRectF(body.left() + 5, body.top() + 13, 2, 13), 1, 1);
-    p.drawRoundedRect(QRectF(body.right() - 7, body.top() + 13, 2, 13), 1, 1);
-
-    const int namePointSize = width() < 62 ? 7 : width() < 78 ? 8 : 9;
-    p.setFont(QFont("Helvetica Neue", namePointSize, QFont::DemiBold));
+    QFont nameFont = font();
+    nameFont.setPixelSize(width() < 62 ? 10 : width() < 78 ? 11 : 12);
+    nameFont.setWeight(QFont::DemiBold);
+    p.setFont(nameFont);
     QColor nameColor(ModernTheme::color(ModernTheme::PrimaryText));
     nameColor.setAlpha(moduleSelected ? 255 : stateOn ? 250
-        : visuallyPresent ? 225 : 190);
+        : visuallyPresent ? 218 : 168);
     p.setPen(nameColor);
-    p.drawText(QRectF(body.left() + 4, body.top() + 11,
-                      body.width() - 8, 15), Qt::AlignCenter, moduleName);
+    const QString displayName = moduleName == QStringLiteral("PREAMP A")
+        ? QStringLiteral("AMP A")
+        : moduleName == QStringLiteral("PREAMP B")
+            ? QStringLiteral("AMP B") : moduleName;
+    const QRectF nameRect(body.left() + 5, body.top() + 12,
+                          body.width() - 10, 18);
+    const QFontMetricsF nameMetrics(nameFont);
+    const qreal nameBaseline = nameRect.center().y()
+        + (nameMetrics.ascent() - nameMetrics.descent()) / 2.0;
+    p.drawText(QPointF(nameRect.center().x()
+                       - nameMetrics.horizontalAdvance(displayName) / 2.0,
+                       nameBaseline), displayName);
 
     if (structuralModule) {
-        const qreal arrowY = body.bottom() - 22;
+        const qreal arrowY = body.bottom() - 23;
         const qreal arrowLeft = body.left() + qMax<qreal>(11, body.width() * .20);
         const qreal arrowRight = body.right() - qMax<qreal>(11, body.width() * .20);
-        QColor arrowColor = moduleAccent;
-        arrowColor.setAlpha(185);
-        p.setPen(QPen(arrowColor, 1.7, Qt::SolidLine,
+        QColor arrowColor(ModernTheme::color(
+            ModernTheme::ChainConnectorActive));
+        arrowColor.setAlpha(205);
+        p.setPen(QPen(arrowColor, 1.5, Qt::SolidLine,
                       Qt::RoundCap, Qt::RoundJoin));
         p.drawLine(QPointF(arrowLeft, arrowY),
                    QPointF(arrowRight, arrowY));
@@ -1777,56 +1846,43 @@ void SignalChainModule::paintEvent(QPaintEvent *)
         p.drawText(QRectF(body.left(), body.bottom() - 13,
                           body.width(), 10),
                    Qt::AlignCenter, "DIGITAL");
-        if (modulePending) {
-            p.setOpacity(1.0);
-            QColor pendingColor(ModernTheme::color(ModernTheme::AccentCyan));
-            pendingColor.setAlpha(220);
-            p.setPen(Qt::NoPen);
-            p.setBrush(pendingColor);
-            p.drawEllipse(QPointF(body.right() - 8, body.top() + 8), 2.5, 2.5);
-        }
-        return;
+    } else {
+        const QString stateText = stateAvailable
+            ? (stateOn ? QObject::tr("ON") : QObject::tr("OFF"))
+            : QString::fromUtf8("—");
+        QFont stateFont = font();
+        stateFont.setPixelSize(width() < 62 ? 9 : 10);
+        stateFont.setWeight(QFont::DemiBold);
+        p.setFont(stateFont);
+        const QFontMetricsF stateMetrics(stateFont);
+        QColor stateColor(stateAvailable
+            ? ModernTheme::color(stateOn ? ModernTheme::ChainOnIndicator
+                                         : ModernTheme::ChainOffIndicator)
+            : ModernTheme::color(ModernTheme::DisabledText));
+        stateColor.setAlpha(stateOn ? 225 : 185);
+        p.setPen(stateColor);
+        const QRectF stateRect(body.left() + 4, body.bottom() - 19,
+                               body.width() - 8, 13);
+        const qreal stateBaseline = stateRect.center().y()
+            + (stateMetrics.ascent() - stateMetrics.descent()) / 2.0;
+        p.drawText(QPointF(stateRect.center().x()
+                           - stateMetrics.horizontalAdvance(stateText) / 2.0,
+                           stateBaseline), stateText);
     }
-
-    const QPointF ledCenter(body.center().x(), body.bottom() - 23);
-    if (stateOn) {
-        QRadialGradient glow(ledCenter, 7);
-        QColor glowColor(ModernTheme::color(ModernTheme::ActiveGreen));
-        glowColor.setAlpha(30);
-        glow.setColorAt(0, glowColor);
-        glowColor.setAlpha(0);
-        glow.setColorAt(1, glowColor);
-        p.setPen(Qt::NoPen);
-        p.setBrush(glow);
-        p.drawEllipse(ledCenter, 7, 7);
-    }
-    QRadialGradient lens(ledCenter - QPointF(1, 1), 5);
-    lens.setColorAt(0, stateOn ? QColor("#9BFFD0") : QColor("#555E66"));
-    lens.setColorAt(.45, stateOn
-        ? QColor(ModernTheme::color(ModernTheme::ActiveGreen))
-        : QColor("#252B30"));
-    lens.setColorAt(1, QColor("#080A0C"));
-    p.setPen(QPen(QColor("#050708"), 1));
-    p.setBrush(lens);
-    p.drawEllipse(ledCenter, 4.5, 4.5);
-
-    p.setFont(QFont("Helvetica Neue", 8, QFont::DemiBold));
-    p.setPen(stateOn
-        ? QColor(ModernTheme::color(ModernTheme::ActiveGreen))
-        : QColor(ModernTheme::color(ModernTheme::DisabledText)));
-    const QString stateText = stateAvailable
-        ? (stateOn ? QObject::tr("ON") : QObject::tr("OFF"))
-                                               : QString::fromUtf8("—");
-    p.drawText(QRectF(body.left(), body.bottom() - 14,
-                      body.width(), 12), Qt::AlignCenter, stateText);
 
     if (modulePending) {
         p.setOpacity(1.0);
-        QColor pendingColor(ModernTheme::color(ModernTheme::AccentCyan));
-        pendingColor.setAlpha(220);
+        QColor pendingColor(ModernTheme::color(ModernTheme::WarningOrange));
+        pendingColor.setAlpha(235);
         p.setPen(Qt::NoPen);
         p.setBrush(pendingColor);
-        p.drawEllipse(QPointF(body.right() - 8, body.top() + 8), 2.5, 2.5);
+        const QPointF center(body.right() - 8, body.top() + 9);
+        QPolygonF marker;
+        marker << center + QPointF(0, -3)
+               << center + QPointF(3, 0)
+               << center + QPointF(0, 3)
+               << center + QPointF(-3, 0);
+        p.drawPolygon(marker);
     }
 }
 

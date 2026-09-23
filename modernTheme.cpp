@@ -60,6 +60,15 @@ QString ModernTheme::color(ColorRole role)
     case BankDivider: return "#141A20";
     case PrimaryButton: return "#123347";
     case SecondaryButton: return "#0D1217";
+    case ChainSurface: return "#050709";
+    case ChainBorder: return "#202832";
+    case ChainModuleSurface: return "#11171D";
+    case ChainModuleOff: return "#0B0F13";
+    case ChainSelected: return "#2AA6CF";
+    case ChainConnector: return "#3D4A55";
+    case ChainConnectorActive: return "#7E909D";
+    case ChainOnIndicator: return "#58B7C3";
+    case ChainOffIndicator: return "#6B7580";
     }
     return QString();
 }
@@ -151,7 +160,7 @@ int ModernTheme::radius(RadiusRole role)
 
 QString ModernTheme::applicationStyleSheet()
 {
-    return QStringLiteral(R"(
+    const QString style = QStringLiteral(R"(
         QWidget#ModernFloorBoard {
             background: #030405;
             color: #ECEFF2;
@@ -443,8 +452,8 @@ QString ModernTheme::applicationStyleSheet()
         }
         QLabel#EditorTitle { color: #ECEFF2; font-size: 14px; font-weight: 700; letter-spacing: 1px; }
         QFrame#SignalChain {
-            background: #050607;
-            border: 1px solid #24272C;
+            background: @CHAIN_SURFACE@;
+            border: 1px solid @CHAIN_BORDER@;
             border-radius: 4px;
         }
         QFrame#EffectEditorPanel {
@@ -627,16 +636,20 @@ QString ModernTheme::applicationStyleSheet()
         QLabel#ConnectionLabel[state="connected"] { color: #8D99A5; }
         QProgressBar#StatusProgress { background: #050607; border: none; border-radius: 2px; }
         QProgressBar#StatusProgress::chunk { background: #258DB5; border-radius: 2px; }
-    )").arg(color(BorderSelected), color(HoverSurface),
-             color(PressedSurface), color(SelectedBackground),
-             color(PendingBackground), color(BankDivider),
-             color(PrimaryButton), color(SecondaryButton));
+    )");
+    return style.arg(color(BorderSelected), color(HoverSurface),
+                     color(PressedSurface), color(SelectedBackground),
+                     color(PendingBackground), color(BankDivider),
+                     color(PrimaryButton), color(SecondaryButton))
+        .replace("@CHAIN_SURFACE@", color(ChainSurface))
+        .replace("@CHAIN_BORDER@", color(ChainBorder));
 }
 
 QString ModernTheme::effectColor(const QString &effectName)
 {
     if (effectName == "COMP") return "#39B779";
     if (effectName == "OD/DS") return "#B6A33B";
+    if (effectName == "PREAMP B") return "#C9414A";
     if (effectName.startsWith("PREAMP")) return "#E14D4D";
     if (effectName == "EQ") return "#368FD6";
     if (effectName == "FX-1" || effectName == "FX-2") return "#9364C7";
@@ -672,6 +685,7 @@ QString ModernTheme::effectFaceColor(const QString &effectName)
 {
     if (effectName == "COMP") return "#12352B";
     if (effectName == "OD/DS") return "#403512";
+    if (effectName == "PREAMP B") return "#35161B";
     if (effectName.startsWith("PREAMP")) return "#421A1D";
     if (effectName == "EQ") return "#12324D";
     if (effectName == "FX-1" || effectName == "FX-2") return "#332047";
