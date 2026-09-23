@@ -631,10 +631,14 @@ protected:
         painter.setRenderHint(QPainter::TextAntialiasing, true);
 
         const bool active = isEnabled();
-        const QColor textColor(active ? "#d8e1ea" : "#59636e");
-        const QColor borderColor(!active ? "#27313a"
-                                       : underMouse() ? "#4d92bd"
-                                                      : "#33404d");
+        const QColor textColor(active
+            ? ModernTheme::color(ModernTheme::SecondaryText)
+            : ModernTheme::color(ModernTheme::DisabledText));
+        const QColor borderColor(!active
+            ? ModernTheme::color(ModernTheme::BorderSubtle)
+            : underMouse()
+                ? ModernTheme::color(ModernTheme::AccentCyanHover)
+                : ModernTheme::color(ModernTheme::Border));
 
         const qreal borderY = height() - 1.0;
         painter.setPen(QPen(borderColor, 1.0));
@@ -665,8 +669,9 @@ protected:
 
         const qreal arrowX = width() - 10.0;
         const qreal arrowY = height() / 2.0;
-        painter.setPen(QPen(active ? QColor("#919da9")
-                                   : QColor("#59636e"),
+        painter.setPen(QPen(active
+                                ? QColor(ModernTheme::color(ModernTheme::SecondaryText))
+                                : QColor(ModernTheme::color(ModernTheme::DisabledText)),
                             1.45, Qt::SolidLine,
                             Qt::RoundCap, Qt::RoundJoin));
         QPainterPath chevron;
@@ -1146,9 +1151,6 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     patchIdentity->setMinimumWidth(260);
     patchIdentity->setMaximumWidth(330);
     patchIdentity->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    patchIdentity->setStyleSheet(
-        "QFrame#HeaderPatchIdentity { background: rgba(10, 15, 20, 42); "
-        "border: 1px solid #35414D; border-radius: 6px; }");
     QHBoxLayout *patchIdentityLayout = new QHBoxLayout(patchIdentity);
     patchIdentityLayout->setContentsMargins(8, 2, 6, 2);
     patchIdentityLayout->setSpacing(6);
@@ -1204,16 +1206,6 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     tempoValue->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     tempoControlLayout->addWidget(tempoValue, 1);
     tempoControl->setEnabled(false);
-    tempoControl->setStyleSheet(
-        "QFrame#TempoControl { background: #0B1015; border: 1px solid #33404D; "
-        "border-radius: 4px; }"
-        "QFrame#TempoControl:disabled { border-color: #27313A; }"
-        "QSpinBox#TempoSpinBox { color: #258DB5; background: transparent; "
-        "border: 0; padding: 0; font-size: 13px; font-weight: 700; "
-        "selection-background-color: #244B66; }"
-        "QSpinBox#TempoSpinBox:focus { border-bottom: 1px solid #258DB5; }"
-        "QSpinBox#TempoSpinBox:disabled { color: #59636E; }"
-    );
     tempoLayout->addWidget(tempoCaption);
     tempoLayout->addWidget(tempoControl);
     connect(tempoValue, &QSpinBox::editingFinished,
@@ -1249,18 +1241,6 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
                                    QSizePolicy::Fixed);
     patchLevelControlLayout->addWidget(patchLevelValue, 1);
     patchLevelControl->setEnabled(false);
-    patchLevelControl->setStyleSheet(
-        "QFrame#PatchLevelControl { background: #0B1015; "
-        "border: 1px solid #33404D; border-radius: 4px; }"
-        "QFrame#PatchLevelControl:disabled { border-color: #27313A; }"
-        "QSpinBox#PatchLevelSpinBox { color: #258DB5; "
-        "background: transparent; border: 0; padding: 0; "
-        "font-size: 13px; font-weight: 700; "
-        "selection-background-color: #244B66; }"
-        "QSpinBox#PatchLevelSpinBox:focus { "
-        "border-bottom: 1px solid #258DB5; }"
-        "QSpinBox#PatchLevelSpinBox:disabled { color: #59636E; }"
-    );
     patchLevelLayout->addWidget(patchLevelCaption);
     patchLevelLayout->addWidget(patchLevelControl);
     connect(patchLevelValue, &QSpinBox::editingFinished,
@@ -1305,13 +1285,6 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     }
     outputSelectCombo->setCurrentIndex(0);
     outputSelectCombo->setEnabled(false);
-    outputSelectHeader->setStyleSheet(
-        "QComboBox#OutputSelectCombo QAbstractItemView { color: #d8e1ea; "
-        "background: #11171d; border: 1px solid #35414d; selection-background-color: #244b66; "
-        "selection-color: #ffffff; outline: 0; padding: 4px; }"
-        "QComboBox#OutputSelectCombo QAbstractItemView::item { "
-        "min-height: 26px; padding: 2px 6px; border: 0; }"
-    );
     outputSelectLayout->addWidget(outputSelectCaption);
     outputSelectLayout->addWidget(outputSelectCombo);
     connect(outputSelectCombo,
@@ -1323,17 +1296,6 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     readButton->setFixedSize(54, headerValueHeight);
     readButton->setEnabled(false);
     readButton->setToolTip(tr("Reload the current GT-10 temporary patch buffer"));
-    readButton->setStyleSheet(
-        "QPushButton#HeaderReadButton { color: #D8E1EA; background: #11171D; "
-        "border: 1px solid #35414D; border-radius: 4px; "
-        "font-size: 10px; font-weight: 600; }"
-        "QPushButton#HeaderReadButton:hover { background: #151D26; "
-        "border-color: #4A5968; }"
-        "QPushButton#HeaderReadButton:pressed { background: #0B1015; "
-        "border-color: #258DB5; }"
-        "QPushButton#HeaderReadButton:disabled { color: #59636E; "
-        "background: #0B1015; border-color: #27313A; }"
-    );
     connect(readButton, &QPushButton::clicked,
             this, &modernFloorBoard::readCurrentPatch);
 
@@ -1342,17 +1304,6 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     writeButton->setFixedSize(54, headerValueHeight);
     writeButton->setEnabled(false);
     writeButton->setToolTip(tr("Write and verify the current patch in GT-10 User memory"));
-    writeButton->setStyleSheet(
-        "QPushButton#HeaderWriteButton { color: #E6C8C8; background: #211315; "
-        "border: 1px solid #63363A; border-radius: 4px; "
-        "font-size: 10px; font-weight: 600; }"
-        "QPushButton#HeaderWriteButton:hover { background: #2B171A; "
-        "border-color: #865057; color: #F0D8D8; }"
-        "QPushButton#HeaderWriteButton:pressed { background: #180D0F; "
-        "border-color: #A65B62; }"
-        "QPushButton#HeaderWriteButton:disabled { color: #665357; "
-        "background: #110D0E; border-color: #332529; }"
-    );
     connect(writeButton, &QPushButton::clicked,
             this, &modernFloorBoard::writeCurrentPatch);
 
@@ -1360,15 +1311,6 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     systemButton->setObjectName("HeaderSystemButton");
     systemButton->setFixedSize(66, headerValueHeight);
     systemButton->setToolTip(tr("Open GT-10 System workspace"));
-    systemButton->setStyleSheet(
-        "QPushButton#HeaderSystemButton { color: #D8E1EA; "
-        "background: #11171D; border: 1px solid #35414D; "
-        "border-radius: 4px; font-size: 10px; font-weight: 600; }"
-        "QPushButton#HeaderSystemButton:hover { background: #151D26; "
-        "border-color: #258DB5; }"
-        "QPushButton#HeaderSystemButton:pressed { background: #0B1015; "
-        "border-color: #258DB5; }"
-    );
     connect(systemButton, &QPushButton::clicked,
             this, &modernFloorBoard::showSystemEditor);
 

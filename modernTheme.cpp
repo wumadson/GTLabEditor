@@ -52,6 +52,14 @@ QString ModernTheme::color(ColorRole role)
     case ActiveGreenDim: return "#105B35";
     case WarningOrange: return "#D98B35";
     case DangerRed: return "#D85C62";
+    case BorderSelected: return "#258DB5";
+    case HoverSurface: return "#11161C";
+    case PressedSurface: return "#070A0D";
+    case SelectedBackground: return "#0B242F";
+    case PendingBackground: return "#21180B";
+    case BankDivider: return "#141A20";
+    case PrimaryButton: return "#123347";
+    case SecondaryButton: return "#0D1217";
     }
     return QString();
 }
@@ -147,7 +155,7 @@ QString ModernTheme::applicationStyleSheet()
         QWidget#ModernFloorBoard {
             background: #030405;
             color: #ECEFF2;
-            font-family: -apple-system, "SF Pro Display", "Helvetica Neue";
+            font-family: -apple-system, "SF Pro Display", "Segoe UI", "Helvetica Neue", sans-serif;
         }
         QWidget#ModernFloorBoard QWidget#MainArea {
             background: #060708;
@@ -192,19 +200,112 @@ QString ModernTheme::applicationStyleSheet()
             margin: 4px 8px;
         }
         QFrame#AppHeader {
-            background: #050607;
-            border-bottom: 1px solid #202329;
+            background: #060708;
+            border-bottom: 1px solid #24272C;
         }
         QLabel#BrandTitle { color: #ECEFF2; font-size: 20px; font-weight: 700; }
-        QLabel#BrandSubtitle { color: #8C9198; font-size: 10px; font-weight: 600; }
-        QLabel#PatchCaption { color: #8C9198; font-size: 9px; font-weight: 700; }
-        QLabel#PatchNumber { color: #258DB5; font-size: 15px; font-weight: 700; }
-        QLabel#PatchName { color: #ECEFF2; font-size: 15px; font-weight: 600; }
+        QLabel#BrandSubtitle { color: #7E858D; font-size: 10px; font-weight: 600; }
+        QFrame#HeaderPatchIdentity {
+            background: #090D11;
+            border: 1px solid #2B4652;
+            border-left: 3px solid %1;
+            border-radius: 4px;
+        }
+        QLabel#PatchCaption { color: #7E858D; font-size: 9px; font-weight: 700; }
+        QLabel#PatchNumber { color: #74AFC7; font-size: 14px; font-weight: 650; }
+        QLabel#PatchName { color: #ECEFF2; font-size: 16px; font-weight: 700; }
         QLabel#SectionTitle { color: #8C9198; font-size: 11px; font-weight: 600; }
+        QFrame#TempoControl,
+        QFrame#PatchLevelControl {
+            background: %8;
+            border: 1px solid #2A323A;
+            border-radius: 4px;
+        }
+        QFrame#TempoControl:disabled,
+        QFrame#PatchLevelControl:disabled {
+            background: #090C0F;
+            border-color: #1D242B;
+        }
+        QSpinBox#TempoSpinBox,
+        QSpinBox#PatchLevelSpinBox {
+            color: #74AFC7;
+            background: transparent;
+            border: 0;
+            padding: 0;
+            font-size: 13px;
+            font-weight: 700;
+            selection-background-color: #18536A;
+        }
+        QSpinBox#TempoSpinBox:focus,
+        QSpinBox#PatchLevelSpinBox:focus {
+            border-bottom: 1px solid %1;
+        }
+        QSpinBox#TempoSpinBox:disabled,
+        QSpinBox#PatchLevelSpinBox:disabled { color: #56606A; }
+        QPushButton#HeaderReadButton,
+        QPushButton#HeaderSystemButton {
+            color: #D7DCE1;
+            background: %8;
+            border: 1px solid #2A323A;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 650;
+        }
+        QPushButton#HeaderReadButton:hover,
+        QPushButton#HeaderSystemButton:hover {
+            color: #ECEFF2;
+            background: %2;
+            border-color: #36A1C8;
+        }
+        QPushButton#HeaderReadButton:pressed,
+        QPushButton#HeaderSystemButton:pressed {
+            background: %3;
+            border-color: %1;
+        }
+        QPushButton#HeaderReadButton:disabled {
+            color: #56606A;
+            background: #090C0F;
+            border-color: #1D242B;
+        }
+        QPushButton#HeaderWriteButton {
+            color: #ECEFF2;
+            background: %7;
+            border: 1px solid %1;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+        }
+        QPushButton#HeaderWriteButton:hover {
+            background: #17445B;
+            border-color: #36A1C8;
+        }
+        QPushButton#HeaderWriteButton:pressed {
+            background: #0B2533;
+            border-color: %1;
+        }
+        QPushButton#HeaderWriteButton:disabled {
+            color: #56606A;
+            background: #090C0F;
+            border-color: #1D242B;
+        }
+        QComboBox#OutputSelectCombo QAbstractItemView {
+            color: #D7DCE1;
+            background: %8;
+            border: 1px solid #2A323A;
+            selection-background-color: %7;
+            selection-color: #ECEFF2;
+            outline: 0;
+            padding: 4px;
+        }
+        QComboBox#OutputSelectCombo QAbstractItemView::item {
+            min-height: 26px;
+            padding: 2px 6px;
+            border: 0;
+        }
         QFrame#PatchSidebar {
-            background: #050607;
+            background: #060708;
             border: none;
-            border-right: 1px solid #171A1E;
+            border-right: 1px solid %6;
         }
         QLabel#PatchLibraryTitle {
             color: #ECEFF2;
@@ -214,7 +315,7 @@ QString ModernTheme::applicationStyleSheet()
             padding-left: 2px;
         }
         QLabel#PatchGroupTitle {
-            color: #8C9198;
+            color: #7E858D;
             font-size: 9px;
             font-weight: 600;
             letter-spacing: 1.1px;
@@ -225,15 +326,15 @@ QString ModernTheme::applicationStyleSheet()
             max-height: 32px;
             padding: 0 10px;
             color: #ECEFF2;
-            background: #090A0C;
-            border: 1px solid #24272C;
-            border-radius: 6px;
-            selection-background-color: #16313C;
+            background: #090D11;
+            border: 1px solid #242C34;
+            border-radius: 4px;
+            selection-background-color: #18536A;
         }
-        QLineEdit#PatchSearch:hover { border-color: #30363D; }
+        QLineEdit#PatchSearch:hover { background: %8; border-color: #35404A; }
         QLineEdit#PatchSearch:focus {
-            background: #0D0F12;
-            border-color: #258DB5;
+            background: %8;
+            border-color: %1;
         }
         QLineEdit#PatchSearch:disabled { color: #666B72; }
         QPushButton#PatchBankHeader {
@@ -241,41 +342,43 @@ QString ModernTheme::applicationStyleSheet()
             max-height: 26px;
             padding: 0 6px;
             text-align: left;
-            color: #8C9198;
+            color: #7E858D;
             background: transparent;
             border: none;
-            border-radius: 4px;
+            border-bottom: 1px solid %6;
+            border-radius: 2px;
             font-size: 9px;
             font-weight: 600;
             letter-spacing: 0.8px;
         }
-        QPushButton#PatchBankHeader:hover { background: #0D0F12; color: #ECEFF2; }
+        QPushButton#PatchBankHeader:hover { background: %2; color: #ECEFF2; }
         QPushButton#PatchBankHeader[expanded="true"] {
             color: #ECEFF2;
-            background: #090A0C;
-            border-left: 2px solid #18536A;
+            background: %8;
+            border-left: 2px solid %1;
+            border-bottom: 1px solid #1B242C;
         }
         PatchListItem {
             background: transparent;
             border: none;
             border-left: 3px solid transparent;
-            border-radius: 4px;
+            border-radius: 2px;
         }
-        PatchListItem:hover { background: #0D0F12; }
+        PatchListItem:hover { background: %2; }
         PatchListItem[current="true"] {
-            background: #10252F;
+            background: %4;
             border: 1px solid #18536A;
-            border-left: 2px solid #258DB5;
+            border-left: 3px solid %1;
         }
         PatchListItem[pending="true"] {
-            background: #090A0C;
-            border: 1px solid #24272C;
-            border-left: 2px solid #36A1C8;
+            background: %5;
+            border: 1px solid #49351A;
+            border-left: 3px solid #D98B35;
         }
         PatchListItem QLabel#PatchItemNumber {
-            color: #36A1C8;
+            color: #75818C;
             font-size: 9px;
-            font-weight: 600;
+            font-weight: 500;
         }
         PatchListItem QLabel#PatchItemName {
             color: #B3B7BC;
@@ -286,7 +389,9 @@ QString ModernTheme::applicationStyleSheet()
             color: #ECEFF2;
             font-weight: 600;
         }
-        PatchListItem[pending="true"] QLabel#PatchItemName { color: #ECEFF2; }
+        PatchListItem[current="true"] QLabel#PatchItemNumber { color: #36A1C8; font-weight: 650; }
+        PatchListItem[pending="true"] QLabel#PatchItemName { color: #ECEFF2; font-weight: 600; }
+        PatchListItem[pending="true"] QLabel#PatchItemNumber { color: #D98B35; font-weight: 650; }
         QScrollArea#PatchScroll { background: transparent; border: none; }
         QScrollArea#PatchScroll > QWidget > QWidget { background: transparent; }
         QScrollArea#PatchScroll QScrollBar:vertical {
@@ -307,9 +412,34 @@ QString ModernTheme::applicationStyleSheet()
         QScrollArea#PatchScroll QScrollBar::sub-page { background: transparent; }
         QFrame#PatchSidebar QPushButton:disabled {
             color: #666B72;
-            background: #050607;
-            border: 1px solid #24272C;
+            background: #090C0F;
+            border: 1px solid #1D242B;
             border-radius: 4px;
+        }
+        QMenu#PatchContextMenu {
+            color: #D7DCE1;
+            background: %8;
+            border: 1px solid #2A323A;
+            border-radius: 4px;
+            padding: 5px;
+        }
+        QMenu#PatchContextMenu::item {
+            min-width: 150px;
+            padding: 7px 18px;
+            border-radius: 2px;
+        }
+        QMenu#PatchContextMenu::item:selected {
+            color: #ECEFF2;
+            background: %7;
+        }
+        QMenu#PatchContextMenu::item:disabled {
+            color: #56606A;
+            background: transparent;
+        }
+        QMenu#PatchContextMenu::separator {
+            height: 1px;
+            background: %6;
+            margin: 4px 8px;
         }
         QLabel#EditorTitle { color: #ECEFF2; font-size: 14px; font-weight: 700; letter-spacing: 1px; }
         QFrame#SignalChain {
@@ -497,7 +627,10 @@ QString ModernTheme::applicationStyleSheet()
         QLabel#ConnectionLabel[state="connected"] { color: #8D99A5; }
         QProgressBar#StatusProgress { background: #050607; border: none; border-radius: 2px; }
         QProgressBar#StatusProgress::chunk { background: #258DB5; border-radius: 2px; }
-    )");
+    )").arg(color(BorderSelected), color(HoverSurface),
+             color(PressedSurface), color(SelectedBackground),
+             color(PendingBackground), color(BankDivider),
+             color(PrimaryButton), color(SecondaryButton));
 }
 
 QString ModernTheme::effectColor(const QString &effectName)

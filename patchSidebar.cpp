@@ -1,4 +1,5 @@
 #include "patchSidebar.h"
+#include "modernTheme.h"
 #include "modernPatchListModel.h"
 
 #include <QEvent>
@@ -193,7 +194,8 @@ PatchSidebar::PatchSidebar(ModernPatchListModel *model, QWidget *parent)
     search->setObjectName("PatchSearch");
     search->setPlaceholderText(tr("Search patches..."));
     QPalette searchPalette = search->palette();
-    searchPalette.setColor(QPalette::PlaceholderText, QColor("#666B72"));
+    searchPalette.setColor(QPalette::PlaceholderText,
+                           QColor(ModernTheme::color(ModernTheme::DisabledText)));
     search->setPalette(searchPalette);
     connect(search, SIGNAL(textChanged(QString)), this, SLOT(applyFilter(QString)));
     layout->addWidget(title);
@@ -257,17 +259,6 @@ void PatchSidebar::showPatchContextMenu(int bank, int patch, QString name,
 
     QMenu menu(this);
     menu.setObjectName("PatchContextMenu");
-    menu.setStyleSheet(
-        "QMenu#PatchContextMenu { color:#E5E9ED; background:#111820;"
-        " border:1px solid #33404D; border-radius:6px; padding:5px; }"
-        "QMenu#PatchContextMenu::item { min-width:150px; padding:7px 18px;"
-        " border-radius:4px; }"
-        "QMenu#PatchContextMenu::item:selected { color:#F2F4F6;"
-        " background:#123347; }"
-        "QMenu#PatchContextMenu::item:disabled { color:#59636E;"
-        " background:transparent; }"
-        "QMenu#PatchContextMenu::separator { height:1px;"
-        " background:#29343E; margin:4px 8px; }");
 
     QAction *rename = menu.addAction(tr("Rename Patch"));
     QAction *copy = menu.addAction(tr("Copy Patch"));

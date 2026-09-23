@@ -13,7 +13,9 @@ public:
         ControlBackground, Border, BorderSubtle, PrimaryText,
         SecondaryText, DisabledText, AccentCyan, AccentCyanHover,
         AccentCyanDim, EditorAccent, EditorAccentHover, EditorAccentDim,
-        ActiveGreen, ActiveGreenDim, WarningOrange, DangerRed
+        ActiveGreen, ActiveGreenDim, WarningOrange, DangerRed,
+        BorderSelected, HoverSurface, PressedSurface, SelectedBackground,
+        PendingBackground, BankDivider, PrimaryButton, SecondaryButton
     };
     enum RadiusRole { SmallRadius, ControlRadius, PanelRadius, ContainerRadius };
 
