@@ -131,6 +131,33 @@ int main(int argc, char **argv)
                      "chorus specific resource loads through QRC");
     }
 
+    const char *const delayArtwork[] = {
+        ":/assets/pedals/delay/00_single.png",
+        ":/assets/pedals/delay/01_pan.png",
+        ":/assets/pedals/delay/02_stereo.png",
+        ":/assets/pedals/delay/03_dual_series.png",
+        ":/assets/pedals/delay/04_dual_parallel.png",
+        ":/assets/pedals/delay/05_dual_lr.png",
+        ":/assets/pedals/delay/06_reverse.png",
+        ":/assets/pedals/delay/07_analog.png",
+        ":/assets/pedals/delay/08_tape.png",
+        ":/assets/pedals/delay/09_warp.png",
+        ":/assets/pedals/delay/0a_modulate.png"
+    };
+    request.family = PedalArtworkFamily::Delay;
+    for (int raw = 0x00; raw <= 0x0A; ++raw) {
+        request.modelRaw = raw;
+        ok &= expect(PedalArtworkResolver::resolve(request)
+                         == QString::fromLatin1(delayArtwork[raw]),
+                     "delay raw uses its specific artwork");
+        ok &= expect(!QImage(PedalArtworkResolver::resolve(request)).isNull(),
+                     "delay specific resource loads through QRC");
+    }
+    request.modelRaw = 0x7F;
+    ok &= expect(PedalArtworkResolver::resolve(request)
+                     == ":/assets/effects/pedal_generic.png",
+                 "unknown delay raw uses the generic fallback");
+
     request.family = PedalArtworkFamily::OverdriveDistortion;
     request.modelRaw = 0x7F;
     request.secondaryRaw = 0x7E;

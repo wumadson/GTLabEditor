@@ -25,6 +25,19 @@ const char *const kChorusArtwork[] = {
     ":/assets/pedals/chorus/01_stereo_1.png",
     ":/assets/pedals/chorus/02_stereo_2.png"
 };
+const char *const kDelayArtwork[] = {
+    ":/assets/pedals/delay/00_single.png",
+    ":/assets/pedals/delay/01_pan.png",
+    ":/assets/pedals/delay/02_stereo.png",
+    ":/assets/pedals/delay/03_dual_series.png",
+    ":/assets/pedals/delay/04_dual_parallel.png",
+    ":/assets/pedals/delay/05_dual_lr.png",
+    ":/assets/pedals/delay/06_reverse.png",
+    ":/assets/pedals/delay/07_analog.png",
+    ":/assets/pedals/delay/08_tape.png",
+    ":/assets/pedals/delay/09_warp.png",
+    ":/assets/pedals/delay/0a_modulate.png"
+};
 }
 
 QString PedalArtworkResolver::resolve(const PedalArtworkRequest &request)
@@ -44,6 +57,11 @@ QString PedalArtworkResolver::resolve(const PedalArtworkRequest &request)
     if (request.family == PedalArtworkFamily::Chorus
         && request.modelRaw >= 0x00 && request.modelRaw <= 0x02) {
         return QString::fromLatin1(kChorusArtwork[request.modelRaw]);
+    }
+
+    if (request.family == PedalArtworkFamily::Delay
+        && request.modelRaw >= 0x00 && request.modelRaw <= 0x0A) {
+        return QString::fromLatin1(kDelayArtwork[request.modelRaw]);
     }
 
     return fallback(request);

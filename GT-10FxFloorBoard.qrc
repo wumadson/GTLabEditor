@@ -113,6 +113,17 @@
         <file>assets/pedals/chorus/00_mono.png</file>
         <file>assets/pedals/chorus/01_stereo_1.png</file>
         <file>assets/pedals/chorus/02_stereo_2.png</file>
+        <file>assets/pedals/delay/00_single.png</file>
+        <file>assets/pedals/delay/01_pan.png</file>
+        <file>assets/pedals/delay/02_stereo.png</file>
+        <file>assets/pedals/delay/03_dual_series.png</file>
+        <file>assets/pedals/delay/04_dual_parallel.png</file>
+        <file>assets/pedals/delay/05_dual_lr.png</file>
+        <file>assets/pedals/delay/06_reverse.png</file>
+        <file>assets/pedals/delay/07_analog.png</file>
+        <file>assets/pedals/delay/08_tape.png</file>
+        <file>assets/pedals/delay/09_warp.png</file>
+        <file>assets/pedals/delay/0a_modulate.png</file>
         <file>assets/pedalboard/gt10_footswitch.png</file>
         <file>assets/menu/load.png</file>
         <file>assets/menu/save.png</file>

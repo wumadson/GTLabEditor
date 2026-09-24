@@ -1819,7 +1819,8 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     connect(delayModelBrowser, &EffectModelBrowser::modelSelected,
             this, &modernFloorBoard::delayModelSelected);
     delayArtwork = new EffectArtworkWidget;
-    applyPedalArtwork(delayArtwork, PedalArtworkFamily::Delay);
+    applyPedalArtwork(delayArtwork, PedalArtworkFamily::Delay, -1,
+                      PedalArtworkVariant::Default, -1, true);
     delayArtwork->setGenericPedalIdentity(
         "DELAY", QColor(ModernTheme::color(ModernTheme::PrimaryText)),
         QColor(ModernTheme::effectColor("DELAY")));
@@ -7478,7 +7479,8 @@ void modernFloorBoard::updateDelayParameterControls(bool available)
     }
 
     const int type = delayType ? delayType->currentIndex() : -1;
-    applyPedalArtwork(delayArtwork, PedalArtworkFamily::Delay, type);
+    applyPedalArtwork(delayArtwork, PedalArtworkFamily::Delay, type,
+                      PedalArtworkVariant::Default, -1, true);
     updateDelayPageForType(type);
     if (delayArtwork && delayType)
         delayArtwork->setTextOverlayText(
@@ -7559,7 +7561,8 @@ void modernFloorBoard::setDelayType(int index)
     if (delayArtwork)
         delayArtwork->setTextOverlayText(
             "type", delayArtworkType(delayType->itemText(index)));
-    applyPedalArtwork(delayArtwork, PedalArtworkFamily::Delay, index);
+    applyPedalArtwork(delayArtwork, PedalArtworkFamily::Delay, index,
+                      PedalArtworkVariant::Default, -1, true);
 }
 
 void modernFloorBoard::delayModelSelected(int index)
