@@ -108,6 +108,29 @@ int main(int argc, char **argv)
                      "reverb specific resource loads through QRC");
     }
 
+    request.family = PedalArtworkFamily::Chorus;
+    request.modelRaw = 0x00;
+    ok &= expect(PedalArtworkResolver::resolve(request)
+                     == ":/assets/pedals/chorus/00_mono.png",
+                 "chorus raw 00 uses the mono artwork");
+    request.modelRaw = 0x01;
+    ok &= expect(PedalArtworkResolver::resolve(request)
+                     == ":/assets/pedals/chorus/01_stereo_1.png",
+                 "chorus raw 01 uses the stereo 1 artwork");
+    request.modelRaw = 0x02;
+    ok &= expect(PedalArtworkResolver::resolve(request)
+                     == ":/assets/pedals/chorus/02_stereo_2.png",
+                 "chorus raw 02 uses the stereo 2 artwork");
+    request.modelRaw = 0x7F;
+    ok &= expect(PedalArtworkResolver::resolve(request)
+                     == ":/assets/effects/pedal_generic.png",
+                 "unknown chorus raw uses the generic fallback");
+    for (int raw = 0x00; raw <= 0x02; ++raw) {
+        request.modelRaw = raw;
+        ok &= expect(!QImage(PedalArtworkResolver::resolve(request)).isNull(),
+                     "chorus specific resource loads through QRC");
+    }
+
     request.family = PedalArtworkFamily::OverdriveDistortion;
     request.modelRaw = 0x7F;
     request.secondaryRaw = 0x7E;

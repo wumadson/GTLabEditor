@@ -20,6 +20,11 @@ const char *const kReverbArtwork[] = {
     ":/assets/pedals/reverb/05_spring.png",
     ":/assets/pedals/reverb/06_modulate.png"
 };
+const char *const kChorusArtwork[] = {
+    ":/assets/pedals/chorus/00_mono.png",
+    ":/assets/pedals/chorus/01_stereo_1.png",
+    ":/assets/pedals/chorus/02_stereo_2.png"
+};
 }
 
 QString PedalArtworkResolver::resolve(const PedalArtworkRequest &request)
@@ -34,6 +39,11 @@ QString PedalArtworkResolver::resolve(const PedalArtworkRequest &request)
     if (request.family == PedalArtworkFamily::Reverb
         && request.modelRaw >= 0x00 && request.modelRaw <= 0x06) {
         return QString::fromLatin1(kReverbArtwork[request.modelRaw]);
+    }
+
+    if (request.family == PedalArtworkFamily::Chorus
+        && request.modelRaw >= 0x00 && request.modelRaw <= 0x02) {
+        return QString::fromLatin1(kChorusArtwork[request.modelRaw]);
     }
 
     return fallback(request);

@@ -110,6 +110,9 @@
         <file>assets/pedals/reverb/04_plate.png</file>
         <file>assets/pedals/reverb/05_spring.png</file>
         <file>assets/pedals/reverb/06_modulate.png</file>
+        <file>assets/pedals/chorus/00_mono.png</file>
+        <file>assets/pedals/chorus/01_stereo_1.png</file>
+        <file>assets/pedals/chorus/02_stereo_2.png</file>
         <file>assets/pedalboard/gt10_footswitch.png</file>
         <file>assets/menu/load.png</file>
         <file>assets/menu/save.png</file>

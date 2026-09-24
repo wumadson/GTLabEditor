@@ -2004,7 +2004,8 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     chorusModeBrowser->setModels(chorusModes);
 
     chorusArtwork = new EffectArtworkWidget;
-    applyPedalArtwork(chorusArtwork, PedalArtworkFamily::Chorus);
+    applyPedalArtwork(chorusArtwork, PedalArtworkFamily::Chorus, -1,
+                      PedalArtworkVariant::Default, -1, true);
     chorusArtwork->setGenericPedalIdentity(
         "CHORUS", QColor(ModernTheme::color(ModernTheme::PrimaryText)),
         QColor(ModernTheme::effectColor("CHORUS")));
@@ -7640,7 +7641,8 @@ void modernFloorBoard::updateChorusParameterControls(bool available)
     if (available && chorusMode) {
         applyPedalArtwork(
             chorusArtwork, PedalArtworkFamily::Chorus,
-            chorusMode->currentData().toInt());
+            chorusMode->currentData().toInt(),
+            PedalArtworkVariant::Default, -1, true);
     }
 
     for (ParameterBar *bar : chorusBars) {
@@ -7696,7 +7698,8 @@ void modernFloorBoard::setChorusMode(int index)
     if (chorusArtwork)
         chorusArtwork->setTextOverlayText(
             "type", chorusMode->itemText(index).toUpper());
-    applyPedalArtwork(chorusArtwork, PedalArtworkFamily::Chorus, raw);
+    applyPedalArtwork(chorusArtwork, PedalArtworkFamily::Chorus, raw,
+                      PedalArtworkVariant::Default, -1, true);
 }
 
 void modernFloorBoard::chorusComboChanged(int index)
