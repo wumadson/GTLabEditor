@@ -74,7 +74,6 @@ public slots:
         void backupUserPatches();
         void restoreUserPatches();
         void settings();
-        void upload();
         void summaryPage();       
         void summarySystemPage();
         void summaryPatchList();
@@ -112,7 +111,6 @@ private:
         QAction *restoreUserPatchesAct;
         QAction *exitAct;
         QAction *settingsAct;
-        QAction *uploadAct;
         QAction *summaryAct;       
         QAction *summarySystemAct;
         QAction *summaryPatchListAct;

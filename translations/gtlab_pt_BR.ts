@@ -3982,16 +3982,6 @@ NÃO INTEGRADO</translation>
         <translation>Preferências do FxFloorBoard&lt;br&gt;Selecione dispositivo MIDI, idioma, tela de abertura e diretórios</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="422"/>
-        <source>Upload patch to GT-Central</source>
-        <translation>Enviar Patch ao GT-Central</translation>
-    </message>
-    <message>
-        <location filename="../mainWindow.cpp" line="423"/>
-        <source>Upload any saved patch file to a shared patch library&lt;br&gt;via the internet.</source>
-        <translation>Enviar pela internet um arquivo de Patch salvo para uma biblioteca compartilhada.</translation>
-    </message>
-    <message>
         <location filename="../mainWindow.cpp" line="426"/>
         <source>Patch Text Summary</source>
         <translation>Resumo textual do Patch</translation>
@@ -4125,11 +4115,6 @@ NÃO INTEGRADO</translation>
         <location filename="../mainWindow.cpp" line="500"/>
         <source>&amp;Tools</source>
         <translation>&amp;Ferramentas</translation>
-    </message>
-    <message>
-        <location filename="../mainWindow.cpp" line="505"/>
-        <source>&amp;Legacy Services</source>
-        <translation>Serviços &amp;legados</translation>
     </message>
     <message>
         <location filename="../mainWindow.cpp" line="511"/>

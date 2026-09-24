@@ -419,10 +419,6 @@ void mainWindow::createActions()
         settingsAct->setMenuRole(QAction::PreferencesRole);
         connect(settingsAct, SIGNAL(triggered()), this, SLOT(settings()));
 
-        uploadAct = new QAction(QIcon(":/assets/menu/upload.png"), tr("Upload patch to GT-Central"), this);
-        uploadAct->setWhatsThis(tr("Upload any saved patch file to a shared patch library<br>via the internet."));
-        connect(uploadAct, SIGNAL(triggered()), this, SLOT(upload()));
-
         summaryAct = new QAction(QIcon(":/assets/menu/summary.png"), tr("Patch Text Summary"), this);
         summaryAct->setWhatsThis(tr("Display the current patch parameters<br>in a readable text format, which<br>can be printed or saved to file."));
         connect(summaryAct, SIGNAL(triggered()), this, SLOT(summaryPage()));
@@ -502,8 +498,6 @@ void mainWindow::createMenus()
         toolsMenu->addAction(summaryAct);
         toolsMenu->addAction(summarySystemAct);
         toolsMenu->addAction(summaryPatchListAct);
-        QMenu *legacyServicesMenu = toolsMenu->addMenu(tr("&Legacy Services"));
-        legacyServicesMenu->addAction(uploadAct);
         //menuBar->addMenu(toolsMenu);
 
 
@@ -1021,12 +1015,6 @@ void mainWindow::whatsThis()
     QWhatsThis::enterWhatsThisMode();
 };
 
-
-void mainWindow::upload()
-{
-        Preferences *preferences = Preferences::Instance();
-        QDesktopServices::openUrl(QUrl( preferences->getPreferences("General", "Upload", "url") ));
-};
 
 void mainWindow::summaryPage()
 {

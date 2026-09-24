@@ -1490,11 +1490,6 @@ If correction was inpossible then some settings might have been reset to zero.</
         <translation>....</translation>
     </message>
     <message>
-        <location filename="mainWindow.cpp" line="215"/>
-        <source>Upload patch to GT-Central</source>
-        <translation>Antriebskraftflecken zu GT-Zentralem</translation>
-    </message>
-    <message>
         <location filename="mainWindow.cpp" line="216"/>
         <location filename="mainWindow.cpp" line="225"/>
         <location filename="mainWindow.cpp" line="229"/>
