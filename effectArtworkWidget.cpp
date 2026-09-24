@@ -8,6 +8,9 @@
 
 namespace {
 const QSizeF kMaximumArtworkViewport(400.0, 400.0);
+constexpr int kVisibleAlphaThreshold = 16;
+constexpr qreal kNormalizedVisibleWidth = 0.80;
+constexpr qreal kNormalizedVisibleHeight = 0.86;
 
 QSizeF responsiveArtworkViewport(const QSizeF &availableSize)
 {
@@ -19,6 +22,31 @@ QSizeF responsiveArtworkViewport(const QSizeF &availableSize)
         qMin(availableSize.width() / kMaximumArtworkViewport.width(),
              availableSize.height() / kMaximumArtworkViewport.height()));
     return kMaximumArtworkViewport * qMax(0.0, scale);
+}
+
+QRect visibleAlphaBounds(const QPixmap &artwork)
+{
+    const QImage image = artwork.toImage().convertToFormat(
+        QImage::Format_ARGB32);
+    int minX = image.width();
+    int minY = image.height();
+    int maxX = -1;
+    int maxY = -1;
+    for (int y = 0; y < image.height(); ++y) {
+        const QRgb *line = reinterpret_cast<const QRgb *>(
+            image.constScanLine(y));
+        for (int x = 0; x < image.width(); ++x) {
+            if (qAlpha(line[x]) < kVisibleAlphaThreshold)
+                continue;
+            minX = qMin(minX, x);
+            minY = qMin(minY, y);
+            maxX = qMax(maxX, x);
+            maxY = qMax(maxY, y);
+        }
+    }
+    if (maxX < minX || maxY < minY)
+        return QRect();
+    return QRect(QPoint(minX, minY), QPoint(maxX, maxY));
 }
 }
 
@@ -41,22 +69,44 @@ bool EffectArtworkWidget::setArtwork(const QString &resourcePath)
     }
 
     sourceArtwork = artwork;
+    normalizeVisibleBounds = false;
+    sourceVisibleBounds = QRect();
     updateScaledArtwork();
     return true;
 }
 
 bool EffectArtworkWidget::setArtworkWithFallback(
-    const QString &specificPath, const QString &fallbackPath)
+    const QString &specificPath, const QString &fallbackPath,
+    bool *usedFallback, bool normalizeSpecificVisibleBounds)
 {
     QPixmap artwork(specificPath);
-    if (artwork.isNull() && fallbackPath != specificPath)
+    bool fallbackLoaded = false;
+    if (artwork.isNull() && fallbackPath != specificPath) {
         artwork.load(fallbackPath);
+        fallbackLoaded = !artwork.isNull();
+    }
     if (artwork.isNull())
         return false;
 
     sourceArtwork = artwork;
+    normalizeVisibleBounds = normalizeSpecificVisibleBounds
+        && !fallbackLoaded && specificPath != fallbackPath;
+    sourceVisibleBounds = normalizeVisibleBounds
+        ? visibleAlphaBounds(sourceArtwork) : QRect();
+    if (sourceVisibleBounds.isEmpty())
+        normalizeVisibleBounds = false;
+    if (usedFallback)
+        *usedFallback = fallbackLoaded;
     updateScaledArtwork();
     return true;
+}
+
+void EffectArtworkWidget::setGenericPedalPresentationEnabled(bool enabled)
+{
+    if (genericPedalPresentationEnabled == enabled)
+        return;
+    genericPedalPresentationEnabled = enabled;
+    update();
 }
 
 void EffectArtworkWidget::setGenericPedalIdentity(
@@ -227,13 +277,15 @@ void EffectArtworkWidget::paintEvent(QPaintEvent *)
     painter.drawPixmap(topLeft, scaledArtwork);
 
     const QRectF artworkRect(topLeft, logicalSize);
-    if (genericPedal)
+    if (genericPedal && genericPedalPresentationEnabled)
         paintGenericPedalAccents(painter, artworkRect);
     if (genericExpression)
         paintGenericExpressionAccents(painter, artworkRect);
 
     painter.setRenderHint(QPainter::TextAntialiasing, true);
     for (const TextOverlay &overlay : textOverlays) {
+        if (genericPedal && !genericPedalPresentationEnabled)
+            continue;
         if (overlay.text.isEmpty())
             continue;
         const QRectF area(
@@ -419,7 +471,7 @@ void EffectArtworkWidget::updateScaledArtwork()
 {
     if (sourceArtwork.isNull() || size().isEmpty()) {
         scaledArtwork = QPixmap();
-    } else {
+    } else if (!normalizeVisibleBounds || sourceVisibleBounds.isEmpty()) {
         const qreal dpr = devicePixelRatioF();
         const QSizeF logicalViewport = responsiveArtworkViewport(size());
         const QSizeF physicalViewport = logicalViewport * dpr;
@@ -432,6 +484,42 @@ void EffectArtworkWidget::updateScaledArtwork()
         scaledArtwork = sourceArtwork.scaled(
             physicalSize, Qt::KeepAspectRatio,
             Qt::SmoothTransformation);
+        scaledArtwork.setDevicePixelRatio(dpr);
+    } else {
+        const qreal dpr = devicePixelRatioF();
+        const QSizeF logicalViewport = responsiveArtworkViewport(size());
+        const QSizeF physicalViewport = logicalViewport * dpr;
+        const QSizeF targetVisibleSize(
+            physicalViewport.width() * kNormalizedVisibleWidth,
+            physicalViewport.height() * kNormalizedVisibleHeight);
+        const qreal sourceScale = qMin(
+            targetVisibleSize.width() / sourceVisibleBounds.width(),
+            targetVisibleSize.height() / sourceVisibleBounds.height());
+        const QSize physicalSize(
+            qMax(1, qRound(physicalViewport.width())),
+            qMax(1, qRound(physicalViewport.height())));
+        scaledArtwork = QPixmap(physicalSize);
+        scaledArtwork.fill(Qt::transparent);
+
+        const QSizeF drawnSourceSize(
+            sourceArtwork.width() * sourceScale,
+            sourceArtwork.height() * sourceScale);
+        const QSizeF drawnVisibleSize(
+            sourceVisibleBounds.width() * sourceScale,
+            sourceVisibleBounds.height() * sourceScale);
+        const QPointF visibleTopLeft(
+            (physicalViewport.width() - drawnVisibleSize.width()) / 2.0,
+            (physicalViewport.height() - drawnVisibleSize.height()) / 2.0);
+        const QPointF sourceTopLeft(
+            visibleTopLeft.x() - sourceVisibleBounds.x() * sourceScale,
+            visibleTopLeft.y() - sourceVisibleBounds.y() * sourceScale);
+
+        QPainter painter(&scaledArtwork);
+        painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
+        painter.drawPixmap(
+            QRectF(sourceTopLeft, drawnSourceSize), sourceArtwork,
+            QRectF(sourceArtwork.rect()));
+        painter.end();
         scaledArtwork.setDevicePixelRatio(dpr);
     }
     update();

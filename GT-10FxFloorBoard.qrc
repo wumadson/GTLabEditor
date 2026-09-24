@@ -101,6 +101,15 @@
         <file>assets/effects/amp_a.png</file>
         <file>assets/effects/amp_b.png</file>
         <file>assets/pedals/expression_pedal.png</file>
+        <file>assets/pedals/comp/00_compressor.png</file>
+        <file>assets/pedals/comp/01_limiter.png</file>
+        <file>assets/pedals/reverb/00_ambience.png</file>
+        <file>assets/pedals/reverb/01_room.png</file>
+        <file>assets/pedals/reverb/02_hall_1.png</file>
+        <file>assets/pedals/reverb/03_hall_2.png</file>
+        <file>assets/pedals/reverb/04_plate.png</file>
+        <file>assets/pedals/reverb/05_spring.png</file>
+        <file>assets/pedals/reverb/06_modulate.png</file>
         <file>assets/pedalboard/gt10_footswitch.png</file>
         <file>assets/menu/load.png</file>
         <file>assets/menu/save.png</file>

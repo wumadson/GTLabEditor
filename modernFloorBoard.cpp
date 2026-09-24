@@ -62,7 +62,8 @@ bool applyPedalArtwork(
     EffectArtworkWidget *widget, PedalArtworkFamily family,
     int modelRaw = -1,
     PedalArtworkVariant variant = PedalArtworkVariant::Default,
-    int secondaryRaw = -1)
+    int secondaryRaw = -1,
+    bool manageGenericPedalPresentation = false)
 {
     if (!widget)
         return false;
@@ -71,9 +72,17 @@ bool applyPedalArtwork(
     request.modelRaw = modelRaw;
     request.secondaryRaw = secondaryRaw;
     request.variant = variant;
-    return widget->setArtworkWithFallback(
-        PedalArtworkResolver::resolve(request),
-        PedalArtworkResolver::fallback(request));
+    const QString specificPath = PedalArtworkResolver::resolve(request);
+    const QString fallbackPath = PedalArtworkResolver::fallback(request);
+    bool usedFallback = false;
+    const bool loaded = widget->setArtworkWithFallback(
+        specificPath, fallbackPath, &usedFallback,
+        specificPath != fallbackPath);
+    if (loaded && manageGenericPedalPresentation) {
+        widget->setGenericPedalPresentationEnabled(
+            specificPath == fallbackPath || usedFallback);
+    }
+    return loaded;
 }
 
 class ModernDialogIcon final : public QWidget
@@ -1486,7 +1495,8 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     connect(reverbModelBrowser, &EffectModelBrowser::modelSelected,
             this, &modernFloorBoard::reverbModelSelected);
     reverbArtwork = new EffectArtworkWidget;
-    applyPedalArtwork(reverbArtwork, PedalArtworkFamily::Reverb);
+    applyPedalArtwork(reverbArtwork, PedalArtworkFamily::Reverb, -1,
+                      PedalArtworkVariant::Default, -1, true);
     reverbArtwork->setGenericPedalIdentity(
         "REVERB", QColor(ModernTheme::color(ModernTheme::PrimaryText)),
         QColor(ModernTheme::effectColor("REVERB")));
@@ -1579,7 +1589,8 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     connect(compModelBrowser, &EffectModelBrowser::modelSelected,
             this, &modernFloorBoard::compModelSelected);
     compArtwork = new EffectArtworkWidget;
-    applyPedalArtwork(compArtwork, PedalArtworkFamily::Compressor);
+    applyPedalArtwork(compArtwork, PedalArtworkFamily::Compressor, -1,
+                      PedalArtworkVariant::Default, -1, true);
     QColor compArtworkAccent(ModernTheme::effectColor("COMP"));
     compArtworkAccent.setHsl(
         compArtworkAccent.hslHue(),
@@ -5838,7 +5849,8 @@ void modernFloorBoard::updateReverbParameterControls(bool available)
     }
     if (reverbType)
         applyPedalArtwork(reverbArtwork, PedalArtworkFamily::Reverb,
-                          reverbType->currentIndex());
+                          reverbType->currentIndex(),
+                          PedalArtworkVariant::Default, -1, true);
     if (reverbArtwork && reverbType)
         reverbArtwork->setTextOverlayText(
             "type", reverbType->currentText().toUpper());
@@ -5911,7 +5923,8 @@ void modernFloorBoard::setReverbType(int index)
     if (reverbArtwork)
         reverbArtwork->setTextOverlayText(
             "type", reverbType->itemText(index).toUpper());
-    applyPedalArtwork(reverbArtwork, PedalArtworkFamily::Reverb, index);
+    applyPedalArtwork(reverbArtwork, PedalArtworkFamily::Reverb, index,
+                      PedalArtworkVariant::Default, -1, true);
     if (reverbSpringSensitivity)
         reverbSpringSensitivity->setEnabled(index == 5);
 }
@@ -7118,7 +7131,8 @@ void modernFloorBoard::updateCompParameterControls(bool available)
         compModelBrowser->setCurrentIndex(type);
     if (compTypeDisplay && compType)
         compTypeDisplay->setText(compType->currentText());
-    applyPedalArtwork(compArtwork, PedalArtworkFamily::Compressor, type);
+    applyPedalArtwork(compArtwork, PedalArtworkFamily::Compressor, type,
+                      PedalArtworkVariant::Default, -1, true);
     const bool compEnabled = sysxIO->getSourceValue(
         "Structure", "00", "00", "40") == 1;
     if (compOnOff)
@@ -7170,7 +7184,8 @@ void modernFloorBoard::setCompType(int index)
         compTypeDisplay->setText(compType->itemText(index));
     if (compArtwork)
         compArtwork->setTextOverlayText("type", compType->itemText(index));
-    applyPedalArtwork(compArtwork, PedalArtworkFamily::Compressor, index);
+    applyPedalArtwork(compArtwork, PedalArtworkFamily::Compressor, index,
+                      PedalArtworkVariant::Default, -1, true);
 }
 
 void modernFloorBoard::compTypeChanged(int value)

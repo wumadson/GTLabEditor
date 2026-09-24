@@ -28,7 +28,10 @@ public:
 
     bool setArtwork(const QString &resourcePath);
     bool setArtworkWithFallback(const QString &specificPath,
-                                const QString &fallbackPath);
+                                const QString &fallbackPath,
+                                bool *usedFallback = nullptr,
+                                bool normalizeSpecificVisibleBounds = false);
+    void setGenericPedalPresentationEnabled(bool enabled);
     void setGenericPedalIdentity(const QString &effectName,
                                  const QColor &nameColor,
                                  const QColor &accentColor);
@@ -65,12 +68,15 @@ private:
 
     QPixmap sourceArtwork;
     QPixmap scaledArtwork;
+    QRect sourceVisibleBounds;
     QList<TextOverlay> textOverlays;
     QColor genericPedalAccent;
     bool genericPedal = false;
     bool genericExpression = false;
     bool genericPedalAvailable = false;
     bool genericPedalEnabled = false;
+    bool genericPedalPresentationEnabled = true;
+    bool normalizeVisibleBounds = false;
     qreal genericPedalVisualIntensity = 1.0;
 };
 

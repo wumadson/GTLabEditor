@@ -7,13 +7,35 @@ const char kPreampAArtwork[] = ":/assets/effects/amp_a.png";
 const char kPreampBArtwork[] = ":/assets/effects/amp_b.png";
 const char kExpressionPedalArtwork[] =
     ":/assets/pedals/expression_pedal.png";
+const char kCompressorArtwork[] =
+    ":/assets/pedals/comp/00_compressor.png";
+const char kLimiterArtwork[] =
+    ":/assets/pedals/comp/01_limiter.png";
+const char *const kReverbArtwork[] = {
+    ":/assets/pedals/reverb/00_ambience.png",
+    ":/assets/pedals/reverb/01_room.png",
+    ":/assets/pedals/reverb/02_hall_1.png",
+    ":/assets/pedals/reverb/03_hall_2.png",
+    ":/assets/pedals/reverb/04_plate.png",
+    ":/assets/pedals/reverb/05_spring.png",
+    ":/assets/pedals/reverb/06_modulate.png"
+};
 }
 
 QString PedalArtworkResolver::resolve(const PedalArtworkRequest &request)
 {
-    // Phase 1 deliberately resolves every request to its existing fallback.
-    // modelRaw and secondaryRaw remain part of the request so model-specific
-    // artwork can be introduced later without changing editor call sites.
+    if (request.family == PedalArtworkFamily::Compressor) {
+        if (request.modelRaw == 0x00)
+            return QString::fromLatin1(kCompressorArtwork);
+        if (request.modelRaw == 0x01)
+            return QString::fromLatin1(kLimiterArtwork);
+    }
+
+    if (request.family == PedalArtworkFamily::Reverb
+        && request.modelRaw >= 0x00 && request.modelRaw <= 0x06) {
+        return QString::fromLatin1(kReverbArtwork[request.modelRaw]);
+    }
+
     return fallback(request);
 }
 
