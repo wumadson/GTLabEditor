@@ -27,6 +27,8 @@ public:
     explicit EffectArtworkWidget(QWidget *parent = nullptr);
 
     bool setArtwork(const QString &resourcePath);
+    bool setArtworkWithFallback(const QString &specificPath,
+                                const QString &fallbackPath);
     void setGenericPedalIdentity(const QString &effectName,
                                  const QColor &nameColor,
                                  const QColor &accentColor);

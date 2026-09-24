@@ -45,6 +45,20 @@ bool EffectArtworkWidget::setArtwork(const QString &resourcePath)
     return true;
 }
 
+bool EffectArtworkWidget::setArtworkWithFallback(
+    const QString &specificPath, const QString &fallbackPath)
+{
+    QPixmap artwork(specificPath);
+    if (artwork.isNull() && fallbackPath != specificPath)
+        artwork.load(fallbackPath);
+    if (artwork.isNull())
+        return false;
+
+    sourceArtwork = artwork;
+    updateScaledArtwork();
+    return true;
+}
+
 void EffectArtworkWidget::setGenericPedalIdentity(
     const QString &effectName, const QColor &nameColor,
     const QColor &accentColor)

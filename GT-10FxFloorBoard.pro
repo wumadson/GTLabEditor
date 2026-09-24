@@ -109,6 +109,7 @@ SOURCES += modernFloorBoard.cpp modernTheme.cpp modernWidgets.cpp modernSignalCh
            modernSignalChainMutationController.cpp modernSignalChainSerializer.cpp \
            signalChainHardwareValidation.cpp \
            patchTransferCodec.cpp \
+           pedalArtworkResolver.cpp \
            quickSettingCodec.cpp quickSettingService.cpp modernQuickSettingDialog.cpp \
            effectArtworkWidget.cpp effectModelBrowser.cpp parameterBar.cpp \
            modernPatchListModel.cpp patchSidebar.cpp modernEqGraph.cpp modernFxEditor.cpp \
@@ -121,6 +122,7 @@ HEADERS += modernFloorBoard.h modernTheme.h modernWidgets.h modernSignalChainMod
            modernSignalChainMutationController.h modernSignalChainSerializer.h \
            signalChainHardwareValidation.h \
            patchTransferCodec.h \
+           pedalArtworkResolver.h \
            quickSettingCodec.h quickSettingService.h modernQuickSettingDialog.h \
            effectArtworkWidget.h effectModelBrowser.h parameterBar.h \
            modernPatchListModel.h patchSidebar.h modernEqGraph.h modernFxEditor.h \
@@ -173,5 +175,14 @@ contains(CONFIG, quicksetting_tests) {
     SOURCES -= ./main.cpp
     SOURCES += quickSettingCodecTests.cpp
     TARGET = quickSettingCodecTests
+    DESTDIR = $$OUT_PWD
+}
+
+# Offline regression harness for centralized pedal artwork resolution and
+# atomic fallback. No MIDI device is opened by this target.
+contains(CONFIG, pedalartwork_tests) {
+    SOURCES -= ./main.cpp
+    SOURCES += pedalArtworkResolverTests.cpp
+    TARGET = pedalArtworkResolverTests
     DESTDIR = $$OUT_PWD
 }

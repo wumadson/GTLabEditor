@@ -7,6 +7,7 @@
 #include "effectArtworkWidget.h"
 #include "modernTheme.h"
 #include "modernWidgets.h"
+#include "pedalArtworkResolver.h"
 #include "parameterBar.h"
 
 #include <QAbstractButton>
@@ -42,6 +43,22 @@ QLabel *sectionTitle(const QString &text)
     QLabel *label = new QLabel(text);
     label->setObjectName("ParameterSectionTitle");
     return label;
+}
+
+bool applyPedalFxArtwork(EffectArtworkWidget *widget, int modelRaw,
+                         PedalEditorContext context)
+{
+    if (!widget)
+        return false;
+    PedalArtworkRequest request;
+    request.family = PedalArtworkFamily::PedalFx;
+    request.modelRaw = modelRaw;
+    request.variant = context == PedalEditorContext::FootVolume
+        ? PedalArtworkVariant::FootVolume
+        : PedalArtworkVariant::Default;
+    return widget->setArtworkWithFallback(
+        PedalArtworkResolver::resolve(request),
+        PedalArtworkResolver::fallback(request));
 }
 
 class ResponsivePedalControlRow final : public QWidget
@@ -130,7 +147,7 @@ void ModernPedalFxEditor::buildEditor()
     editor->setRightPanelTitle("P.FX MODES");
 
     artwork = new EffectArtworkWidget;
-    artwork->setArtwork(":/assets/pedals/expression_pedal.png");
+    applyPedalFxArtwork(artwork, -1, editorContext);
     editor->setArtworkWidget(artwork);
 
     browser = new EffectModelBrowser;
@@ -412,6 +429,7 @@ void ModernPedalFxEditor::setMode(int raw, bool writeBackend)
         return;
     if (writeBackend)
         writeValue("45", raw);
+    applyPedalFxArtwork(artwork, raw, editorContext);
     currentMode = raw;
     if (browser)
         browser->setCurrentIndex(modeRawValues.indexOf(raw));
@@ -491,6 +509,7 @@ void ModernPedalFxEditor::updateCustomWahVisibility()
 void ModernPedalFxEditor::setContext(PedalEditorContext newContext)
 {
     editorContext = newContext;
+    applyPedalFxArtwork(artwork, currentMode, editorContext);
     updateContextPresentation();
 }
 

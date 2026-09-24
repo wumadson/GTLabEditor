@@ -6,6 +6,7 @@
 #include "effectArtworkWidget.h"
 #include "modernTheme.h"
 #include "modernWidgets.h"
+#include "pedalArtworkResolver.h"
 #include "parameterBar.h"
 
 #include <QAbstractButton>
@@ -53,7 +54,11 @@ void ModernSendReturnEditor::buildEditor()
     editor->setRightPanelTitle("LOOP MODE");
 
     artwork = new EffectArtworkWidget;
-    artwork->setArtwork(":/assets/effects/pedal_generic.png");
+    PedalArtworkRequest artworkRequest;
+    artworkRequest.family = PedalArtworkFamily::SendReturn;
+    artwork->setArtworkWithFallback(
+        PedalArtworkResolver::resolve(artworkRequest),
+        PedalArtworkResolver::fallback(artworkRequest));
     artwork->setGenericPedalIdentity(
         "S/R", QColor(ModernTheme::color(ModernTheme::PrimaryText)),
         QColor(ModernTheme::effectColor("SEND/RETURN")));

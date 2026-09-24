@@ -6,6 +6,7 @@
 #include "effectArtworkWidget.h"
 #include "modernTheme.h"
 #include "modernWidgets.h"
+#include "pedalArtworkResolver.h"
 #include "parameterBar.h"
 
 #include <QAbstractButton>
@@ -68,7 +69,13 @@ void ModernNoiseSuppressorEditor::buildEditor()
     editor->setRightPanelTitle("DETECTION SOURCE");
 
     artwork = new EffectArtworkWidget;
-    artwork->setArtwork(":/assets/effects/pedal_generic.png");
+    PedalArtworkRequest artworkRequest;
+    artworkRequest.family = PedalArtworkFamily::NoiseSuppressor;
+    artworkRequest.variant = nsSlot == NoiseSuppressorSlot::NS1
+        ? PedalArtworkVariant::Ns1 : PedalArtworkVariant::Ns2;
+    artwork->setArtworkWithFallback(
+        PedalArtworkResolver::resolve(artworkRequest),
+        PedalArtworkResolver::fallback(artworkRequest));
     artwork->setGenericPedalIdentity(
         nsSlot == NoiseSuppressorSlot::NS1 ? "NS1" : "NS2",
         QColor(ModernTheme::color(ModernTheme::PrimaryText)),

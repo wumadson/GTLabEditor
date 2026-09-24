@@ -5,6 +5,7 @@
 #include "modernWidgets.h"
 #include "effectArtworkWidget.h"
 #include "effectModelBrowser.h"
+#include "pedalArtworkResolver.h"
 #include "modernEqGraph.h"
 #include "modernFxEditor.h"
 #include "modernPedalFxEditor.h"
@@ -57,6 +58,24 @@
 #include <algorithm>
 
 namespace {
+bool applyPedalArtwork(
+    EffectArtworkWidget *widget, PedalArtworkFamily family,
+    int modelRaw = -1,
+    PedalArtworkVariant variant = PedalArtworkVariant::Default,
+    int secondaryRaw = -1)
+{
+    if (!widget)
+        return false;
+    PedalArtworkRequest request;
+    request.family = family;
+    request.modelRaw = modelRaw;
+    request.secondaryRaw = secondaryRaw;
+    request.variant = variant;
+    return widget->setArtworkWithFallback(
+        PedalArtworkResolver::resolve(request),
+        PedalArtworkResolver::fallback(request));
+}
+
 class ModernDialogIcon final : public QWidget
 {
 public:
@@ -1467,7 +1486,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     connect(reverbModelBrowser, &EffectModelBrowser::modelSelected,
             this, &modernFloorBoard::reverbModelSelected);
     reverbArtwork = new EffectArtworkWidget;
-    reverbArtwork->setArtwork(":/assets/effects/pedal_generic.png");
+    applyPedalArtwork(reverbArtwork, PedalArtworkFamily::Reverb);
     reverbArtwork->setGenericPedalIdentity(
         "REVERB", QColor(ModernTheme::color(ModernTheme::PrimaryText)),
         QColor(ModernTheme::effectColor("REVERB")));
@@ -1560,7 +1579,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     connect(compModelBrowser, &EffectModelBrowser::modelSelected,
             this, &modernFloorBoard::compModelSelected);
     compArtwork = new EffectArtworkWidget;
-    compArtwork->setArtwork(":/assets/effects/pedal_generic.png");
+    applyPedalArtwork(compArtwork, PedalArtworkFamily::Compressor);
     QColor compArtworkAccent(ModernTheme::effectColor("COMP"));
     compArtworkAccent.setHsl(
         compArtworkAccent.hslHue(),
@@ -1668,7 +1687,8 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     connect(oddsModelBrowser, &EffectModelBrowser::modelSelected,
             this, &modernFloorBoard::oddsModelSelected);
     oddsArtwork = new EffectArtworkWidget;
-    oddsArtwork->setArtwork(":/assets/effects/pedal_generic.png");
+    applyPedalArtwork(
+        oddsArtwork, PedalArtworkFamily::OverdriveDistortion);
     oddsArtwork->setGenericPedalIdentity(
         "OD/DS", QColor(ModernTheme::color(ModernTheme::PrimaryText)),
         QColor(ModernTheme::effectColor("OD/DS")));
@@ -1788,7 +1808,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     connect(delayModelBrowser, &EffectModelBrowser::modelSelected,
             this, &modernFloorBoard::delayModelSelected);
     delayArtwork = new EffectArtworkWidget;
-    delayArtwork->setArtwork(":/assets/effects/pedal_generic.png");
+    applyPedalArtwork(delayArtwork, PedalArtworkFamily::Delay);
     delayArtwork->setGenericPedalIdentity(
         "DELAY", QColor(ModernTheme::color(ModernTheme::PrimaryText)),
         QColor(ModernTheme::effectColor("DELAY")));
@@ -1973,7 +1993,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     chorusModeBrowser->setModels(chorusModes);
 
     chorusArtwork = new EffectArtworkWidget;
-    chorusArtwork->setArtwork(":/assets/effects/pedal_generic.png");
+    applyPedalArtwork(chorusArtwork, PedalArtworkFamily::Chorus);
     chorusArtwork->setGenericPedalIdentity(
         "CHORUS", QColor(ModernTheme::color(ModernTheme::PrimaryText)),
         QColor(ModernTheme::effectColor("CHORUS")));
@@ -2376,11 +2396,11 @@ EffectEditorPanel *modernFloorBoard::createPreampEditor(
             this, SLOT(preampModelSelected(int)));
 
     state.artwork = new EffectArtworkWidget;
-    const QString artworkPath = channel == PreampChannel::A
-        ? ":/assets/effects/amp_a.png"
-        : ":/assets/effects/amp_b.png";
-    if (!state.artwork->setArtwork(artworkPath))
-        qWarning() << "Failed to load PREAMP artwork:" << artworkPath;
+    applyPedalArtwork(
+        state.artwork, PedalArtworkFamily::Preamp, -1,
+        channel == PreampChannel::A
+            ? PedalArtworkVariant::ChannelA
+            : PedalArtworkVariant::ChannelB);
     QFont ampNameFont = state.artwork->font();
     ampNameFont.setWeight(QFont::DemiBold);
     ampNameFont.setLetterSpacing(QFont::PercentageSpacing, 103.0);
@@ -5816,6 +5836,9 @@ void modernFloorBoard::updateReverbParameterControls(bool available)
     if (reverbTypeDisplay && reverbType) {
         reverbTypeDisplay->setText(reverbType->currentText());
     }
+    if (reverbType)
+        applyPedalArtwork(reverbArtwork, PedalArtworkFamily::Reverb,
+                          reverbType->currentIndex());
     if (reverbArtwork && reverbType)
         reverbArtwork->setTextOverlayText(
             "type", reverbType->currentText().toUpper());
@@ -5888,6 +5911,7 @@ void modernFloorBoard::setReverbType(int index)
     if (reverbArtwork)
         reverbArtwork->setTextOverlayText(
             "type", reverbType->itemText(index).toUpper());
+    applyPedalArtwork(reverbArtwork, PedalArtworkFamily::Reverb, index);
     if (reverbSpringSensitivity)
         reverbSpringSensitivity->setEnabled(index == 5);
 }
@@ -6874,6 +6898,15 @@ void modernFloorBoard::updatePreampParameterControls(
 
     if (state.browser && state.type)
         state.browser->setCurrentIndex(state.type->currentIndex());
+    if (state.type) {
+        applyPedalArtwork(
+            state.artwork, PedalArtworkFamily::Preamp,
+            state.type->currentIndex(),
+            channel == PreampChannel::A
+                ? PedalArtworkVariant::ChannelA
+                : PedalArtworkVariant::ChannelB,
+            state.customType ? state.customType->currentIndex() : -1);
+    }
     updatePreampTypeDisplay(channel);
 
     for (ModernToggleSwitch *toggle : state.toggles) {
@@ -6963,6 +6996,12 @@ void modernFloorBoard::setPreampType(PreampChannel channel, int index)
     setPreampValue(channel, 0x00, index);
     if (state.browser)
         state.browser->setCurrentIndex(index);
+    applyPedalArtwork(
+        state.artwork, PedalArtworkFamily::Preamp, index,
+        channel == PreampChannel::A
+            ? PedalArtworkVariant::ChannelA
+            : PedalArtworkVariant::ChannelB,
+        state.customType ? state.customType->currentIndex() : -1);
     updatePreampTypeDisplay(channel);
     updatePreampConditionalSections(channel);
 }
@@ -7079,6 +7118,7 @@ void modernFloorBoard::updateCompParameterControls(bool available)
         compModelBrowser->setCurrentIndex(type);
     if (compTypeDisplay && compType)
         compTypeDisplay->setText(compType->currentText());
+    applyPedalArtwork(compArtwork, PedalArtworkFamily::Compressor, type);
     const bool compEnabled = sysxIO->getSourceValue(
         "Structure", "00", "00", "40") == 1;
     if (compOnOff)
@@ -7130,6 +7170,7 @@ void modernFloorBoard::setCompType(int index)
         compTypeDisplay->setText(compType->itemText(index));
     if (compArtwork)
         compArtwork->setTextOverlayText("type", compType->itemText(index));
+    applyPedalArtwork(compArtwork, PedalArtworkFamily::Compressor, index);
 }
 
 void modernFloorBoard::compTypeChanged(int value)
@@ -7236,6 +7277,12 @@ void modernFloorBoard::updateOddsParameterControls(bool available)
         oddsCustomSection->setVisible(oddsType->currentIndex() == 0x19);
     if (oddsModelBrowser && oddsType)
         oddsModelBrowser->setCurrentIndex(oddsType->currentIndex());
+    if (oddsType) {
+        applyPedalArtwork(
+            oddsArtwork, PedalArtworkFamily::OverdriveDistortion,
+            oddsType->currentIndex(), PedalArtworkVariant::Default,
+            oddsCustomType ? oddsCustomType->currentIndex() : -1);
+    }
     if (oddsArtwork && oddsType)
         oddsArtwork->setTextOverlayText(
             "type", oddsArtworkType(oddsType->currentText()));
@@ -7282,6 +7329,10 @@ void modernFloorBoard::setOddsType(int index)
     if (oddsArtwork)
         oddsArtwork->setTextOverlayText(
             "type", oddsArtworkType(oddsType->itemText(index)));
+    applyPedalArtwork(
+        oddsArtwork, PedalArtworkFamily::OverdriveDistortion, index,
+        PedalArtworkVariant::Default,
+        oddsCustomType ? oddsCustomType->currentIndex() : -1);
 }
 
 void modernFloorBoard::oddsComboChanged(int value)
@@ -7411,6 +7462,7 @@ void modernFloorBoard::updateDelayParameterControls(bool available)
     }
 
     const int type = delayType ? delayType->currentIndex() : -1;
+    applyPedalArtwork(delayArtwork, PedalArtworkFamily::Delay, type);
     updateDelayPageForType(type);
     if (delayArtwork && delayType)
         delayArtwork->setTextOverlayText(
@@ -7491,6 +7543,7 @@ void modernFloorBoard::setDelayType(int index)
     if (delayArtwork)
         delayArtwork->setTextOverlayText(
             "type", delayArtworkType(delayType->itemText(index)));
+    applyPedalArtwork(delayArtwork, PedalArtworkFamily::Delay, index);
 }
 
 void modernFloorBoard::delayModelSelected(int index)
@@ -7569,6 +7622,11 @@ void modernFloorBoard::updateChorusParameterControls(bool available)
                 ? chorusMode->currentText().toUpper()
                 : QString());
     }
+    if (available && chorusMode) {
+        applyPedalArtwork(
+            chorusArtwork, PedalArtworkFamily::Chorus,
+            chorusMode->currentData().toInt());
+    }
 
     for (ParameterBar *bar : chorusBars) {
         if (!bar)
@@ -7623,6 +7681,7 @@ void modernFloorBoard::setChorusMode(int index)
     if (chorusArtwork)
         chorusArtwork->setTextOverlayText(
             "type", chorusMode->itemText(index).toUpper());
+    applyPedalArtwork(chorusArtwork, PedalArtworkFamily::Chorus, raw);
 }
 
 void modernFloorBoard::chorusComboChanged(int index)

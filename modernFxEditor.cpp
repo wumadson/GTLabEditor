@@ -7,6 +7,7 @@
 #include "globalVariables.h"
 #include "modernTheme.h"
 #include "modernWidgets.h"
+#include "pedalArtworkResolver.h"
 #include "parameterBar.h"
 
 #include <QAbstractButton>
@@ -30,6 +31,20 @@
 
 namespace {
 const char kStructure[] = "Structure";
+
+bool applyFxArtwork(EffectArtworkWidget *widget, FxSlot slot, int modelRaw)
+{
+    if (!widget)
+        return false;
+    PedalArtworkRequest request;
+    request.family = PedalArtworkFamily::Fx;
+    request.modelRaw = modelRaw;
+    request.variant = slot == FxSlot::FX1
+        ? PedalArtworkVariant::Fx1 : PedalArtworkVariant::Fx2;
+    return widget->setArtworkWithFallback(
+        PedalArtworkResolver::resolve(request),
+        PedalArtworkResolver::fallback(request));
+}
 
 class ResponsiveSectionColumns : public QWidget
 {
@@ -345,7 +360,7 @@ void ModernFxEditor::buildEditor()
     editor->setRightPanelTitle(slotName + " TYPES");
 
     artwork = new EffectArtworkWidget;
-    artwork->setArtwork(":/assets/effects/pedal_generic.png");
+    applyFxArtwork(artwork, fxSlot, -1);
     artwork->setGenericPedalIdentity(
         slotName, QColor(ModernTheme::color(ModernTheme::PrimaryText)),
         QColor(ModernTheme::effectColor(slotName)));
@@ -1362,6 +1377,8 @@ void ModernFxEditor::setFxType(int raw, bool writeBackend)
 
     if (writeBackend)
         writeValue(FxAddress::relative(0, "01"), raw);
+
+    applyFxArtwork(artwork, fxSlot, raw);
 
     if (hiddenType) {
         const QSignalBlocker blocker(hiddenType);
