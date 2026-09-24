@@ -5,6 +5,7 @@
 #include <QColor>
 #include <QFont>
 #include <QKeyEvent>
+#include <QLinearGradient>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QWheelEvent>
@@ -339,11 +340,17 @@ void ParameterBar::paintEvent(QPaintEvent *)
     QRectF fill(qMin(startPosition, valuePosition), track.top(),
                 qAbs(valuePosition - startPosition), track.height());
     if (fill.width() > 0.5) {
-        QColor fillColor = enabled ? parameterAccent
-            : QColor(ModernTheme::color(ModernTheme::DisabledText));
-        fillColor.setAlpha(enabled ? 220 : 100);
+        QColor softColor = parameterAccent;
+        QColor intenseColor = parameterAccent;
+        softColor.setAlpha(enabled ? 102 : 34);
+        intenseColor.setAlpha(enabled ? 242 : 76);
+        QLinearGradient fillGradient(
+            QPointF(startPosition, fill.center().y()),
+            QPointF(valuePosition, fill.center().y()));
+        fillGradient.setColorAt(0.0, softColor);
+        fillGradient.setColorAt(1.0, intenseColor);
         painter.setPen(Qt::NoPen);
-        painter.setBrush(fillColor);
+        painter.setBrush(fillGradient);
         painter.drawRoundedRect(fill, 4.0, 4.0);
     }
 
