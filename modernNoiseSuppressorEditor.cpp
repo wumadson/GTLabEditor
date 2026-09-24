@@ -57,10 +57,13 @@ QString ModernNoiseSuppressorEditor::addressForOffset(int offset) const
 void ModernNoiseSuppressorEditor::buildEditor()
 {
     const QString name = nsSlot == NoiseSuppressorSlot::NS1
+        ? "NS1" : "NS2";
+    const QString category = nsSlot == NoiseSuppressorSlot::NS1
         ? "NS-1" : "NS-2";
-    const QColor accent(ModernTheme::activeEffectAccent(name));
+    const QColor accent(ModernTheme::activeEffectAccent(category));
 
     editor = new EffectEditorPanel(name);
+    editor->setEffectIdentity(name, category);
     editor->typeLabel()->hide();
     editor->setRightPanelTitle("DETECTION SOURCE");
 
@@ -69,7 +72,7 @@ void ModernNoiseSuppressorEditor::buildEditor()
     artwork->setGenericPedalIdentity(
         nsSlot == NoiseSuppressorSlot::NS1 ? "NS1" : "NS2",
         QColor(ModernTheme::color(ModernTheme::PrimaryText)),
-        QColor(ModernTheme::effectColor(name)));
+        QColor(ModernTheme::effectColor(category)));
     editor->setArtworkWidget(artwork);
 
     QVBoxLayout *parameterLayout =
@@ -86,7 +89,7 @@ void ModernNoiseSuppressorEditor::buildEditor()
     stateToggle->setAccentColor(accent);
     stateLayout->addWidget(stateControl, 0, Qt::AlignTop);
     stateLayout->addStretch(1);
-    parameterLayout->addWidget(stateRow);
+    editor->setControlRowWidgets(stateRow);
 
     QLabel *sectionTitle = new QLabel(tr("SUPPRESSION"));
     sectionTitle->setObjectName("ParameterSectionTitle");

@@ -39,15 +39,16 @@ EffectEditorPanel *ModernSendReturnEditor::widget() const
 
 void ModernSendReturnEditor::addStateRowAction(QWidget *action)
 {
-    if (stateRowLayout && action)
-        stateRowLayout->addWidget(action, 0, Qt::AlignTop);
+    if (editor && action)
+        editor->setControlRowWidgets(nullptr, action);
 }
 
 void ModernSendReturnEditor::buildEditor()
 {
     const QColor accent(ModernTheme::activeEffectAccent("SEND/RETURN"));
 
-    editor = new EffectEditorPanel(tr("SEND/RETURN"));
+    editor = new EffectEditorPanel(tr("S/R"));
+    editor->setEffectIdentity(tr("S/R"), "SEND/RETURN");
     editor->typeLabel()->hide();
     editor->setRightPanelTitle("LOOP MODE");
 
@@ -72,7 +73,7 @@ void ModernSendReturnEditor::buildEditor()
     stateToggle->setAccentColor(accent);
     stateRowLayout->addWidget(stateControl, 0, Qt::AlignTop);
     stateRowLayout->addStretch(1);
-    parameterLayout->addWidget(stateRow);
+    editor->setControlRowWidgets(stateRow);
 
     QLabel *sectionTitle = new QLabel(tr("LEVELS"));
     sectionTitle->setObjectName("ParameterSectionTitle");

@@ -461,15 +461,30 @@ QString ModernTheme::applicationStyleSheet()
             border: 1px solid #24272C;
             border-radius: 4px;
         }
+        QFrame#SelectedEffectRibbon {
+            background: #0C0F12;
+            border: none;
+            border-bottom: 1px solid #20262C;
+        }
+        QFrame#SelectedEffectAccent {
+            border: none;
+            border-radius: 2px;
+        }
+        QLabel#SelectedEffectTitle {
+            color: #F1F4F6;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
         QFrame#EffectArtworkPane,
         QFrame#EffectParameterPane,
         QFrame#EffectModelPane {
-            background: #0A0B0D;
+            background: #090A0C;
             border: none;
         }
         QFrame#EffectParameterPane,
         QFrame#EffectModelPane {
-            border-left: 1px solid #24272C;
+            border-left: 1px solid #181D22;
         }
         QLabel#WorkspaceColumnTitle,
         QLabel#BottomRegionTitle {

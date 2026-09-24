@@ -369,7 +369,7 @@ void ModernFxEditor::buildEditor()
     stateToggle->setAccentColor(accent);
     stateRowLayout->addWidget(stateControl, 0, Qt::AlignTop);
     stateRowLayout->addStretch(1);
-    layout->addWidget(stateRow);
+    editor->setControlRowWidgets(stateRow);
 
     ParameterCombo *hiddenTypeControl = new ParameterCombo(tr("Type"));
     hiddenType = hiddenTypeControl->comboBox();

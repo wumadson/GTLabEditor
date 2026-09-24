@@ -125,7 +125,8 @@ PedalEditorContext ModernPedalFxEditor::context() const
 void ModernPedalFxEditor::buildEditor()
 {
     const QColor accent(ModernTheme::activeEffectAccent("PEDAL FX"));
-    editor = new EffectEditorPanel(tr("PEDAL / EXP"));
+    editor = new EffectEditorPanel(tr("P.FX"));
+    editor->setEffectIdentity(tr("P.FX"), "PEDAL FX");
     editor->typeLabel()->hide();
     editor->setRightPanelTitle("P.FX MODES");
 
@@ -151,7 +152,7 @@ void ModernPedalFxEditor::buildEditor()
     stateToggle->setAccentColor(accent);
     stateLayout->addWidget(stateControl, 0, Qt::AlignTop);
     stateLayout->addStretch(1);
-    layout->addWidget(stateRow);
+    editor->setControlRowWidgets(stateRow);
 
     layout->addWidget(sectionTitle("CONTROL"));
     ResponsivePedalControlRow *controlColumns =
@@ -510,6 +511,14 @@ void ModernPedalFxEditor::updateContextPresentation()
                 "FOOT VOLUME IS NOT ACTIVE IN THE CURRENT MODE");
     }
     const QColor accent(ModernTheme::activeEffectAccent("FOOT VOLUME"));
+    if (editorContext == PedalEditorContext::FootVolume) {
+        editor->setEffectIdentity(tr("FV"), "FOOT VOLUME");
+        stateToggle->setAccentColor(accent);
+    } else {
+        editor->setEffectIdentity(tr("P.FX"), "PEDAL FX");
+        stateToggle->setAccentColor(QColor(
+            ModernTheme::activeEffectAccent("PEDAL FX")));
+    }
     for (QWidget *section : footVolumeSections) {
         if (!section)
             continue;

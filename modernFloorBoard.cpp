@@ -1457,10 +1457,8 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
         ModernTheme::activeEffectAccent("REVERB")));
     connect(reverbOnOff, SIGNAL(clicked()), this, SLOT(toggleReverb()));
     reverbPrimaryLayout->addWidget(reverbToggle, 0, Qt::AlignTop);
-    reverbPrimaryLayout->addStretch(1);
-    reverbPrimaryLayout->addWidget(createQuickSettingButton(
-        QuickSettingEffect::Reverb), 0, Qt::AlignTop);
-    parameterLayout->addWidget(reverbPrimaryControls);
+    reverbEditor->setControlRowWidgets(reverbPrimaryControls,
+        createQuickSettingButton(QuickSettingEffect::Reverb));
 
     QWidget *reverbQuickPanel = new QWidget;
     QGridLayout *reverbQuickLayout = new QGridLayout(reverbQuickPanel);
@@ -1558,10 +1556,8 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
         ModernTheme::activeEffectAccent("COMP")));
     connect(compOnOff, SIGNAL(clicked()), this, SLOT(toggleComp()));
     compPrimaryLayout->addWidget(compToggle, 0, Qt::AlignTop);
-    compPrimaryLayout->addStretch(1);
-    compPrimaryLayout->addWidget(createQuickSettingButton(
-        QuickSettingEffect::Compressor), 0, Qt::AlignTop);
-    compParameterLayout->addWidget(compPrimaryControls);
+    compEditor->setControlRowWidgets(compPrimaryControls,
+        createQuickSettingButton(QuickSettingEffect::Compressor));
 
     QWidget *compQuickPanel = new QWidget;
     QGridLayout *compQuickLayout = new QGridLayout(compQuickPanel);
@@ -1664,10 +1660,9 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     oddsOnOff->setProperty("address", "70");
     connect(oddsOnOff, SIGNAL(clicked()), this, SLOT(oddsToggleChanged()));
     oddsPrimaryLayout->addWidget(oddsToggle, 0, Qt::AlignTop);
-    oddsPrimaryLayout->addStretch(1);
-    oddsPrimaryLayout->addWidget(createQuickSettingButton(
-        QuickSettingEffect::OverdriveDistortion), 0, Qt::AlignTop);
-    oddsParameterLayout->addWidget(oddsPrimaryControls);
+    oddsEditor->setControlRowWidgets(oddsPrimaryControls,
+        createQuickSettingButton(
+            QuickSettingEffect::OverdriveDistortion));
 
     QWidget *oddsQuickPanel = new QWidget;
     QGridLayout *oddsQuickLayout = new QGridLayout(oddsQuickPanel);
@@ -1785,10 +1780,8 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     delayOnOff->setProperty("address", "00");
     connect(delayOnOff, SIGNAL(clicked()), this, SLOT(delayToggleChanged()));
     delayPrimaryLayout->addWidget(delayToggle, 0, Qt::AlignTop);
-    delayPrimaryLayout->addStretch(1);
-    delayPrimaryLayout->addWidget(createQuickSettingButton(
-        QuickSettingEffect::Delay), 0, Qt::AlignTop);
-    delayParameterLayout->addWidget(delayPrimaryControls);
+    delayEditor->setControlRowWidgets(delayPrimaryControls,
+        createQuickSettingButton(QuickSettingEffect::Delay));
 
     QWidget *delayQuickPanel = new QWidget;
     QGridLayout *delayQuickLayout = new QGridLayout(delayQuickPanel);
@@ -1972,10 +1965,8 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
         ModernTheme::activeEffectAccent("CHORUS")));
     connect(chorusOnOff, SIGNAL(clicked()), this, SLOT(toggleChorus()));
     chorusPrimaryLayout->addWidget(chorusToggle, 0, Qt::AlignTop);
-    chorusPrimaryLayout->addStretch(1);
-    chorusPrimaryLayout->addWidget(createQuickSettingButton(
-        QuickSettingEffect::Chorus), 0, Qt::AlignTop);
-    chorusParameterLayout->addWidget(chorusPrimaryControls);
+    chorusEditor->setControlRowWidgets(chorusPrimaryControls,
+        createQuickSettingButton(QuickSettingEffect::Chorus));
 
     QWidget *chorusQuickPanel = new QWidget;
     QGridLayout *chorusQuickLayout = new QGridLayout(chorusQuickPanel);
@@ -2044,28 +2035,26 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     eqFullWidthEditor->setObjectName("EffectEditorPanel");
     eqEditor = eqFullWidthEditor;
     QVBoxLayout *eqLayout = new QVBoxLayout(eqFullWidthEditor);
-    eqLayout->setContentsMargins(10, 8, 10, 8);
-    eqLayout->setSpacing(5);
+    eqLayout->setContentsMargins(0, 0, 0, 0);
+    eqLayout->setSpacing(0);
 
-    QWidget *eqHeader = new QWidget;
-    QHBoxLayout *eqHeaderLayout = new QHBoxLayout(eqHeader);
-    eqHeaderLayout->setContentsMargins(0, 0, 0, 0);
-    eqHeaderLayout->setSpacing(12);
-    QLabel *eqTitle = new QLabel(tr("EQ"));
-    eqTitle->setObjectName("EditorTitle");
-    eqTitle->setStyleSheet(QString("color:%1;").arg(
-        ModernTheme::activeEffectAccent("EQ")));
+    SelectedEffectRibbon *eqRibbon = new SelectedEffectRibbon(tr("EQ"));
     EffectToggleControl *eqToggle = new EffectToggleControl(tr("State"));
     eqOnOff = eqToggle->toggle();
     eqOnOff->setAccentColor(QColor(
         ModernTheme::activeEffectAccent("EQ")));
     connect(eqOnOff, SIGNAL(clicked()), this, SLOT(toggleEq()));
-    eqHeaderLayout->addWidget(eqToggle, 0, Qt::AlignTop);
-    eqHeaderLayout->addStretch(1);
-    eqHeaderLayout->addWidget(createQuickSettingButton(
-        QuickSettingEffect::Equalizer), 0, Qt::AlignTop);
-    eqHeaderLayout->addWidget(eqTitle);
-    eqLayout->addWidget(eqHeader);
+    eqRibbon->setPowerButton(eqOnOff);
+    eqRibbon->addAction(createQuickSettingButton(
+        QuickSettingEffect::Equalizer));
+    eqToggle->hide();
+    eqLayout->addWidget(eqRibbon);
+
+    QWidget *eqBody = new QWidget;
+    QVBoxLayout *eqBodyLayout = new QVBoxLayout(eqBody);
+    eqBodyLayout->setContentsMargins(10, 8, 10, 8);
+    eqBodyLayout->setSpacing(5);
+    eqLayout->addWidget(eqBody, 1);
 
     QWidget *eqQuickPanel = new QWidget;
     QGridLayout *eqQuickLayout = new QGridLayout(eqQuickPanel);
@@ -2101,7 +2090,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
         QuickSettingEffect::Equalizer, "EQ", eqQuickPanel);
 
     eqGraph = new ModernEqGraph;
-    eqLayout->addWidget(eqGraph, 1);
+    eqBodyLayout->addWidget(eqGraph, 1);
 
     QWidget *eqControlsContent = new QWidget;
     QVBoxLayout *eqControlsLayout = new QVBoxLayout(eqControlsContent);
@@ -2152,7 +2141,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     eqControlsScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     eqControlsScroll->setWidget(
         createParameterScrollContent(eqControlsContent));
-    eqLayout->addWidget(eqControlsScroll, 1);
+    eqBodyLayout->addWidget(eqControlsScroll, 1);
     effectEditorStack->addWidget(eqEditor);
 
     effectEditorStack->addWidget(createPreampEditor(PreampChannel::A));
@@ -2345,10 +2334,12 @@ EffectEditorPanel *modernFloorBoard::createPreampEditor(
     PreampEditorState &state = preampState(channel);
     const QString name = channel == PreampChannel::A
         ? "PREAMP A" : "PREAMP B";
+    const QString category = "PREAMP";
     const int channelValue = channel == PreampChannel::A ? 0 : 1;
-    const QColor accent(ModernTheme::activeEffectAccent(name));
+    const QColor accent(ModernTheme::activeEffectAccent(category));
 
     state.editor = new EffectEditorPanel(name);
+    state.editor->setEffectIdentity(name, category);
     state.editor->typeLabel()->hide();
     state.browser = new EffectModelBrowser;
     state.browser->setAccentColor(accent);
@@ -2392,12 +2383,9 @@ EffectEditorPanel *modernFloorBoard::createPreampEditor(
     connect(state.globalState, SIGNAL(clicked()),
             this, SLOT(preampToggleChanged()));
     primaryLayout->addWidget(globalControl, 0, Qt::AlignTop);
-    primaryLayout->addStretch(1);
-    primaryLayout->addWidget(createQuickSettingButton(
+    state.editor->setControlRowWidgets(primary, createQuickSettingButton(
         channel == PreampChannel::A ? QuickSettingEffect::PreampA
-                                    : QuickSettingEffect::PreampB),
-        0, Qt::AlignTop);
-    layout->addWidget(primary);
+                                    : QuickSettingEffect::PreampB));
 
     QWidget *quickPanel = new QWidget;
     QGridLayout *quickLayout = new QGridLayout(quickPanel);
@@ -2585,8 +2573,8 @@ QWidget *modernFloorBoard::createPreampBar(PreampChannel channel,
 {
     PreampEditorState &state = preampState(channel);
     ParameterBar *bar = new ParameterBar(label);
-    bar->setAccentColor(QColor(ModernTheme::activeEffectAccent(
-        channel == PreampChannel::A ? "PREAMP A" : "PREAMP B")));
+    bar->setAccentColor(QColor(
+        ModernTheme::activeEffectAccent("PREAMP")));
     bar->setProperty("preampChannel",
                      channel == PreampChannel::A ? 0 : 1);
     bar->setProperty("preampOffset", offset);
@@ -2621,8 +2609,8 @@ QWidget *modernFloorBoard::createPreampToggle(
     PreampEditorState &state = preampState(channel);
     EffectToggleControl *control = new EffectToggleControl(label);
     ModernToggleSwitch *toggle = control->toggle();
-    toggle->setAccentColor(QColor(ModernTheme::activeEffectAccent(
-        channel == PreampChannel::A ? "PREAMP A" : "PREAMP B")));
+    toggle->setAccentColor(QColor(
+        ModernTheme::activeEffectAccent("PREAMP")));
     toggle->setProperty("preampChannel",
                         channel == PreampChannel::A ? 0 : 1);
     toggle->setProperty("preampOffset", offset);

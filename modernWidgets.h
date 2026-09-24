@@ -32,6 +32,7 @@ class QVariantAnimation;
 class AudioGearKnob;
 class AudioGearSwitch;
 class ModernToggleSwitch;
+class SelectedEffectRibbon;
 
 QWidget *createParameterScrollContent(QWidget *content,
                                       QWidget *parent = nullptr);
@@ -59,12 +60,17 @@ public:
     QWidget *artworkArea() const;
     void setArtworkWidget(QWidget *widget);
     void setArtworkControlWidget(QWidget *widget);
+    void setControlRowWidgets(QWidget *stateWidget,
+                              QWidget *utilityWidget = nullptr);
+    void setEffectIdentity(const QString &effectName,
+                           const QString &accentName = QString());
     void setModelBrowserWidget(QWidget *widget);
     void setRightPanelTitle(const QString &title);
     void setRightPanelWidget(QWidget *widget);
     QSize minimumSizeHint() const override;
 private:
     QLabel *currentType;
+    SelectedEffectRibbon *ribbon;
     QLabel *modelTitle;
     QLabel *modelState;
     QWidget *rightPanelWidget;
@@ -72,6 +78,21 @@ private:
     QWidget *artwork;
     QVBoxLayout *artworkLayout;
     QVBoxLayout *modelLayout;
+};
+
+class SelectedEffectRibbon : public QFrame
+{
+public:
+    explicit SelectedEffectRibbon(const QString &effectName,
+                                  QWidget *parent = nullptr);
+    void setEffectIdentity(const QString &effectName,
+                           const QString &accentName = QString());
+    void setPowerButton(ModernToggleSwitch *power);
+    void addAction(QWidget *action);
+private:
+    QFrame *accent;
+    QLabel *title;
+    QHBoxLayout *contentLayout;
 };
 
 class BottomControlStrip : public QFrame
@@ -182,6 +203,7 @@ public:
     explicit ModernToggleSwitch(QWidget *parent = nullptr);
     void setAccentColor(const QColor &color);
     QColor accentColor() const;
+    void setPowerButtonMode(bool enabled);
     void setCheckedFromBackend(bool checked);
     QSize sizeHint() const override;
     QSize minimumSizeHint() const override;
@@ -190,6 +212,7 @@ protected:
 private:
     void animateThumb(bool checked);
     QColor switchAccent;
+    bool powerButtonMode;
     qreal thumbPosition;
     QVariantAnimation *thumbAnimation;
 };

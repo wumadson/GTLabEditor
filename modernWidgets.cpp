@@ -147,13 +147,73 @@ QWidget *createParameterScrollContent(QWidget *content, QWidget *parent)
     return wrapper;
 }
 
+SelectedEffectRibbon::SelectedEffectRibbon(const QString &effectName,
+                                           QWidget *parent)
+    : QFrame(parent)
+{
+    setObjectName("SelectedEffectRibbon");
+    contentLayout = new QHBoxLayout(this);
+    contentLayout->setContentsMargins(10, 5, 10, 5);
+    contentLayout->setSpacing(8);
+
+    accent = new QFrame;
+    accent->setObjectName("SelectedEffectAccent");
+    accent->setFixedSize(3, 28);
+    contentLayout->addWidget(accent, 0, Qt::AlignVCenter);
+
+    title = new QLabel;
+    title->setObjectName("SelectedEffectTitle");
+    title->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
+    contentLayout->addWidget(title, 0, Qt::AlignVCenter);
+    contentLayout->addStretch(1);
+    setEffectIdentity(effectName);
+}
+
+void SelectedEffectRibbon::setEffectIdentity(const QString &effectName,
+                                             const QString &accentName)
+{
+    title->setText(effectName);
+    const QString category = accentName.isEmpty() ? effectName : accentName;
+    accent->setStyleSheet(QString("background:%1;").arg(
+        ModernTheme::activeEffectAccent(category)));
+}
+
+void SelectedEffectRibbon::setPowerButton(ModernToggleSwitch *power)
+{
+    if (!power)
+        return;
+    power->setPowerButtonMode(true);
+    power->setToolTip(QObject::tr("Effect power"));
+    contentLayout->insertWidget(1, power, 0, Qt::AlignVCenter);
+}
+
+void SelectedEffectRibbon::addAction(QWidget *action)
+{
+    if (action)
+        contentLayout->addWidget(action, 0, Qt::AlignVCenter);
+}
+
 EffectEditorPanel::EffectEditorPanel(const QString &effectName, QWidget *parent)
     : QFrame(parent), rightPanelWidget(nullptr)
 {
     setObjectName("EffectEditorPanel");
-    QHBoxLayout *root = new QHBoxLayout(this);
+    QVBoxLayout *root = new QVBoxLayout(this);
     root->setContentsMargins(0, 0, 0, 0);
     root->setSpacing(0);
+
+    ribbon = new SelectedEffectRibbon(effectName);
+    ribbon->hide();
+
+    currentType = new QLabel(QString::fromUtf8("—"), ribbon);
+    currentType->hide();
+    root->addWidget(ribbon);
+
+    QWidget *editorBody = new QWidget;
+    editorBody->setObjectName("SelectedEffectBody");
+    QHBoxLayout *bodyLayout = new QHBoxLayout(editorBody);
+    bodyLayout->setContentsMargins(0, 0, 0, 0);
+    bodyLayout->setSpacing(0);
+    root->addWidget(editorBody, 1);
 
     QFrame *artworkPane = new QFrame;
     artworkPane->setObjectName("EffectArtworkPane");
@@ -167,10 +227,6 @@ EffectEditorPanel::EffectEditorPanel(const QString &effectName, QWidget *parent)
     const QString editorAccent = ModernTheme::activeEffectAccent(effectName);
     title->setStyleSheet(QString("color:%1;").arg(editorAccent));
     artworkLayout->addWidget(title);
-    currentType = new QLabel(QString::fromUtf8("—"));
-    currentType->setObjectName("EffectTypeDisplay");
-    currentType->setStyleSheet(QString("color:%1;").arg(editorAccent));
-    artworkLayout->addWidget(currentType);
     artwork = new QWidget;
     artwork->setObjectName("EffectArtworkArea");
     artworkLayout->addWidget(artwork, 1);
@@ -222,9 +278,9 @@ EffectEditorPanel::EffectEditorPanel(const QString &effectName, QWidget *parent)
     modelLayout->addWidget(modelState, 1);
     rightPanelWidget = modelState;
 
-    root->addWidget(artworkPane, 25);
-    root->addWidget(parameterPane, 56);
-    root->addWidget(modelPane, 19);
+    bodyLayout->addWidget(artworkPane, 25);
+    bodyLayout->addWidget(parameterPane, 56);
+    bodyLayout->addWidget(modelPane, 19);
 }
 
 QLabel *EffectEditorPanel::typeLabel() const { return currentType; }
@@ -246,6 +302,29 @@ void EffectEditorPanel::setArtworkControlWidget(QWidget *widget)
 {
     if (widget)
         artworkLayout->addWidget(widget, 0, Qt::AlignLeft);
+}
+
+void EffectEditorPanel::setControlRowWidgets(QWidget *stateWidget,
+                                             QWidget *utilityWidget)
+{
+    if (!ribbon)
+        return;
+    if (QWidget *legacyTitle = findChild<QWidget *>("EditorTitle"))
+        legacyTitle->hide();
+    ModernToggleSwitch *power = stateWidget
+        ? stateWidget->findChild<ModernToggleSwitch *>() : nullptr;
+    ribbon->setPowerButton(power);
+    if (stateWidget)
+        stateWidget->hide();
+    ribbon->addAction(utilityWidget);
+    ribbon->show();
+}
+
+void EffectEditorPanel::setEffectIdentity(const QString &effectName,
+                                          const QString &accentName)
+{
+    if (ribbon)
+        ribbon->setEffectIdentity(effectName, accentName);
 }
 
 void EffectEditorPanel::setModelBrowserWidget(QWidget *widget)
@@ -1142,6 +1221,7 @@ QSize ParameterToggle::minimumSizeHint() const { return QSize(100, 64); }
 ModernToggleSwitch::ModernToggleSwitch(QWidget *parent)
     : QAbstractButton(parent),
       switchAccent(ModernTheme::color(ModernTheme::EditorAccent)),
+      powerButtonMode(false),
       thumbPosition(0.0), thumbAnimation(new QVariantAnimation(this))
 {
     setObjectName("ModernToggleSwitch");
@@ -1173,6 +1253,16 @@ QColor ModernToggleSwitch::accentColor() const
     return switchAccent;
 }
 
+void ModernToggleSwitch::setPowerButtonMode(bool enabled)
+{
+    if (powerButtonMode == enabled)
+        return;
+    powerButtonMode = enabled;
+    setFixedSize(enabled ? QSize(32, 32) : QSize(66, 24));
+    updateGeometry();
+    update();
+}
+
 void ModernToggleSwitch::setCheckedFromBackend(bool checked)
 {
     const QSignalBlocker blocker(this);
@@ -1182,8 +1272,11 @@ void ModernToggleSwitch::setCheckedFromBackend(bool checked)
     update();
 }
 
-QSize ModernToggleSwitch::sizeHint() const { return QSize(66, 24); }
-QSize ModernToggleSwitch::minimumSizeHint() const { return QSize(66, 24); }
+QSize ModernToggleSwitch::sizeHint() const
+{
+    return powerButtonMode ? QSize(32, 32) : QSize(66, 24);
+}
+QSize ModernToggleSwitch::minimumSizeHint() const { return sizeHint(); }
 
 void ModernToggleSwitch::animateThumb(bool checked)
 {
@@ -1203,6 +1296,45 @@ void ModernToggleSwitch::paintEvent(QPaintEvent *)
 
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing, true);
+
+    if (powerButtonMode) {
+        const QRectF button = rect().adjusted(1, 1, -1, -1);
+        QColor surface(ModernTheme::color(ModernTheme::ControlBackground));
+        QColor border(ModernTheme::color(ModernTheme::BorderSubtle));
+        QColor icon(ModernTheme::color(ModernTheme::SecondaryText));
+        if (!isEnabled()) {
+            surface = QColor(ModernTheme::color(ModernTheme::Panel));
+            icon = QColor(ModernTheme::color(ModernTheme::DisabledText));
+        } else if (isChecked()) {
+            surface = switchAccent;
+            surface.setAlpha(underMouse() ? 230 : 205);
+            border = switchAccent.lighter(118);
+            icon = QColor(ModernTheme::color(ModernTheme::PrimaryText));
+        } else if (underMouse()) {
+            surface = QColor(ModernTheme::color(ModernTheme::ElevatedPanel));
+        }
+
+        painter.setPen(QPen(border, 1));
+        painter.setBrush(surface);
+        painter.drawRoundedRect(button, 5, 5);
+
+        painter.setPen(QPen(icon, 2.0, Qt::SolidLine, Qt::RoundCap));
+        const QRectF iconArc = button.adjusted(8, 8, -8, -8);
+        painter.drawArc(iconArc, 135 * 16, 270 * 16);
+        painter.drawLine(QPointF(button.center().x(), button.top() + 6.5),
+                         QPointF(button.center().x(), button.center().y()));
+
+        if (hasFocus()) {
+            QColor focus = switchAccent;
+            focus.setAlpha(120);
+            painter.setPen(QPen(focus, 1));
+            painter.setBrush(Qt::NoBrush);
+            painter.drawRoundedRect(button.adjusted(-0.25, -0.25,
+                                                     0.25, 0.25),
+                                    5, 5);
+        }
+        return;
+    }
 
     const QRectF track = rect().adjusted(1, 1, -1, -1);
     QColor trackColor;
