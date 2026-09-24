@@ -73,9 +73,16 @@ void ModernNoiseSuppressorEditor::buildEditor()
     artworkRequest.family = PedalArtworkFamily::NoiseSuppressor;
     artworkRequest.variant = nsSlot == NoiseSuppressorSlot::NS1
         ? PedalArtworkVariant::Ns1 : PedalArtworkVariant::Ns2;
-    artwork->setArtworkWithFallback(
-        PedalArtworkResolver::resolve(artworkRequest),
-        PedalArtworkResolver::fallback(artworkRequest));
+    const QString specificPath = PedalArtworkResolver::resolve(artworkRequest);
+    const QString fallbackPath = PedalArtworkResolver::fallback(artworkRequest);
+    bool usedFallback = false;
+    const bool artworkLoaded = artwork->setArtworkWithFallback(
+        specificPath, fallbackPath, &usedFallback,
+        specificPath != fallbackPath);
+    if (artworkLoaded) {
+        artwork->setGenericPedalPresentationEnabled(
+            specificPath == fallbackPath || usedFallback);
+    }
     artwork->setGenericPedalIdentity(
         nsSlot == NoiseSuppressorSlot::NS1 ? "NS1" : "NS2",
         QColor(ModernTheme::color(ModernTheme::PrimaryText)),

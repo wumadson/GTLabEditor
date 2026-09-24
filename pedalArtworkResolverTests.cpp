@@ -158,6 +158,38 @@ int main(int argc, char **argv)
                      == ":/assets/effects/pedal_generic.png",
                  "unknown delay raw uses the generic fallback");
 
+    request = PedalArtworkRequest();
+    request.family = PedalArtworkFamily::NoiseSuppressor;
+    request.variant = PedalArtworkVariant::Ns1;
+    ok &= expect(PedalArtworkResolver::resolve(request)
+                     == ":/assets/pedals/ns/ns1.png",
+                 "NS1 uses its specific artwork");
+    ok &= expect(!QImage(PedalArtworkResolver::resolve(request)).isNull(),
+                 "NS1 specific resource loads through QRC");
+    request.variant = PedalArtworkVariant::Ns2;
+    ok &= expect(PedalArtworkResolver::resolve(request)
+                     == ":/assets/pedals/ns/ns2.png",
+                 "NS2 uses its specific artwork");
+    ok &= expect(!QImage(PedalArtworkResolver::resolve(request)).isNull(),
+                 "NS2 specific resource loads through QRC");
+    request.variant = PedalArtworkVariant::Default;
+    ok &= expect(PedalArtworkResolver::resolve(request)
+                     == ":/assets/effects/pedal_generic.png",
+                 "unsupported noise suppressor variant uses the generic fallback");
+
+    request = PedalArtworkRequest();
+    request.family = PedalArtworkFamily::SendReturn;
+    request.variant = PedalArtworkVariant::Default;
+    ok &= expect(PedalArtworkResolver::resolve(request)
+                     == ":/assets/pedals/sr/send_return.png",
+                 "S/R uses its specific artwork");
+    ok &= expect(!QImage(PedalArtworkResolver::resolve(request)).isNull(),
+                 "S/R specific resource loads through QRC");
+    request.variant = PedalArtworkVariant::Ns1;
+    ok &= expect(PedalArtworkResolver::resolve(request)
+                     == ":/assets/effects/pedal_generic.png",
+                 "unsupported S/R variant uses the generic fallback");
+
     request.family = PedalArtworkFamily::OverdriveDistortion;
     request.modelRaw = 0x7F;
     request.secondaryRaw = 0x7E;

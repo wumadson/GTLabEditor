@@ -38,6 +38,12 @@ const char *const kDelayArtwork[] = {
     ":/assets/pedals/delay/09_warp.png",
     ":/assets/pedals/delay/0a_modulate.png"
 };
+const char kNoiseSuppressor1Artwork[] =
+    ":/assets/pedals/ns/ns1.png";
+const char kNoiseSuppressor2Artwork[] =
+    ":/assets/pedals/ns/ns2.png";
+const char kSendReturnArtwork[] =
+    ":/assets/pedals/sr/send_return.png";
 }
 
 QString PedalArtworkResolver::resolve(const PedalArtworkRequest &request)
@@ -62,6 +68,18 @@ QString PedalArtworkResolver::resolve(const PedalArtworkRequest &request)
     if (request.family == PedalArtworkFamily::Delay
         && request.modelRaw >= 0x00 && request.modelRaw <= 0x0A) {
         return QString::fromLatin1(kDelayArtwork[request.modelRaw]);
+    }
+
+    if (request.family == PedalArtworkFamily::NoiseSuppressor) {
+        if (request.variant == PedalArtworkVariant::Ns1)
+            return QString::fromLatin1(kNoiseSuppressor1Artwork);
+        if (request.variant == PedalArtworkVariant::Ns2)
+            return QString::fromLatin1(kNoiseSuppressor2Artwork);
+    }
+
+    if (request.family == PedalArtworkFamily::SendReturn
+        && request.variant == PedalArtworkVariant::Default) {
+        return QString::fromLatin1(kSendReturnArtwork);
     }
 
     return fallback(request);

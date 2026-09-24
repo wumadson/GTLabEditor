@@ -56,9 +56,16 @@ void ModernSendReturnEditor::buildEditor()
     artwork = new EffectArtworkWidget;
     PedalArtworkRequest artworkRequest;
     artworkRequest.family = PedalArtworkFamily::SendReturn;
-    artwork->setArtworkWithFallback(
-        PedalArtworkResolver::resolve(artworkRequest),
-        PedalArtworkResolver::fallback(artworkRequest));
+    const QString specificPath = PedalArtworkResolver::resolve(artworkRequest);
+    const QString fallbackPath = PedalArtworkResolver::fallback(artworkRequest);
+    bool usedFallback = false;
+    const bool artworkLoaded = artwork->setArtworkWithFallback(
+        specificPath, fallbackPath, &usedFallback,
+        specificPath != fallbackPath);
+    if (artworkLoaded) {
+        artwork->setGenericPedalPresentationEnabled(
+            specificPath == fallbackPath || usedFallback);
+    }
     artwork->setGenericPedalIdentity(
         "S/R", QColor(ModernTheme::color(ModernTheme::PrimaryText)),
         QColor(ModernTheme::effectColor("SEND/RETURN")));
