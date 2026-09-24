@@ -566,306 +566,245 @@ BottomControlStrip::BottomControlStrip(QWidget *parent)
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
 
-    const QStringList titles = {
-        QObject::tr("EXPRESSION"), QObject::tr("CONTROL ASSIGN"),
-        QObject::tr("PEDALBOARD"), QObject::tr("TUNER")
+    QFrame *controlRegion = new QFrame;
+    controlRegion->setObjectName("BottomRegionFirst");
+    controlRegion->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+    QVBoxLayout *controlLayout = new QVBoxLayout(controlRegion);
+    controlLayout->setContentsMargins(14, 9, 14, 9);
+    controlLayout->setSpacing(4);
+
+    QWidget *controlHeader = new QWidget;
+    controlHeader->setFixedHeight(19);
+    QHBoxLayout *controlHeaderLayout = new QHBoxLayout(controlHeader);
+    controlHeaderLayout->setContentsMargins(0, 0, 0, 0);
+    controlHeaderLayout->setSpacing(6);
+    QLabel *controlTitle = new QLabel(QObject::tr("CONTROL & EXPRESSION"));
+    controlTitle->setObjectName("BottomRegionTitle");
+    controlHeaderLayout->addWidget(controlTitle);
+    controlHeaderLayout->addStretch(1);
+    BottomActionRegion *controlAction = new BottomActionRegion;
+    controlAction->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    QHBoxLayout *controlActionLayout = new QHBoxLayout(controlAction);
+    controlActionLayout->setContentsMargins(0, 0, 0, 0);
+    QPushButton *controlEdit = new QPushButton(QObject::tr("EDIT"));
+    controlEdit->setObjectName("BottomAssignEditButton");
+    controlEdit->setFixedSize(38, 19);
+    controlEdit->setCursor(Qt::PointingHandCursor);
+    controlActionLayout->addWidget(controlEdit);
+    controlHeaderLayout->addWidget(controlAction, 0, Qt::AlignVCenter);
+    connect(controlEdit, &QPushButton::clicked, controlEdit,
+            [controlAction]() {
+        if (controlAction->activated)
+            controlAction->activated();
+    });
+    controlAssignRegion = controlAction;
+    controlLayout->addWidget(controlHeader);
+
+    QGridLayout *summaryLayout = new QGridLayout;
+    summaryLayout->setContentsMargins(0, 0, 0, 0);
+    summaryLayout->setHorizontalSpacing(4);
+    summaryLayout->setVerticalSpacing(0);
+    const QStringList summaryNames = {
+        "EXP1", "EXP2", "EXP SW", "CTL1", "CTL2"
     };
-    const int stretches[] = {17, 33, 33, 17};
-    for (int i = 0; i < titles.size(); ++i) {
-        QFrame *region = (i >= 0 && i <= 2)
-            ? static_cast<QFrame *>(new BottomActionRegion)
-            : new QFrame;
-        region->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
-        region->setObjectName(i == 0 ? "BottomRegionFirst" : "BottomRegion");
-        QVBoxLayout *regionLayout = new QVBoxLayout(region);
-        regionLayout->setContentsMargins(14, i == 0 ? 9 : 11,
-                                         14, i == 0 ? 13 : 11);
-        regionLayout->setSpacing(8);
-        QLabel *title = new QLabel(titles.at(i));
-        title->setObjectName("BottomRegionTitle");
-        if (i >= 0 && i <= 2) {
-            QWidget *header = new QWidget;
-            header->setFixedHeight(19);
-            header->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-            QHBoxLayout *headerLayout = new QHBoxLayout(header);
-            headerLayout->setContentsMargins(0, 0, 0, 0);
-            headerLayout->setSpacing(6);
-            headerLayout->addWidget(title);
-            headerLayout->addStretch(1);
-            QPushButton *editButton = new QPushButton(QObject::tr("EDIT"));
-            editButton->setObjectName(i == 0
-                ? "BottomExpressionEditButton" : i == 1
-                    ? "BottomAssignEditButton" : "BottomPedalboardEditButton");
-            editButton->setFixedSize(38, 19);
-            editButton->setCursor(Qt::PointingHandCursor);
-            headerLayout->addWidget(editButton, 0, Qt::AlignVCenter);
-            regionLayout->addWidget(header);
-            BottomActionRegion *actionRegion =
-                static_cast<BottomActionRegion *>(region);
-            connect(editButton, &QPushButton::clicked, editButton,
-                    [actionRegion]() {
-                if (actionRegion->activated)
-                    actionRegion->activated();
-            });
-        } else {
-            regionLayout->addWidget(title);
-        }
-        if (titles.at(i) == "TUNER") {
-            QVBoxLayout *tunerLayout = new QVBoxLayout;
-            tunerLayout->setContentsMargins(0, 0, 0, 0);
-            tunerLayout->setSpacing(4);
-
-            QLabel *referenceLabel = new QLabel(QObject::tr("REFERENCE"));
-            referenceLabel->setObjectName("BottomTunerLabel");
-            QLabel *outputLabel = new QLabel(QObject::tr("OUTPUT"));
-            outputLabel->setObjectName("BottomTunerLabel");
-
-            tunerReference = new QComboBox;
-            tunerReference->setObjectName("BottomTunerCombo");
-            for (int raw = 0; raw <= 0x0A; ++raw)
-                tunerReference->addItem(QString::number(435 + raw) + " Hz", raw);
-
-            tunerOutput = new QComboBox;
-            tunerOutput->setObjectName("BottomTunerCombo");
-            tunerOutput->addItem(QObject::tr("MUTE"), 0x00);
-            tunerOutput->addItem(QObject::tr("BYPASSED"), 0x01);
-
-            const QList<QComboBox *> tunerCombos = {
-                tunerReference, tunerOutput
-            };
-            for (QComboBox *combo : tunerCombos) {
-                combo->setEnabled(false);
-                combo->setCurrentIndex(-1);
-                combo->setFixedHeight(17);
-                combo->setSizePolicy(QSizePolicy::Expanding,
-                                     QSizePolicy::Fixed);
-            }
-
-            const QList<QLabel *> tunerLabels = {
-                referenceLabel, outputLabel
-            };
-            for (int row = 0; row < tunerCombos.size(); ++row) {
-                QFrame *card = new QFrame;
-                card->setObjectName("BottomTunerCard");
-                card->setMinimumHeight(34);
-                card->setMaximumHeight(36);
-                card->setSizePolicy(QSizePolicy::Expanding,
-                                    QSizePolicy::Fixed);
-                QVBoxLayout *cardLayout = new QVBoxLayout(card);
-                cardLayout->setContentsMargins(8, 3, 6, 3);
-                cardLayout->setSpacing(0);
-                cardLayout->addWidget(tunerLabels.at(row));
-                cardLayout->addWidget(tunerCombos.at(row));
-                tunerLayout->addWidget(card);
-            }
-            regionLayout->addLayout(tunerLayout, 1);
-
-            region->setStyleSheet(
-                "QFrame#BottomTunerCard {"
-                " background: rgba(14,30,42,205);"
-                " border: 1px solid #293A47; border-radius: 5px; }"
-                "QFrame#BottomTunerCard:hover {"
-                " background: rgba(17,37,51,215); border-color: #354B5A; }"
-                "QLabel#BottomTunerLabel {"
-                " color: #88949F; font-size: 8px; font-weight: 600;"
-                " letter-spacing: 0.4px; }"
-                "QComboBox#BottomTunerCombo {"
-                " padding: 0 17px 0 0; color: #39B8F3;"
-                " background: transparent; border: none;"
-                " font-size: 10px; font-weight: 600; }"
-                "QComboBox#BottomTunerCombo:hover {"
-                " color: #55C8FA; background: transparent; }"
-                "QComboBox#BottomTunerCombo:focus {"
-                " color: #55C8FA; background: transparent; }"
-                "QComboBox#BottomTunerCombo:disabled {"
-                " color: #66737E; background: transparent; }"
-                "QComboBox#BottomTunerCombo::drop-down {"
-                " subcontrol-origin: padding; subcontrol-position:"
-                " center right; width: 16px; border: none; }"
-                "QComboBox#BottomTunerCombo QAbstractItemView {"
-                " color: #ECEFF2; background: #0D0F12;"
-                " border: 1px solid #24272C;"
-                " selection-background-color: #123347; outline: none; }"
-            );
-        } else if (i == 0) {
-            QGridLayout *summaryLayout = new QGridLayout;
-            summaryLayout->setContentsMargins(0, 0, 0, 0);
-            summaryLayout->setHorizontalSpacing(4);
-            summaryLayout->setVerticalSpacing(1);
-            const QStringList names = {"EXP1", "EXP SW", "EXP2"};
-            for (int column = 0; column < names.size(); ++column) {
-                QFrame *controlCard = new QFrame;
-                controlCard->setObjectName("BottomExpressionControlCard");
-                controlCard->setMinimumHeight(30);
-                controlCard->setMaximumHeight(34);
-                controlCard->setSizePolicy(QSizePolicy::Ignored,
-                                           QSizePolicy::Fixed);
-                QVBoxLayout *cardLayout = new QVBoxLayout(controlCard);
-                cardLayout->setContentsMargins(6, 3, 6, 3);
-                cardLayout->setSpacing(0);
-                QLabel *name = new QLabel(names.at(column));
-                name->setObjectName("BottomExpressionLabel");
-                name->setAlignment(Qt::AlignCenter);
-                name->setMinimumWidth(0);
-                name->setSizePolicy(QSizePolicy::Ignored,
-                                    QSizePolicy::Preferred);
-                QLabel *value = new BottomSummaryValueLabel;
-                value->setObjectName("BottomExpressionValue");
-                value->setText(QString::fromUtf8("—"));
-                expressionValues.append(value);
-                cardLayout->addWidget(name);
-                cardLayout->addWidget(value);
-                summaryLayout->addWidget(controlCard, 0, column);
-                summaryLayout->setColumnMinimumWidth(column, 0);
-                summaryLayout->setColumnStretch(column, 1);
-            }
-            regionLayout->addLayout(summaryLayout);
-            QHBoxLayout *assignLayout = new QHBoxLayout;
-            assignLayout->setContentsMargins(0, 3, 0, 0);
-            assignLayout->setSpacing(3);
-            QLabel *assigns = new QLabel(QObject::tr("ASSIGNS"));
-            assigns->setObjectName("BottomExpressionLabel");
-            assignLayout->addWidget(assigns);
-            assignLayout->addStretch(1);
-            for (int index = 0; index < 8; ++index) {
-                QPushButton *badge = new QPushButton(QString("A%1").arg(index + 1));
-                badge->setObjectName("BottomExpressionAssignBadge");
-                badge->setFixedSize(22, 18);
-                badge->setVisible(false);
-                badge->setCursor(Qt::PointingHandCursor);
-                badge->setProperty("assignIndex", index);
-                expressionBadges.append(badge);
-                assignLayout->addWidget(badge);
-            }
-            regionLayout->addLayout(assignLayout);
-            expressionRegion = region;
-            region->setStyleSheet(
-                "QFrame#BottomExpressionControlCard{"
-                "background:rgba(14,30,42,205);"
-                "border:1px solid #293A47;border-radius:5px;}"
-                "QLabel#BottomExpressionLabel{color:#88949F;font-size:8px;"
-                "font-weight:600;letter-spacing:0.4px;}"
-                "QLabel#BottomExpressionValue{color:#E5E9ED;font-size:9px;"
-                "font-weight:600;}"
-                "QPushButton#BottomExpressionAssignBadge{color:#39B8F3;"
-                "background:#101B23;border:1px solid #27506A;"
-                "border-radius:4px;font-size:7px;font-weight:600;padding:0;}"
-                "QPushButton#BottomExpressionAssignBadge:hover{"
-                "border-color:#39B8F3;background:#132734;}"
-                "QPushButton#BottomExpressionEditButton{color:#E6C8C8;"
-                "background:#211315;border:1px solid #63363A;"
-                "border-radius:4px;font-size:8px;font-weight:600;padding:0;}"
-                "QPushButton#BottomExpressionEditButton:hover{color:#F0D8D8;"
-                "border-color:#865057;background:#2B171A;}"
-                "QPushButton#BottomExpressionEditButton:pressed{"
-                "background:#180D0F;border-color:#A65B62;}");
-        } else if (i == 1) {
-            QGridLayout *summaryLayout = new QGridLayout;
-            summaryLayout->setContentsMargins(0, 0, 0, 0);
-            summaryLayout->setHorizontalSpacing(4);
-            summaryLayout->setVerticalSpacing(1);
-            const QStringList controlNames = {"CTL1", "CTL2", "EXP SW"};
-            for (int column = 0; column < controlNames.size(); ++column) {
-                QFrame *controlCard = new QFrame;
-                controlCard->setObjectName("BottomAssignControlCard");
-                controlCard->setMinimumHeight(30);
-                controlCard->setMaximumHeight(34);
-                controlCard->setSizePolicy(QSizePolicy::Ignored,
-                                           QSizePolicy::Fixed);
-                QVBoxLayout *cardLayout = new QVBoxLayout(controlCard);
-                cardLayout->setContentsMargins(6, 3, 6, 3);
-                cardLayout->setSpacing(0);
-                QLabel *name = new QLabel(controlNames.at(column));
-                name->setObjectName("BottomAssignLabel");
-                name->setAlignment(Qt::AlignCenter);
-                name->setMinimumWidth(0);
-                name->setSizePolicy(QSizePolicy::Ignored,
-                                    QSizePolicy::Preferred);
-                QLabel *value = new BottomSummaryValueLabel;
-                value->setText(QString::fromUtf8("—"));
-                value->setObjectName("BottomAssignValue");
-                controlAssignValues.append(value);
-                cardLayout->addWidget(name);
-                cardLayout->addWidget(value);
-                summaryLayout->addWidget(controlCard, 0, column);
-                summaryLayout->setColumnMinimumWidth(column, 0);
-                summaryLayout->setColumnStretch(column, 1);
-            }
-            regionLayout->addLayout(summaryLayout);
-
-            QHBoxLayout *assignLayout = new QHBoxLayout;
-            assignLayout->setContentsMargins(0, 1, 0, 0);
-            assignLayout->setSpacing(3);
-            QLabel *assigns = new QLabel(QObject::tr("ASSIGNS"));
-            assigns->setObjectName("BottomAssignLabel");
-            assignLayout->addWidget(assigns);
-            assignLayout->addStretch(1);
-            for (int index = 0; index < 8; ++index) {
-                BottomAssignBadge *badge = new BottomAssignBadge(index + 1);
-                controlAssignBadges.append(badge);
-                assignLayout->addWidget(badge);
-            }
-            regionLayout->addLayout(assignLayout);
-            region->setStyleSheet(
-                "QFrame#BottomAssignControlCard{"
-                "background:rgba(14,30,42,205);"
-                "border:1px solid #293A47;border-radius:5px;}"
-                "QLabel#BottomAssignLabel{color:#88949F;font-size:8px;"
-                "font-weight:600;letter-spacing:0.4px;}"
-                "QLabel#BottomAssignValue{color:#E5E9ED;font-size:9px;"
-                "font-weight:600;}"
-                "QPushButton#BottomAssignEditButton{color:#E6C8C8;"
-                "background:#211315;border:1px solid #63363A;"
-                "border-radius:4px;font-size:8px;font-weight:600;"
-                "padding:0;}"
-                "QPushButton#BottomAssignEditButton:hover{color:#F0D8D8;"
-                "border-color:#865057;background:#2B171A;}"
-                "QPushButton#BottomAssignEditButton:pressed{"
-                "background:#180D0F;border-color:#A65B62;}"
-                "QPushButton#BottomAssignEditButton:disabled{color:#665357;"
-                "background:#110D0E;border-color:#332529;}"
-            );
-        } else if (i == 2) {
-            QGridLayout *footsLayout = new QGridLayout;
-            footsLayout->setContentsMargins(0, 0, 0, 0);
-            footsLayout->setHorizontalSpacing(4);
-            footsLayout->setVerticalSpacing(0);
-            footsLayout->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-
-            const QStringList footLabels = {
-                "1", "2", "3", "4", "CTL1", "CTL2", "DN", "UP", "EXP"
-            };
-            for (int column = 0; column < footLabels.size(); ++column) {
-                BottomPedalFootWidget *foot = new BottomPedalFootWidget(
-                    footLabels.at(column));
-                pedalboardFoots.append(foot);
-                footsLayout->addWidget(foot, 0, column,
-                                       Qt::AlignHCenter | Qt::AlignVCenter);
-                footsLayout->setColumnStretch(column, 1);
-            }
-            regionLayout->addLayout(footsLayout, 1);
-            pedalboardRegion = region;
-            region->setStyleSheet(
-                "QPushButton#BottomPedalboardEditButton{color:#E6C8C8;"
-                "background:#211315;border:1px solid #63363A;"
-                "border-radius:4px;font-size:8px;font-weight:600;padding:0;}"
-                "QPushButton#BottomPedalboardEditButton:hover{color:#F0D8D8;"
-                "border-color:#865057;background:#2B171A;}"
-                "QPushButton#BottomPedalboardEditButton:pressed{"
-                "background:#180D0F;border-color:#A65B62;}");
-        } else {
-            QLabel *state = new QLabel(i == 1
-                ? QObject::tr("DIRECT CONTROLS")
-                : QObject::tr("NOT INTEGRATED"));
-            state->setObjectName("WorkspaceUnavailable");
-            state->setAlignment(Qt::AlignCenter);
-            regionLayout->addWidget(state, 1);
-        }
-        if (i == 1) {
-            controlAssignRegion = region;
-        }
-        layout->addWidget(region, stretches[i]);
+    for (int column = 0; column < summaryNames.size(); ++column) {
+        const bool expressionControl = column < 3;
+        QFrame *controlCard = new QFrame;
+        controlCard->setObjectName(expressionControl
+            ? "BottomExpressionControlCard" : "BottomAssignControlCard");
+        controlCard->setMinimumHeight(30);
+        controlCard->setMaximumHeight(34);
+        controlCard->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
+        QVBoxLayout *cardLayout = new QVBoxLayout(controlCard);
+        cardLayout->setContentsMargins(5, 3, 5, 3);
+        cardLayout->setSpacing(0);
+        QLabel *name = new QLabel(summaryNames.at(column));
+        name->setObjectName(expressionControl
+            ? "BottomExpressionLabel" : "BottomAssignLabel");
+        name->setAlignment(Qt::AlignCenter);
+        name->setMinimumWidth(0);
+        name->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+        QLabel *value = new BottomSummaryValueLabel;
+        value->setObjectName(expressionControl
+            ? "BottomExpressionValue" : "BottomAssignValue");
+        value->setText(QString::fromUtf8("—"));
+        if (expressionControl)
+            expressionValues.append(value);
+        else
+            controlAssignValues.append(value);
+        cardLayout->addWidget(name);
+        cardLayout->addWidget(value);
+        summaryLayout->addWidget(controlCard, 0, column);
+        summaryLayout->setColumnMinimumWidth(column, 0);
+        summaryLayout->setColumnStretch(column, 1);
     }
+    controlLayout->addLayout(summaryLayout);
+
+    QHBoxLayout *assignLayout = new QHBoxLayout;
+    assignLayout->setContentsMargins(0, 0, 0, 0);
+    assignLayout->setSpacing(3);
+    QLabel *expressionAssigns = new QLabel(QObject::tr("EXP"));
+    expressionAssigns->setObjectName("BottomExpressionLabel");
+    assignLayout->addWidget(expressionAssigns);
+    for (int index = 0; index < 8; ++index) {
+        QPushButton *badge = new QPushButton(QString("A%1").arg(index + 1));
+        badge->setObjectName("BottomExpressionAssignBadge");
+        badge->setFixedSize(22, 18);
+        badge->setVisible(false);
+        badge->setCursor(Qt::PointingHandCursor);
+        badge->setProperty("assignIndex", index);
+        expressionBadges.append(badge);
+        assignLayout->addWidget(badge);
+    }
+    assignLayout->addStretch(1);
+    QLabel *assigns = new QLabel(QObject::tr("ASSIGNS"));
+    assigns->setObjectName("BottomAssignLabel");
+    assignLayout->addWidget(assigns);
+    for (int index = 0; index < 8; ++index) {
+        BottomAssignBadge *badge = new BottomAssignBadge(index + 1);
+        controlAssignBadges.append(badge);
+        assignLayout->addWidget(badge);
+    }
+    controlLayout->addLayout(assignLayout);
+    controlRegion->setStyleSheet(
+        "QFrame#BottomExpressionControlCard,QFrame#BottomAssignControlCard{"
+        "background:rgba(14,30,42,205);border:1px solid #293A47;"
+        "border-radius:5px;}"
+        "QLabel#BottomExpressionLabel,QLabel#BottomAssignLabel{"
+        "color:#88949F;font-size:8px;"
+        "font-weight:600;letter-spacing:0.4px;}"
+        "QLabel#BottomExpressionValue,QLabel#BottomAssignValue{"
+        "color:#E5E9ED;font-size:9px;font-weight:600;}"
+        "QPushButton#BottomExpressionAssignBadge{color:#39B8F3;"
+        "background:#101B23;border:1px solid #27506A;border-radius:4px;"
+        "font-size:7px;font-weight:600;padding:0;}"
+        "QPushButton#BottomExpressionAssignBadge:hover{"
+        "border-color:#39B8F3;background:#132734;}"
+        "QPushButton#BottomAssignEditButton{color:#E6C8C8;"
+        "background:#211315;border:1px solid #63363A;border-radius:4px;"
+        "font-size:8px;font-weight:600;padding:0;}"
+        "QPushButton#BottomAssignEditButton:hover{color:#F0D8D8;"
+        "border-color:#865057;background:#2B171A;}"
+        "QPushButton#BottomAssignEditButton:pressed{"
+        "background:#180D0F;border-color:#A65B62;}");
+    layout->addWidget(controlRegion, 48);
+
+    BottomActionRegion *pedalRegion = new BottomActionRegion;
+    pedalRegion->setObjectName("BottomRegion");
+    pedalRegion->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+    QVBoxLayout *pedalLayout = new QVBoxLayout(pedalRegion);
+    pedalLayout->setContentsMargins(14, 11, 14, 11);
+    pedalLayout->setSpacing(8);
+    QWidget *pedalHeader = new QWidget;
+    pedalHeader->setFixedHeight(19);
+    QHBoxLayout *pedalHeaderLayout = new QHBoxLayout(pedalHeader);
+    pedalHeaderLayout->setContentsMargins(0, 0, 0, 0);
+    QLabel *pedalTitle = new QLabel(QObject::tr("PEDALBOARD"));
+    pedalTitle->setObjectName("BottomRegionTitle");
+    QPushButton *pedalEdit = new QPushButton(QObject::tr("EDIT"));
+    pedalEdit->setObjectName("BottomPedalboardEditButton");
+    pedalEdit->setFixedSize(38, 19);
+    pedalEdit->setCursor(Qt::PointingHandCursor);
+    pedalHeaderLayout->addWidget(pedalTitle);
+    pedalHeaderLayout->addStretch(1);
+    pedalHeaderLayout->addWidget(pedalEdit);
+    pedalLayout->addWidget(pedalHeader);
+    connect(pedalEdit, &QPushButton::clicked, pedalEdit, [pedalRegion]() {
+        if (pedalRegion->activated)
+            pedalRegion->activated();
+    });
+    QGridLayout *footsLayout = new QGridLayout;
+    footsLayout->setContentsMargins(0, 0, 0, 0);
+    footsLayout->setHorizontalSpacing(4);
+    footsLayout->setVerticalSpacing(0);
+    footsLayout->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+    const QStringList footLabels = {
+        "1", "2", "3", "4", "CTL1", "CTL2", "DN", "UP", "EXP"
+    };
+    for (int column = 0; column < footLabels.size(); ++column) {
+        BottomPedalFootWidget *foot = new BottomPedalFootWidget(
+            footLabels.at(column));
+        pedalboardFoots.append(foot);
+        footsLayout->addWidget(foot, 0, column,
+                               Qt::AlignHCenter | Qt::AlignVCenter);
+        footsLayout->setColumnStretch(column, 1);
+    }
+    pedalLayout->addLayout(footsLayout, 1);
+    pedalboardRegion = pedalRegion;
+    pedalRegion->setStyleSheet(
+        "QPushButton#BottomPedalboardEditButton{color:#E6C8C8;"
+        "background:#211315;border:1px solid #63363A;border-radius:4px;"
+        "font-size:8px;font-weight:600;padding:0;}"
+        "QPushButton#BottomPedalboardEditButton:hover{color:#F0D8D8;"
+        "border-color:#865057;background:#2B171A;}"
+        "QPushButton#BottomPedalboardEditButton:pressed{"
+        "background:#180D0F;border-color:#A65B62;}");
+    layout->addWidget(pedalRegion, 34);
+
+    QFrame *tunerRegion = new QFrame;
+    tunerRegion->setObjectName("BottomRegion");
+    tunerRegion->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+    QVBoxLayout *tunerRegionLayout = new QVBoxLayout(tunerRegion);
+    tunerRegionLayout->setContentsMargins(12, 9, 12, 9);
+    tunerRegionLayout->setSpacing(4);
+    QLabel *tunerTitle = new QLabel(QObject::tr("TUNER"));
+    tunerTitle->setObjectName("BottomRegionTitle");
+    tunerRegionLayout->addWidget(tunerTitle);
+    QFrame *tunerCard = new QFrame;
+    tunerCard->setObjectName("BottomTunerCard");
+    tunerCard->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    tunerCard->setFixedHeight(66);
+    QVBoxLayout *tunerLayout = new QVBoxLayout(tunerCard);
+    tunerLayout->setContentsMargins(7, 3, 5, 3);
+    tunerLayout->setSpacing(1);
+    const QStringList tunerLabelTexts = {
+        QObject::tr("REFERENCE"), QObject::tr("OUTPUT")
+    };
+    tunerReference = new QComboBox;
+    tunerReference->setObjectName("BottomTunerCombo");
+    for (int raw = 0; raw <= 0x0A; ++raw)
+        tunerReference->addItem(QString::number(435 + raw) + " Hz", raw);
+    tunerOutput = new QComboBox;
+    tunerOutput->setObjectName("BottomTunerCombo");
+    tunerOutput->addItem(QObject::tr("MUTE"), 0x00);
+    tunerOutput->addItem(QObject::tr("BYPASSED"), 0x01);
+    const QList<QComboBox *> tunerCombos = {tunerReference, tunerOutput};
+    for (int row = 0; row < tunerCombos.size(); ++row) {
+        QWidget *field = new QWidget;
+        QVBoxLayout *fieldLayout = new QVBoxLayout(field);
+        fieldLayout->setContentsMargins(0, 0, 0, 0);
+        fieldLayout->setSpacing(0);
+        QLabel *label = new QLabel(tunerLabelTexts.at(row));
+        label->setObjectName("BottomTunerLabel");
+        QComboBox *combo = tunerCombos.at(row);
+        combo->setEnabled(false);
+        combo->setCurrentIndex(-1);
+        combo->setFixedHeight(17);
+        combo->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        fieldLayout->addWidget(label);
+        fieldLayout->addWidget(combo);
+        tunerLayout->addWidget(field);
+    }
+    tunerRegionLayout->addWidget(tunerCard);
+    tunerRegion->setStyleSheet(
+        "QFrame#BottomTunerCard{background:rgba(14,30,42,205);"
+        "border:1px solid #293A47;border-radius:5px;}"
+        "QFrame#BottomTunerCard:hover{background:rgba(17,37,51,215);"
+        "border-color:#354B5A;}"
+        "QLabel#BottomTunerLabel{color:#88949F;font-size:8px;"
+        "font-weight:600;letter-spacing:0.4px;}"
+        "QComboBox#BottomTunerCombo{padding:0 17px 0 0;color:#39B8F3;"
+        "background:transparent;border:none;font-size:10px;font-weight:600;}"
+        "QComboBox#BottomTunerCombo:hover,QComboBox#BottomTunerCombo:focus{"
+        "color:#55C8FA;background:transparent;}"
+        "QComboBox#BottomTunerCombo:disabled{color:#66737E;"
+        "background:transparent;}"
+        "QComboBox#BottomTunerCombo::drop-down{subcontrol-origin:padding;"
+        "subcontrol-position:center right;width:16px;border:none;}"
+        "QComboBox#BottomTunerCombo QAbstractItemView{color:#ECEFF2;"
+        "background:#0D0F12;border:1px solid #24272C;"
+        "selection-background-color:#123347;outline:none;}");
+    layout->addWidget(tunerRegion, 18);
     outerLayout->addStretch();
     outerLayout->addWidget(contentWrapper, 1);
     outerLayout->addStretch();
@@ -915,7 +854,7 @@ void BottomControlStrip::setExpressionSummary(
     bool available, const QString &exp1, const QString &expSwitch,
     const QString &exp2, const QList<int> &assigns)
 {
-    const QStringList values = {exp1, expSwitch, exp2};
+    const QStringList values = {exp1, exp2, expSwitch};
     for (int index = 0; index < expressionValues.size(); ++index) {
         const QString value = available && index < values.size()
             && !values.at(index).trimmed().isEmpty()
