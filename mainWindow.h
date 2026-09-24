@@ -78,7 +78,6 @@ public slots:
         void summarySystemPage();
         void summaryPatchList();
         void help();
-        void whatsThis();
         void homepage();
         void donate();
         void manual();
@@ -115,7 +114,6 @@ private:
         QAction *summarySystemAct;
         QAction *summaryPatchListAct;
         QAction *helpAct;
-        QAction *whatsThisAct;
         QAction *homepageAct;
         QAction *donationAct;
         QAction *manualAct;

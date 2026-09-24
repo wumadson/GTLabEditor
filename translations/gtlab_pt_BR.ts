@@ -4027,21 +4027,6 @@ NÃO INTEGRADO</translation>
         <translation>Página de ajuda para as funções do FxFloorBoard.</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="443"/>
-        <source>Whats This? description of items under the mouse cursor</source>
-        <translation>O que é isto? Descrição dos itens sob o cursor do mouse</translation>
-    </message>
-    <message>
-        <location filename="../mainWindow.cpp" line="444"/>
-        <source>F1</source>
-        <translation>F1</translation>
-    </message>
-    <message>
-        <location filename="../mainWindow.cpp" line="445"/>
-        <source>ha..ha..ha..!!</source>
-        <translation>ha..ha..ha..!!</translation>
-    </message>
-    <message>
         <location filename="../mainWindow.cpp" line="448"/>
         <source>Original FxFloorBoard &amp;Project</source>
         <translation>&amp;Projeto FxFloorBoard original</translation>

@@ -24,7 +24,6 @@
 #include <QtGui>
 #include <QMenuBar>
 #include <QShowEvent>
-#include <QWhatsThis>
 #include <QStyle>
 #ifdef Q_OS_WIN
 #include <windows.h>
@@ -436,11 +435,6 @@ void mainWindow::createActions()
         helpAct->setWhatsThis(tr("Help page to assist with FxFloorBoard functions."));
         connect(helpAct, SIGNAL(triggered()), this, SLOT(help()));
 
-        whatsThisAct = new QAction(QIcon(":/assets/menu/help.png"), tr("Whats This? description of items under the mouse cursor"), this);
-        whatsThisAct->setShortcut(tr("F1"));
-        whatsThisAct->setWhatsThis(tr("ha..ha..ha..!!"));
-        connect(whatsThisAct, SIGNAL(triggered()), this, SLOT(whatsThis()));
-
         homepageAct = new QAction(QIcon(":/assets/menu/web.png"), tr("Original FxFloorBoard &Project"), this);
         homepageAct->setWhatsThis(tr("download Webpage for FxFloorBoard<br>find if the latest version is available."));
         connect(homepageAct, SIGNAL(triggered()), this, SLOT(homepage()));
@@ -509,7 +503,6 @@ void mainWindow::createMenus()
         helpMenu->addSeparator();
         helpMenu->addAction(licenseAct);
         helpMenu->addAction(thirdPartyAct);
-        helpMenu->addAction(whatsThisAct);
         helpMenu->addSeparator();
         helpMenu->addAction(aboutAct);
         //menuBar->addMenu(helpMenu);
@@ -1009,12 +1002,6 @@ void mainWindow::help()
         Preferences *preferences = Preferences::Instance();
         QDesktopServices::openUrl(QUrl( preferences->getPreferences("General", "Help", "url") ));
 };
-
-void mainWindow::whatsThis()
-{
-    QWhatsThis::enterWhatsThisMode();
-};
-
 
 void mainWindow::summaryPage()
 {
