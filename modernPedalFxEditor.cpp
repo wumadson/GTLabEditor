@@ -11,7 +11,6 @@
 
 #include <QAbstractButton>
 #include <QComboBox>
-#include <QFrame>
 #include <QGridLayout>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -301,17 +300,15 @@ QWidget *ModernPedalFxEditor::createBar(const QString &label,
 
 QWidget *ModernPedalFxEditor::createFootVolumeSection()
 {
-    QFrame *section = new QFrame;
-    section->setObjectName("PedalFootVolumeSection");
+    QWidget *section = new QWidget;
     QVBoxLayout *layout = new QVBoxLayout(section);
-    layout->setContentsMargins(8, 7, 8, 7);
+    layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(7);
     layout->addWidget(sectionTitle("FOOT VOLUME"));
     layout->addWidget(createBar("Level", "5A"));
     layout->addWidget(createBar("Min", "5B"));
     layout->addWidget(createBar("Max", "5C"));
     layout->addWidget(createCombo("Curve", "5D"));
-    footVolumeSections.append(section);
     return section;
 }
 
@@ -518,17 +515,6 @@ void ModernPedalFxEditor::updateContextPresentation()
         editor->setEffectIdentity(tr("P.FX"), "PEDAL FX");
         stateToggle->setAccentColor(QColor(
             ModernTheme::activeEffectAccent("PEDAL FX")));
-    }
-    for (QWidget *section : footVolumeSections) {
-        if (!section)
-            continue;
-        const bool highlighted = editorContext == PedalEditorContext::FootVolume
-            && footVolumeInMode;
-        section->setStyleSheet(highlighted
-            ? QString("QFrame#PedalFootVolumeSection{border:1px solid %1;"
-                      "border-radius:6px;background:rgba(123,133,141,18);}")
-                  .arg(accent.name())
-            : "QFrame#PedalFootVolumeSection{border:1px solid transparent;}");
     }
 }
 

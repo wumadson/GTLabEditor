@@ -76,7 +76,6 @@ private:
     QVector<Binding> bindings;
     QVector<int> modeRawValues;
     QVector<QWidget *> customWahSections;
-    QVector<QWidget *> footVolumeSections;
     PedalEditorContext editorContext = PedalEditorContext::General;
     bool refreshing = false;
     bool available = false;
