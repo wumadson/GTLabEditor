@@ -69,6 +69,10 @@ QString ModernTheme::color(ColorRole role)
     case ChainConnectorActive: return "#7E909D";
     case ChainOnIndicator: return "#58B7C3";
     case ChainOffIndicator: return "#6B7580";
+    case ControlTrack: return "#13181D";
+    case ControlTrackDisabled: return "#0A0C0F";
+    case ControlThumb: return "#D9DEE2";
+    case ControlFocus: return "#4AA9C9";
     }
     return QString();
 }
@@ -156,6 +160,26 @@ int ModernTheme::radius(RadiusRole role)
     case ContainerRadius: return 5;
     }
     return 0;
+}
+
+QString ModernTheme::segmentedButtonStyle(const QString &accent)
+{
+    const QString resolvedAccent = accent.isEmpty()
+        ? color(AccentCyan) : accent;
+    return QString(
+        "QPushButton{background:%1;color:%2;border:1px solid %3;"
+        "border-radius:4px;font-size:10px;font-weight:600;padding:0 8px;}"
+        "QPushButton:hover{background:%4;border-color:%5;color:%6;}"
+        "QPushButton:pressed{background:%7;border-color:%5;color:%6;}"
+        "QPushButton:focus{border:1px solid %8;}"
+        "QPushButton:checked{background:%9;color:%6;border-color:%5;}"
+        "QPushButton:checked:focus{border-color:%8;}"
+        "QPushButton:disabled{background:%10;color:%11;border-color:%3;}")
+        .arg(color(ControlBackground), color(SecondaryText),
+             color(BorderSubtle), color(HoverSurface), resolvedAccent,
+             color(PrimaryText), color(PressedSurface), color(ControlFocus),
+             color(ElevatedPanel), color(ControlTrackDisabled),
+             color(DisabledText));
 }
 
 QString ModernTheme::applicationStyleSheet()
@@ -607,6 +631,19 @@ QString ModernTheme::applicationStyleSheet()
             font-weight: 600;
             padding-bottom: 4px;
         }
+        QWidget#EqBandGroup {
+            background: @ELEVATED_PANEL@;
+            border: 1px solid @BORDER_SUBTLE@;
+            border-radius: 4px;
+        }
+        QLabel#EqBandTitle {
+            background: transparent;
+            border: none;
+            color: @SECONDARY_TEXT@;
+            font-size: 11px;
+            font-weight: 700;
+            padding-bottom: 2px;
+        }
         QLabel#ControlLabel { color: #D4D7DB; font-size: 10px; font-weight: 600; }
         QLabel#ControlValue { color: #D04A50; font-size: 13px; font-weight: 650; }
         QLabel#EffectTypeDisplay {
@@ -616,21 +653,32 @@ QString ModernTheme::applicationStyleSheet()
         }
         QFrame#EffectEditorPanel QComboBox {
             min-height: 32px;
-            padding: 0 8px;
+            padding: 0 30px 0 10px;
             color: #ECEFF2;
-            background: #050607;
+            background: #0A0C0F;
             border: 1px solid #24272C;
             border-radius: 4px;
         }
-        QFrame#EffectEditorPanel QComboBox:hover { background: #0D0F12; border-color: #34383E; }
-        QFrame#EffectEditorPanel QComboBox:focus { border-color: #B4383E; }
+        QFrame#EffectEditorPanel QComboBox:hover { background: #0D1115; border-color: #35404A; }
+        QFrame#EffectEditorPanel QComboBox:focus { border-color: %1; }
         QFrame#EffectEditorPanel QComboBox:disabled { color: #666B72; background: #050607; border-color: #24272C; }
+        QFrame#EffectEditorPanel QComboBox::drop-down {
+            width: 26px;
+            border: none;
+            border-left: 1px solid #171A1E;
+        }
         QFrame#EffectEditorPanel QComboBox QAbstractItemView {
             background: #0D0F12;
             color: #ECEFF2;
             border: 1px solid #24272C;
-            selection-background-color: #3A1518;
+            selection-background-color: %4;
+            selection-color: #ECEFF2;
             outline: none;
+            padding: 3px;
+        }
+        QFrame#EffectEditorPanel QComboBox QAbstractItemView::item {
+            min-height: 26px;
+            padding: 2px 7px;
         }
         QStatusBar {
             min-height: 24px;
@@ -657,7 +705,10 @@ QString ModernTheme::applicationStyleSheet()
                      color(PendingBackground), color(BankDivider),
                      color(PrimaryButton), color(SecondaryButton))
         .replace("@CHAIN_SURFACE@", color(ChainSurface))
-        .replace("@CHAIN_BORDER@", color(ChainBorder));
+        .replace("@CHAIN_BORDER@", color(ChainBorder))
+        .replace("@ELEVATED_PANEL@", color(ElevatedPanel))
+        .replace("@BORDER_SUBTLE@", color(BorderSubtle))
+        .replace("@SECONDARY_TEXT@", color(SecondaryText));
 }
 
 QString ModernTheme::effectColor(const QString &effectName)

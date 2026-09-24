@@ -321,9 +321,17 @@ void ParameterBar::paintEvent(QPaintEvent *)
 
     const QRectF track = trackRect();
     painter.setPen(Qt::NoPen);
-    painter.setBrush(QColor(ModernTheme::color(
-        ModernTheme::BorderSubtle)));
+    painter.setBrush(QColor(ModernTheme::color(enabled
+        ? ModernTheme::ControlTrack
+        : ModernTheme::ControlTrackDisabled)));
     painter.drawRoundedRect(track, 4.0, 4.0);
+
+    QColor innerBorder(ModernTheme::color(ModernTheme::Border));
+    innerBorder.setAlpha(enabled ? 120 : 70);
+    painter.setPen(QPen(innerBorder, 1));
+    painter.setBrush(Qt::NoBrush);
+    painter.drawRoundedRect(track.adjusted(0.5, 0.5, -0.5, -0.5),
+                            3.5, 3.5);
 
     const qreal valuePosition = positionForValue(value());
     const qreal startPosition = centerEnabled
@@ -331,8 +339,11 @@ void ParameterBar::paintEvent(QPaintEvent *)
     QRectF fill(qMin(startPosition, valuePosition), track.top(),
                 qAbs(valuePosition - startPosition), track.height());
     if (fill.width() > 0.5) {
-        painter.setBrush(enabled ? parameterAccent
-            : QColor(ModernTheme::color(ModernTheme::DisabledText)));
+        QColor fillColor = enabled ? parameterAccent
+            : QColor(ModernTheme::color(ModernTheme::DisabledText));
+        fillColor.setAlpha(enabled ? 220 : 100);
+        painter.setPen(Qt::NoPen);
+        painter.setBrush(fillColor);
         painter.drawRoundedRect(fill, 4.0, 4.0);
     }
 
@@ -359,12 +370,20 @@ void ParameterBar::paintEvent(QPaintEvent *)
                          QPointF(splitPosition, track.bottom() + 2));
     }
 
-    QColor indicatorColor(ModernTheme::color(
-        enabled ? ModernTheme::PrimaryText : ModernTheme::DisabledText));
-    painter.setPen(QPen(indicatorColor, hasFocus() ? 2.0 : 1.4,
-                        Qt::SolidLine, Qt::RoundCap));
-    painter.drawLine(QPointF(valuePosition, track.top() - 2.5),
-                     QPointF(valuePosition, track.bottom() + 2.5));
+    const QRectF thumb(valuePosition - 2.0, track.top() - 3.0,
+                       4.0, track.height() + 6.0);
+    if (hasFocus() && enabled) {
+        QColor focusColor(ModernTheme::color(ModernTheme::ControlFocus));
+        focusColor.setAlpha(115);
+        painter.setPen(QPen(focusColor, 2));
+        painter.setBrush(Qt::NoBrush);
+        painter.drawRoundedRect(thumb.adjusted(-2, -2, 2, 2), 4, 4);
+    }
+    painter.setPen(QPen(QColor(ModernTheme::color(
+        ModernTheme::ApplicationBackground)), 0.8));
+    painter.setBrush(QColor(ModernTheme::color(enabled
+        ? ModernTheme::ControlThumb : ModernTheme::DisabledText)));
+    painter.drawRoundedRect(thumb, 2.0, 2.0);
 }
 
 void ParameterBar::mousePressEvent(QMouseEvent *event)

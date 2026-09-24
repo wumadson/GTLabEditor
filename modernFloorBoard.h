@@ -127,6 +127,7 @@ private slots:
     void chorusBarChanged(int value);
     void toggleChorus();
     void eqComboChanged(int value);
+    void eqKnobChanged(int value);
     void eqBarChanged(int value);
     void toggleEq();
     void preampComboChanged(int value);
@@ -214,6 +215,7 @@ private:
     bool hasValidEqBuffer() const;
     void setEqUnavailable();
     QWidget *createEqCombo(const QString &label, const QString &address);
+    QWidget *createEqKnob(const QString &label, const QString &address);
     QWidget *createEqBar(const QString &label, const QString &address);
     void setEqValue(const QString &address, int value);
     void updateEqParameterControls(bool available);
@@ -478,6 +480,7 @@ private:
     QPushButton *eqQuickSave = nullptr;
     ModernEqGraph *eqGraph = nullptr;
     QList<QComboBox *> eqCombos;
+    QList<QDial *> eqKnobs;
     QList<ParameterBar *> eqBars;
     bool backendIsConnected = false;
     bool backendHasPatchData = false;

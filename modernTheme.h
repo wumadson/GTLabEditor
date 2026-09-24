@@ -18,11 +18,13 @@ public:
         PendingBackground, BankDivider, PrimaryButton, SecondaryButton,
         ChainSurface, ChainBorder, ChainModuleSurface, ChainModuleOff,
         ChainSelected, ChainConnector, ChainConnectorActive,
-        ChainOnIndicator, ChainOffIndicator
+        ChainOnIndicator, ChainOffIndicator, ControlTrack,
+        ControlTrackDisabled, ControlThumb, ControlFocus
     };
     enum RadiusRole { SmallRadius, ControlRadius, PanelRadius, ContainerRadius };
 
     static QString applicationStyleSheet();
+    static QString segmentedButtonStyle(const QString &accent = QString());
     static QString color(ColorRole role);
     static QString activeEffectAccent(const QString &effectName);
     static int radius(RadiusRole role);

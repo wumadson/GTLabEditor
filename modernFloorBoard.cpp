@@ -816,6 +816,27 @@ QString formatEqDisplay(QString value, const QString &address, int rawValue)
     return numeric + " dB";
 }
 
+QString eqKnobDisplayText(const QString &address, int rawValue)
+{
+    static const QSet<QString> indexedAddresses = {
+        "73", "74", "76", "77"
+    };
+    MidiTable *midiTable = MidiTable::Instance();
+    if (indexedAddresses.contains(address)) {
+        const Midi parameter = midiTable->getMidiMap(
+            "Structure", "01", "00", address);
+        if (rawValue >= 0 && rawValue < parameter.level.size()) {
+            const Midi item = parameter.level.at(rawValue);
+            return item.desc.isEmpty() ? item.name : item.desc;
+        }
+    }
+    return formatEqDisplay(
+        midiTable->getValue(
+            "Structure", "01", "00", address,
+            QString::number(rawValue, 16).toUpper()),
+        address, rawValue);
+}
+
 qreal numericPresentationValue(QString text, bool *ok = nullptr)
 {
     text = text.trimmed();
@@ -933,18 +954,18 @@ public:
     explicit EqBandArea(QWidget *parent = nullptr)
         : QWidget(parent), currentColumns(0)
     {
-        setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+        setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
         grid = new QGridLayout(this);
         grid->setContentsMargins(0, 0, 0, 0);
-        grid->setHorizontalSpacing(10);
-        grid->setVerticalSpacing(10);
+        grid->setHorizontalSpacing(12);
+        grid->setVerticalSpacing(12);
     }
 
     void addBand(QWidget *band)
     {
         if (!band)
             return;
-        band->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+        band->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
         bands.append(band);
         updateBands();
     }
@@ -961,7 +982,7 @@ private:
     {
         int fourColumnMinimum = grid->horizontalSpacing() * 3;
         for (QWidget *band : bands)
-            fourColumnMinimum += qMax(220, band->minimumSizeHint().width());
+            fourColumnMinimum += qMax(200, band->minimumSizeHint().width());
         const int columns = width() >= fourColumnMinimum ? 4 : 2;
         if (columns == currentColumns && grid->count() == bands.size())
             return;
@@ -987,24 +1008,33 @@ public:
     explicit EqBandColumn(const QString &title, QWidget *parent = nullptr)
         : QWidget(parent)
     {
-        setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+        setObjectName("EqBandGroup");
+        setAttribute(Qt::WA_StyledBackground, true);
+        setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
         column = new QVBoxLayout(this);
-        column->setContentsMargins(0, 0, 0, 0);
-        column->setSpacing(4);
+        column->setContentsMargins(10, 8, 10, 10);
+        column->setSpacing(3);
         QLabel *heading = new QLabel(title.toUpper());
-        heading->setObjectName("ParameterSectionTitle");
+        heading->setObjectName("EqBandTitle");
         heading->setMinimumHeight(18);
+        heading->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
         column->addWidget(heading);
+        controls = new QHBoxLayout;
+        controls->setContentsMargins(0, 0, 0, 0);
+        controls->setSpacing(2);
+        controls->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
+        column->addLayout(controls);
     }
 
     void addControl(QWidget *control)
     {
         if (control)
-            column->addWidget(control);
+            controls->addWidget(control);
     }
 
 private:
     QVBoxLayout *column;
+    QHBoxLayout *controls;
 };
 
 class ChannelRoutingDiagram : public QWidget
@@ -1717,12 +1747,12 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     oddsParameterLayout->addWidget(createOddsBar("Tone", "74"));
     oddsParameterLayout->addWidget(createOddsBar("Effect", "75"));
     oddsParameterLayout->addWidget(createOddsBar("Direct", "76"));
-    oddsParameterLayout->addWidget(createOddsBar("Solo Level", "78"));
+    oddsParameterLayout->addWidget(createOddsBar("Level", "78"));
 
     QLabel *oddsSoloTitle = new QLabel(tr("SOLO"));
     oddsSoloTitle->setObjectName("ParameterSectionTitle");
     oddsParameterLayout->addWidget(oddsSoloTitle);
-    EffectToggleControl *oddsSolo = new EffectToggleControl(tr("Solo Switch"));
+    EffectToggleControl *oddsSolo = new EffectToggleControl(tr("On/Off"));
     oddsSoloSwitch = oddsSolo->toggle();
     oddsSoloSwitch->setAccentColor(QColor(
         ModernTheme::activeEffectAccent("OD/DS")));
@@ -1738,7 +1768,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     QLabel *customTitle = new QLabel(tr("CUSTOM"));
     customTitle->setObjectName("ParameterSectionTitle");
     customLayout->addWidget(customTitle);
-    customLayout->addWidget(createOddsCombo("Custom Type", "79"));
+    customLayout->addWidget(createOddsCombo("Type", "79"));
     customLayout->addWidget(createOddsBar("Bottom", "7A"));
     customLayout->addWidget(createOddsBar("Top", "7B"));
     customLayout->addWidget(createOddsBar("Low", "7C"));
@@ -2100,38 +2130,34 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     EqBandArea *eqBandArea = new EqBandArea;
 
     EqBandColumn *eqLow = new EqBandColumn(tr("LOW"));
-    eqLow->addControl(createEqCombo("Low Cut", "71"));
-    eqLow->addControl(createEqBar("Low Gain", "72"));
+    eqLow->addControl(createEqKnob("Gain", "72"));
     eqBandArea->addBand(eqLow);
 
     EqBandColumn *eqLowMid = new EqBandColumn(tr("LOW-MID"));
-    eqLowMid->addControl(createEqCombo("Frequency", "73"));
-    eqLowMid->addControl(createEqCombo("Q", "74"));
-    eqLowMid->addControl(createEqBar("Gain", "75"));
+    eqLowMid->addControl(createEqKnob("Frequency", "73"));
+    eqLowMid->addControl(createEqKnob("Q", "74"));
+    eqLowMid->addControl(createEqKnob("Gain", "75"));
     eqBandArea->addBand(eqLowMid);
 
     EqBandColumn *eqHighMid = new EqBandColumn(tr("HIGH-MID"));
-    eqHighMid->addControl(createEqCombo("Frequency", "76"));
-    eqHighMid->addControl(createEqCombo("Q", "77"));
-    eqHighMid->addControl(createEqBar("Gain", "78"));
+    eqHighMid->addControl(createEqKnob("Frequency", "76"));
+    eqHighMid->addControl(createEqKnob("Q", "77"));
+    eqHighMid->addControl(createEqKnob("Gain", "78"));
     eqBandArea->addBand(eqHighMid);
 
     EqBandColumn *eqHigh = new EqBandColumn(tr("HIGH"));
-    eqHigh->addControl(createEqCombo("High Cut", "7A"));
-    eqHigh->addControl(createEqBar("High Gain", "79"));
+    eqHigh->addControl(createEqKnob("Gain", "79"));
     eqBandArea->addBand(eqHigh);
     eqControlsLayout->addWidget(eqBandArea);
 
-    EqBandColumn *eqOutput = new EqBandColumn(tr("OUTPUT"));
-    eqOutput->addControl(createEqBar("Level", "7B"));
-    QWidget *eqOutputRow = new QWidget;
-    QHBoxLayout *eqOutputLayout = new QHBoxLayout(eqOutputRow);
-    eqOutputLayout->setContentsMargins(0, 0, 0, 0);
-    eqOutputLayout->setSpacing(0);
-    eqOutputLayout->addStretch(1);
-    eqOutputLayout->addWidget(eqOutput, 4);
-    eqOutputLayout->addStretch(1);
-    eqControlsLayout->addWidget(eqOutputRow);
+    QWidget *eqUtilityRow = new QWidget;
+    QHBoxLayout *eqUtilityLayout = new QHBoxLayout(eqUtilityRow);
+    eqUtilityLayout->setContentsMargins(0, 4, 0, 0);
+    eqUtilityLayout->setSpacing(12);
+    eqUtilityLayout->addWidget(createEqCombo("Low Cut", "71"), 0);
+    eqUtilityLayout->addWidget(createEqBar("Output Level", "7B"), 1);
+    eqUtilityLayout->addWidget(createEqCombo("High Cut", "7A"), 0);
+    eqControlsLayout->addWidget(eqUtilityRow);
 
     QScrollArea *eqControlsScroll = new QScrollArea;
     eqControlsScroll->setObjectName("EffectParameterScroll");
@@ -2456,12 +2482,11 @@ EffectEditorPanel *modernFloorBoard::createPreampEditor(
 
     addTitle("SOLO");
     layout->addWidget(createPreampToggle(
-        channel, "Solo", 0x09, &state.solo));
-    layout->addWidget(createPreampBar(channel, "Solo Level", 0x0A));
+        channel, "On/Off", 0x09, &state.solo));
+    layout->addWidget(createPreampBar(channel, "Level", 0x0A));
 
     addTitle("SPEAKER");
-    layout->addWidget(createPreampCombo(
-        channel, "Speaker Type", 0x0B));
+    layout->addWidget(createPreampCombo(channel, "Type", 0x0B));
 
     state.customSpeakerSection = new QWidget;
     QVBoxLayout *customSpeaker =
@@ -2476,19 +2501,16 @@ EffectEditorPanel *modernFloorBoard::createPreampEditor(
         channel, "Color Low", 0x19));
     customSpeaker->addWidget(createPreampBar(
         channel, "Color High", 0x1A));
-    customSpeaker->addWidget(createPreampCombo(
-        channel, "Speaker Number", 0x1B));
+    customSpeaker->addWidget(createPreampCombo(channel, "Number", 0x1B));
     customSpeaker->addWidget(createPreampCombo(
         channel, "Cabinet Back", 0x1C));
     layout->addWidget(state.customSpeakerSection);
 
     addTitle("MIC / MIX");
-    layout->addWidget(createPreampCombo(channel, "Mic Type", 0x0C));
-    layout->addWidget(createPreampCombo(
-        channel, "Mic Distance", 0x0D));
-    layout->addWidget(createPreampBar(
-        channel, "Mic Position", 0x0E));
-    layout->addWidget(createPreampBar(channel, "Mic Level", 0x0F));
+    layout->addWidget(createPreampCombo(channel, "Type", 0x0C));
+    layout->addWidget(createPreampCombo(channel, "Distance", 0x0D));
+    layout->addWidget(createPreampBar(channel, "Position", 0x0E));
+    layout->addWidget(createPreampBar(channel, "Level", 0x0F));
     layout->addWidget(createPreampBar(channel, "Direct Level", 0x10));
 
     state.customPreampSection = new QWidget;
@@ -2499,20 +2521,15 @@ EffectEditorPanel *modernFloorBoard::createPreampEditor(
     QLabel *customPreampTitle = new QLabel(tr("CUSTOM PREAMP"));
     customPreampTitle->setObjectName("ParameterSectionTitle");
     customPreamp->addWidget(customPreampTitle);
-    customPreamp->addWidget(createPreampCombo(
-        channel, "Custom Preamp Type", 0x11));
+    customPreamp->addWidget(createPreampCombo(channel, "Type", 0x11));
+    customPreamp->addWidget(createPreampBar(channel, "Bottom", 0x12));
+    customPreamp->addWidget(createPreampBar(channel, "Edge", 0x13));
     customPreamp->addWidget(createPreampBar(
-        channel, "Custom Bottom", 0x12));
+        channel, "Bass Frequency", 0x14));
     customPreamp->addWidget(createPreampBar(
-        channel, "Custom Edge", 0x13));
-    customPreamp->addWidget(createPreampBar(
-        channel, "Custom Bass Frequency", 0x14));
-    customPreamp->addWidget(createPreampBar(
-        channel, "Custom Treble Frequency", 0x15));
-    customPreamp->addWidget(createPreampBar(
-        channel, "Custom Pre Low", 0x16));
-    customPreamp->addWidget(createPreampBar(
-        channel, "Custom Pre High", 0x17));
+        channel, "Treble Frequency", 0x15));
+    customPreamp->addWidget(createPreampBar(channel, "Pre Low", 0x16));
+    customPreamp->addWidget(createPreampBar(channel, "Pre High", 0x17));
     layout->addWidget(state.customPreampSection);
     layout->addStretch(1);
 
@@ -2687,19 +2704,7 @@ QWidget *modernFloorBoard::createChannelRoutingEditor()
     QHBoxLayout *modeSelectorLayout = new QHBoxLayout(modeSelector);
     modeSelectorLayout->setContentsMargins(0, 0, 0, 0);
     modeSelectorLayout->setSpacing(1);
-    const QString modeSelectorStyle = QString(
-        "QPushButton{background:%1;color:%2;border:1px solid %3;"
-        "border-radius:4px;font-size:10px;font-weight:600;padding:0 8px;}"
-        "QPushButton:hover{border-color:%4;color:%5;}"
-        "QPushButton:checked{background:%6;color:%5;border-color:%4;}"
-        "QPushButton:disabled{color:%7;border-color:%3;}")
-        .arg(ModernTheme::color(ModernTheme::ControlBackground),
-             ModernTheme::color(ModernTheme::SecondaryText),
-             ModernTheme::color(ModernTheme::BorderSubtle),
-             ModernTheme::color(ModernTheme::AccentCyan),
-             ModernTheme::color(ModernTheme::PrimaryText),
-             ModernTheme::color(ModernTheme::ElevatedPanel),
-             ModernTheme::color(ModernTheme::DisabledText));
+    const QString modeSelectorStyle = ModernTheme::segmentedButtonStyle();
     QButtonGroup *modeGroup = new QButtonGroup(modeSelector);
     modeGroup->setExclusive(true);
     const QStringList modeNames = {
@@ -2737,17 +2742,7 @@ QWidget *modernFloorBoard::createChannelRoutingEditor()
     channelBButton->setCheckable(true);
     channelAButton->setFixedSize(72, 32);
     channelBButton->setFixedSize(72, 32);
-    const QString selectorStyle = QString(
-        "QPushButton{background:%1;color:%2;border:1px solid %3;"
-        "border-radius:4px;font-weight:700;}"
-        "QPushButton:hover{border-color:%4;}"
-        "QPushButton:checked{background:%5;color:%6;border-color:%4;}")
-        .arg(ModernTheme::color(ModernTheme::ControlBackground),
-             ModernTheme::color(ModernTheme::SecondaryText),
-             ModernTheme::color(ModernTheme::BorderSubtle),
-             ModernTheme::color(ModernTheme::AccentCyan),
-             ModernTheme::color(ModernTheme::ElevatedPanel),
-             ModernTheme::color(ModernTheme::PrimaryText));
+    const QString selectorStyle = ModernTheme::segmentedButtonStyle();
     channelAButton->setStyleSheet(selectorStyle);
     channelBButton->setStyleSheet(selectorStyle);
     QButtonGroup *channelGroup = new QButtonGroup(selector);
@@ -3101,6 +3096,28 @@ QWidget *modernFloorBoard::createEqCombo(const QString &label,
     connect(combo, SIGNAL(currentIndexChanged(int)),
             this, SLOT(eqComboChanged(int)));
     eqCombos.append(combo);
+    return container;
+}
+
+QWidget *modernFloorBoard::createEqKnob(const QString &label,
+                                        const QString &address)
+{
+    ParameterKnob *container = new ParameterKnob(label);
+    container->setCompactLayout();
+    container->setAccentColor(QColor(
+        ModernTheme::activeEffectAccent("EQ")));
+    AudioGearKnob *knob = container->dial();
+    knob->setProperty("address", address);
+
+    MidiTable *midiTable = MidiTable::Instance();
+    knob->setRange(midiTable->getRangeMinimum(
+                       "Structure", "01", "00", address),
+                   midiTable->getRange(
+                       "Structure", "01", "00", address));
+
+    connect(knob, &QDial::valueChanged,
+            this, &modernFloorBoard::eqKnobChanged);
+    eqKnobs.append(knob);
     return container;
 }
 
@@ -7674,6 +7691,19 @@ void modernFloorBoard::updateEqParameterControls(bool available)
         if (!available)
             bar->setDisplayText(QString::fromUtf8("—"));
     }
+    for (QDial *knob : eqKnobs) {
+        if (!knob)
+            continue;
+        knob->setEnabled(available);
+        QLabel *valueLabel = knob->parentWidget()
+            ? knob->parentWidget()->findChild<QLabel *>("ControlValue")
+            : nullptr;
+        if (!available) {
+            knob->setProperty("eqDisplayText", QString::fromUtf8("—"));
+            if (valueLabel)
+                valueLabel->setText(QString::fromUtf8("—"));
+        }
+    }
 
     if (!available) {
         for (QComboBox *combo : eqCombos) {
@@ -7715,6 +7745,22 @@ void modernFloorBoard::updateEqParameterControls(bool available)
                 QString::number(value, 16).toUpper()),
             address, value));
     }
+    for (QDial *knob : eqKnobs) {
+        if (!knob)
+            continue;
+        const QString address = knob->property("address").toString();
+        const int value = sysxIO->getSourceValue(
+            "Structure", "01", "00", address);
+        const QString display = eqKnobDisplayText(address, value);
+        const QSignalBlocker blocker(knob);
+        knob->setValue(value);
+        knob->setProperty("eqDisplayText", display);
+        QLabel *valueLabel = knob->parentWidget()
+            ? knob->parentWidget()->findChild<QLabel *>("ControlValue")
+            : nullptr;
+        if (valueLabel)
+            valueLabel->setText(display);
+    }
     updateEqGraph();
 }
 
@@ -7730,27 +7776,32 @@ void modernFloorBoard::updateEqGraph()
         }
         return nullptr;
     };
-    auto barForAddress = [this](const QString &address) -> ParameterBar * {
-        for (ParameterBar *bar : eqBars) {
-            if (bar && bar->property("address").toString() == address)
-                return bar;
+    auto knobForAddress = [this](const QString &address) -> QDial * {
+        for (QDial *knob : eqKnobs) {
+            if (knob && knob->property("address").toString() == address)
+                return knob;
         }
         return nullptr;
     };
-    auto gainForAddress = [&barForAddress](const QString &address) -> qreal {
-        ParameterBar *bar = barForAddress(address);
+    auto knobNumber = [&knobForAddress](const QString &address,
+                                        qreal fallback) -> qreal {
+        QDial *knob = knobForAddress(address);
         bool valid = false;
-        const qreal displayed = bar
-            ? numericPresentationValue(bar->displayText(), &valid) : 0.0;
-        return valid ? displayed : 0.0;
+        const qreal displayed = knob
+            ? numericPresentationValue(
+                  knob->property("eqDisplayText").toString(), &valid)
+            : 0.0;
+        return valid ? displayed : fallback;
     };
-    auto comboNumber = [&comboForAddress](const QString &address,
-                                          qreal fallback) -> qreal {
-        QComboBox *combo = comboForAddress(address);
+    auto knobFrequency = [&knobForAddress](const QString &address,
+                                           qreal fallback) -> qreal {
+        QDial *knob = knobForAddress(address);
         bool valid = false;
-        const qreal value = combo
-            ? numericPresentationValue(combo->currentText(), &valid) : 0.0;
-        return valid ? value : fallback;
+        const qreal displayed = knob
+            ? frequencyPresentationValue(
+                  knob->property("eqDisplayText").toString(), &valid)
+            : 0.0;
+        return valid ? displayed : fallback;
     };
     auto comboFrequency = [&comboForAddress](const QString &address,
                                              qreal fallback) -> qreal {
@@ -7763,14 +7814,14 @@ void modernFloorBoard::updateEqGraph()
 
     eqGraph->setEqActive(eqOnOff && eqOnOff->isEnabled()
                          && eqOnOff->isChecked());
-    eqGraph->setLowGain(gainForAddress("72"));
-    eqGraph->setLowMid(comboFrequency("73", 500.0),
-                       gainForAddress("75"),
-                       comboNumber("74", 1.0));
-    eqGraph->setHighMid(comboFrequency("76", 2000.0),
-                        gainForAddress("78"),
-                        comboNumber("77", 1.0));
-    eqGraph->setHighGain(gainForAddress("79"));
+    eqGraph->setLowGain(knobNumber("72", 0.0));
+    eqGraph->setLowMid(knobFrequency("73", 500.0),
+                       knobNumber("75", 0.0),
+                       knobNumber("74", 1.0));
+    eqGraph->setHighMid(knobFrequency("76", 2000.0),
+                        knobNumber("78", 0.0),
+                        knobNumber("77", 1.0));
+    eqGraph->setHighGain(knobNumber("79", 0.0));
 
     QComboBox *lowCut = comboForAddress("71");
     QComboBox *highCut = comboForAddress("7A");
@@ -7799,6 +7850,23 @@ void modernFloorBoard::eqComboChanged(int value)
     if (!combo || value < 0)
         return;
     setEqValue(combo->property("address").toString(), value);
+    updateEqGraph();
+}
+
+void modernFloorBoard::eqKnobChanged(int value)
+{
+    QDial *knob = qobject_cast<QDial *>(sender());
+    if (!knob)
+        return;
+    const QString address = knob->property("address").toString();
+    const QString display = eqKnobDisplayText(address, value);
+    setEqValue(address, value);
+    knob->setProperty("eqDisplayText", display);
+    QLabel *valueLabel = knob->parentWidget()
+        ? knob->parentWidget()->findChild<QLabel *>("ControlValue")
+        : nullptr;
+    if (valueLabel)
+        valueLabel->setText(display);
     updateEqGraph();
 }
 

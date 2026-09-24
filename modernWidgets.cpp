@@ -96,6 +96,19 @@ protected:
             fullText, Qt::ElideRight, qMax(0, textRect.width() - 4));
         painter.drawControl(QStyle::CE_ComboBoxLabel, option);
 
+        QColor arrowColor(ModernTheme::color(isEnabled()
+            ? ModernTheme::SecondaryText : ModernTheme::DisabledText));
+        if (isEnabled() && (hasFocus() || underMouse()))
+            arrowColor = QColor(ModernTheme::color(
+                ModernTheme::PrimaryText));
+        painter.setRenderHint(QPainter::Antialiasing, true);
+        painter.setPen(QPen(arrowColor, 1.5,
+                            Qt::SolidLine, Qt::RoundCap,
+                            Qt::RoundJoin));
+        const QPointF center(width() - 14.0, height() / 2.0 + 0.5);
+        painter.drawLine(center - QPointF(4.0, 2.0), center);
+        painter.drawLine(center, center + QPointF(4.0, -2.0));
+
         const QString desiredTooltip = option.currentText == fullText
             ? QString() : fullText;
         if (toolTip() != desiredTooltip)
@@ -238,9 +251,6 @@ EffectEditorPanel::EffectEditorPanel(const QString &effectName, QWidget *parent)
     QVBoxLayout *parameterPaneLayout = new QVBoxLayout(parameterPane);
     parameterPaneLayout->setContentsMargins(10, 10, 10, 10);
     parameterPaneLayout->setSpacing(6);
-    QLabel *parameterTitle = new QLabel(QObject::tr("PARAMETERS"));
-    parameterTitle->setObjectName("WorkspaceColumnTitle");
-    parameterPaneLayout->addWidget(parameterTitle);
     parameters = new QWidget;
     parameters->setObjectName("EffectParameterArea");
     parameters->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
@@ -1162,8 +1172,29 @@ ParameterKnob::ParameterKnob(const QString &label, QWidget *parent)
 
 AudioGearKnob *ParameterKnob::dial() const { return knob; }
 QLabel *ParameterKnob::valueLabel() const { return value; }
-QSize ParameterKnob::sizeHint() const { return QSize(124, 136); }
-QSize ParameterKnob::minimumSizeHint() const { return QSize(108, 130); }
+void ParameterKnob::setAccentColor(const QColor &color)
+{
+    knob->setAccentColor(color);
+    value->setStyleSheet(QString("color:%1;").arg(color.name()));
+}
+void ParameterKnob::setCompactLayout()
+{
+    setMinimumSize(76, 106);
+    knob->setFixedSize(58, 58);
+    if (QVBoxLayout *column = qobject_cast<QVBoxLayout *>(layout())) {
+        column->setContentsMargins(0, 0, 0, 0);
+        column->setSpacing(0);
+    }
+    updateGeometry();
+}
+QSize ParameterKnob::sizeHint() const
+{
+    return knob->width() <= 60 ? QSize(80, 110) : QSize(124, 136);
+}
+QSize ParameterKnob::minimumSizeHint() const
+{
+    return knob->width() <= 60 ? QSize(76, 106) : QSize(108, 130);
+}
 
 ParameterCombo::ParameterCombo(const QString &label, QWidget *parent)
     : QWidget(parent), title(new QLabel(label.toUpper())),
@@ -1339,14 +1370,16 @@ void ModernToggleSwitch::paintEvent(QPaintEvent *)
     const QRectF track = rect().adjusted(1, 1, -1, -1);
     QColor trackColor;
     if (!isEnabled()) {
-        trackColor = QColor(ModernTheme::color(ModernTheme::BorderSubtle));
+        trackColor = QColor(ModernTheme::color(
+            ModernTheme::ControlTrackDisabled));
     } else if (isChecked()) {
         trackColor = switchAccent;
-        trackColor.setAlpha(underMouse() ? 235 : 210);
+        trackColor.setAlpha(isDown() ? 235 : underMouse() ? 220 : 195);
     } else {
         trackColor = QColor(ModernTheme::color(
-            underMouse() ? ModernTheme::ElevatedPanel
-                         : ModernTheme::ControlBackground));
+            isDown() ? ModernTheme::PressedSurface
+                     : underMouse() ? ModernTheme::HoverSurface
+                                    : ModernTheme::ControlTrack));
     }
 
     painter.setPen(QPen(QColor(ModernTheme::color(
@@ -1381,20 +1414,10 @@ void ModernToggleSwitch::paintEvent(QPaintEvent *)
     painter.drawText(onTextRect, Qt::AlignCenter, "ON");
     painter.drawText(offTextRect, Qt::AlignCenter, "OFF");
 
-    painter.setPen(Qt::NoPen);
-    painter.setBrush(QColor(0, 0, 0, isEnabled() ? 82 : 45));
-    painter.drawEllipse(thumbCenter + QPointF(0, 1.2),
-                        thumbRadius + 0.7, thumbRadius + 0.7);
-
-    QLinearGradient thumbSurface(
-        thumbCenter - QPointF(0, thumbRadius),
-        thumbCenter + QPointF(0, thumbRadius));
-    thumbSurface.setColorAt(0, QColor(isEnabled()
-        ? "#F1F3F4" : "#A1A5A9"));
-    thumbSurface.setColorAt(1, QColor(isEnabled()
-        ? "#BFC4C8" : "#777C81"));
-    painter.setPen(QPen(QColor("#08090A"), 0.8));
-    painter.setBrush(thumbSurface);
+    painter.setPen(QPen(QColor(ModernTheme::color(
+        ModernTheme::ApplicationBackground)), 0.8));
+    painter.setBrush(QColor(ModernTheme::color(isEnabled()
+        ? ModernTheme::ControlThumb : ModernTheme::DisabledText)));
     painter.drawEllipse(thumbCenter, thumbRadius, thumbRadius);
 
     if (hasFocus()) {
@@ -1465,30 +1488,54 @@ void AudioGearPanel::paintEvent(QPaintEvent *)
 }
 void AudioGearPanel::paintPanelDetails(QPainter &, const QRectF &) {}
 
-AudioGearKnob::AudioGearKnob(QWidget *parent) : QDial(parent) {}
+AudioGearKnob::AudioGearKnob(QWidget *parent)
+    : QDial(parent),
+      knobAccent(ModernTheme::color(ModernTheme::EditorAccent))
+{}
+
+void AudioGearKnob::setAccentColor(const QColor &color)
+{
+    knobAccent = color;
+    update();
+}
+
 void AudioGearKnob::paintEvent(QPaintEvent *)
 {
-    QPainter p(this); p.setRenderHint(QPainter::Antialiasing);
-    const qreal side=qMin(width(),height()); const QPointF c(width()/2.0,height()/2.0);
-    const qreal ratio=maximum()==minimum()?0.0:qreal(value()-minimum())/qreal(maximum()-minimum());
-    const QColor accent=isEnabled()
-        ? QColor(ModernTheme::color(ModernTheme::EditorAccent))
-        : QColor(ModernTheme::color(ModernTheme::DisabledText));
-    for(int i=0;i<=12;++i){ const qreal a=(225.0-270.0*i/12.0)*kPi/180.0;
-        p.setPen(QPen(QColor("#43505B"),i%3==0?1.4:.8));
-        p.drawLine(QPointF(c.x()+std::cos(a)*side*.445,c.y()-std::sin(a)*side*.445),QPointF(c.x()+std::cos(a)*side*.485,c.y()-std::sin(a)*side*.485)); }
-    const QRectF arc(c.x()-side*.41,c.y()-side*.41,side*.82,side*.82);
-    p.setPen(QPen(QColor("#26303A"),side*.045,Qt::SolidLine,Qt::RoundCap)); p.drawArc(arc,225*16,-270*16);
-    p.setPen(QPen(accent,side*.045,Qt::SolidLine,Qt::RoundCap)); p.drawArc(arc,225*16,int(-270.0*ratio*16));
-    const qreal r=side*.305; const QRectF knob(c.x()-r,c.y()-r,r*2,r*2);
-    p.setPen(Qt::NoPen); p.setBrush(QColor(0,0,0,150)); p.drawEllipse(knob.translated(0,side*.045));
-    QRadialGradient ring(c-QPointF(side*.08,side*.1),r*1.6); ring.setColorAt(0,QColor("#B2B9BF")); ring.setColorAt(.28,QColor("#4D5862")); ring.setColorAt(.38,QColor("#12171C")); ring.setColorAt(1,QColor("#020304"));
-    p.setPen(QPen(QColor("#707A83"),1)); p.setBrush(ring); p.drawEllipse(knob);
-    QRadialGradient face(c-QPointF(side*.06,side*.08),r); face.setColorAt(0,QColor("#47515A")); face.setColorAt(.5,QColor("#171C21")); face.setColorAt(1,QColor("#040506"));
-    p.setPen(QPen(QColor("#050709"),1)); p.setBrush(face); p.drawEllipse(knob.adjusted(side*.065,side*.065,-side*.065,-side*.065));
-    const qreal a=(225.0-270.0*ratio)*kPi/180.0; const QPointF marker(c.x()+std::cos(a)*r*.60,c.y()-std::sin(a)*r*.60);
-    p.setPen(QPen(accent,side*.035,Qt::SolidLine,Qt::RoundCap)); p.drawLine(c,marker);
-    p.setPen(Qt::NoPen); p.setBrush(isEnabled()?QColor("#BCEEFF"):QColor("#59636D")); p.drawEllipse(marker,side*.022,side*.022);
+    QPainter p(this);
+    p.setRenderHint(QPainter::Antialiasing);
+    const qreal side = qMin(width(), height());
+    const QPointF c(width() / 2.0, height() / 2.0);
+    const qreal ratio = maximum() == minimum() ? 0.0
+        : qreal(value() - minimum()) / qreal(maximum() - minimum());
+    const QColor accent(isEnabled()
+        ? knobAccent
+        : ModernTheme::color(ModernTheme::DisabledText));
+    const QRectF arc(c.x() - side * .40, c.y() - side * .40,
+                     side * .80, side * .80);
+    p.setPen(QPen(QColor(ModernTheme::color(isEnabled()
+        ? ModernTheme::ControlTrack : ModernTheme::ControlTrackDisabled)),
+        side * .055, Qt::SolidLine, Qt::RoundCap));
+    p.drawArc(arc, 225 * 16, -270 * 16);
+    p.setPen(QPen(accent, side * .055,
+                  Qt::SolidLine, Qt::RoundCap));
+    p.drawArc(arc, 225 * 16, int(-270.0 * ratio * 16));
+
+    const qreal radius = side * .29;
+    const QRectF knob(c.x() - radius, c.y() - radius,
+                      radius * 2, radius * 2);
+    p.setPen(QPen(QColor(ModernTheme::color(ModernTheme::Border)), 1));
+    p.setBrush(QColor(ModernTheme::color(ModernTheme::ElevatedPanel)));
+    p.drawEllipse(knob);
+    const qreal angle = (225.0 - 270.0 * ratio) * kPi / 180.0;
+    const QPointF marker(c.x() + std::cos(angle) * radius * .68,
+                         c.y() - std::sin(angle) * radius * .68);
+    p.setPen(QPen(accent, side * .035,
+                  Qt::SolidLine, Qt::RoundCap));
+    p.drawLine(c, marker);
+    p.setPen(Qt::NoPen);
+    p.setBrush(QColor(ModernTheme::color(isEnabled()
+        ? ModernTheme::ControlThumb : ModernTheme::DisabledText)));
+    p.drawEllipse(c, side * .025, side * .025);
 }
 
 AudioGearLed::AudioGearLed(QWidget *parent)

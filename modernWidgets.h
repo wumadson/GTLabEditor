@@ -165,6 +165,8 @@ public:
     ParameterKnob(const QString &label, QWidget *parent = nullptr);
     AudioGearKnob *dial() const;
     QLabel *valueLabel() const;
+    void setAccentColor(const QColor &color);
+    void setCompactLayout();
     QSize sizeHint() const override;
     QSize minimumSizeHint() const override;
 private:
@@ -248,8 +250,11 @@ class AudioGearKnob : public QDial
 {
 public:
     explicit AudioGearKnob(QWidget *parent = nullptr);
+    void setAccentColor(const QColor &color);
 protected:
     void paintEvent(QPaintEvent *event) override;
+private:
+    QColor knobAccent;
 };
 
 class AudioGearLed : public QWidget
