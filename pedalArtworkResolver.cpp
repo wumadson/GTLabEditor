@@ -11,6 +11,34 @@ const char kCompressorArtwork[] =
     ":/assets/pedals/comp/00_compressor.png";
 const char kLimiterArtwork[] =
     ":/assets/pedals/comp/01_limiter.png";
+const char *const kOddsArtwork[] = {
+    ":/assets/pedals/odds/booster.png",
+    ":/assets/pedals/odds/booster.png",
+    ":/assets/pedals/odds/booster.png",
+    ":/assets/pedals/odds/blues.png",
+    ":/assets/pedals/odds/blues.png",
+    ":/assets/pedals/odds/blues.png",
+    ":/assets/pedals/odds/od.png",
+    ":/assets/pedals/odds/od.png",
+    ":/assets/pedals/odds/od.png",
+    ":/assets/pedals/odds/od.png",
+    ":/assets/pedals/odds/dist.png",
+    ":/assets/pedals/odds/dist.png",
+    ":/assets/pedals/odds/dist.png",
+    ":/assets/pedals/odds/classic.png",
+    ":/assets/pedals/odds/classic.png",
+    ":/assets/pedals/odds/classic.png",
+    ":/assets/pedals/odds/modern.png",
+    ":/assets/pedals/odds/modern.png",
+    ":/assets/pedals/odds/modern.png",
+    ":/assets/pedals/odds/metal.png",
+    ":/assets/pedals/odds/metal.png",
+    ":/assets/pedals/odds/metal.png",
+    ":/assets/pedals/odds/fuzz.png",
+    ":/assets/pedals/odds/fuzz.png",
+    ":/assets/pedals/odds/fuzz.png",
+    ":/assets/pedals/odds/custom.png"
+};
 const char *const kReverbArtwork[] = {
     ":/assets/pedals/reverb/00_ambience.png",
     ":/assets/pedals/reverb/01_room.png",
@@ -53,6 +81,11 @@ QString PedalArtworkResolver::resolve(const PedalArtworkRequest &request)
             return QString::fromLatin1(kCompressorArtwork);
         if (request.modelRaw == 0x01)
             return QString::fromLatin1(kLimiterArtwork);
+    }
+
+    if (request.family == PedalArtworkFamily::OverdriveDistortion
+        && request.modelRaw >= 0x00 && request.modelRaw <= 0x19) {
+        return QString::fromLatin1(kOddsArtwork[request.modelRaw]);
     }
 
     if (request.family == PedalArtworkFamily::Reverb

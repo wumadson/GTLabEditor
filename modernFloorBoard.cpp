@@ -1699,7 +1699,8 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
             this, &modernFloorBoard::oddsModelSelected);
     oddsArtwork = new EffectArtworkWidget;
     applyPedalArtwork(
-        oddsArtwork, PedalArtworkFamily::OverdriveDistortion);
+        oddsArtwork, PedalArtworkFamily::OverdriveDistortion, -1,
+        PedalArtworkVariant::Default, -1, true);
     oddsArtwork->setGenericPedalIdentity(
         "OD/DS", QColor(ModernTheme::color(ModernTheme::PrimaryText)),
         QColor(ModernTheme::effectColor("OD/DS")));
@@ -7298,7 +7299,7 @@ void modernFloorBoard::updateOddsParameterControls(bool available)
         applyPedalArtwork(
             oddsArtwork, PedalArtworkFamily::OverdriveDistortion,
             oddsType->currentIndex(), PedalArtworkVariant::Default,
-            oddsCustomType ? oddsCustomType->currentIndex() : -1);
+            oddsCustomType ? oddsCustomType->currentIndex() : -1, true);
     }
     if (oddsArtwork && oddsType)
         oddsArtwork->setTextOverlayText(
@@ -7349,7 +7350,7 @@ void modernFloorBoard::setOddsType(int index)
     applyPedalArtwork(
         oddsArtwork, PedalArtworkFamily::OverdriveDistortion, index,
         PedalArtworkVariant::Default,
-        oddsCustomType ? oddsCustomType->currentIndex() : -1);
+        oddsCustomType ? oddsCustomType->currentIndex() : -1, true);
 }
 
 void modernFloorBoard::oddsComboChanged(int value)
