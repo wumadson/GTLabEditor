@@ -103,15 +103,7 @@
         <file>assets/pedals/expression_pedal.png</file>
         <file>assets/pedals/comp/00_compressor.png</file>
         <file>assets/pedals/comp/01_limiter.png</file>
-        <file>assets/pedals/odds/booster.png</file>
-        <file>assets/pedals/odds/blues.png</file>
-        <file>assets/pedals/odds/od.png</file>
-        <file>assets/pedals/odds/dist.png</file>
-        <file>assets/pedals/odds/classic.png</file>
-        <file>assets/pedals/odds/modern.png</file>
-        <file>assets/pedals/odds/metal.png</file>
-        <file>assets/pedals/odds/fuzz.png</file>
-        <file>assets/pedals/odds/custom.png</file>
+        <file>assets/pedals/odds/od-ds.png</file>
         <file>assets/pedals/fx/fx-1.png</file>
         <file>assets/pedals/fx/fx-2.png</file>
         <file>assets/pedals/reverb/00_ambience.png</file>

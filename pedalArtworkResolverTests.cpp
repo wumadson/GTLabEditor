@@ -257,81 +257,37 @@ int main(int argc, char **argv)
                      == ":/assets/effects/pedal_generic.png",
                  "unsupported S/R variant uses the generic fallback");
 
-    const char *const oddsArtwork[] = {
-        ":/assets/pedals/odds/booster.png",
-        ":/assets/pedals/odds/booster.png",
-        ":/assets/pedals/odds/booster.png",
-        ":/assets/pedals/odds/blues.png",
-        ":/assets/pedals/odds/blues.png",
-        ":/assets/pedals/odds/blues.png",
-        ":/assets/pedals/odds/od.png",
-        ":/assets/pedals/odds/od.png",
-        ":/assets/pedals/odds/od.png",
-        ":/assets/pedals/odds/od.png",
-        ":/assets/pedals/odds/dist.png",
-        ":/assets/pedals/odds/dist.png",
-        ":/assets/pedals/odds/dist.png",
-        ":/assets/pedals/odds/classic.png",
-        ":/assets/pedals/odds/classic.png",
-        ":/assets/pedals/odds/classic.png",
-        ":/assets/pedals/odds/modern.png",
-        ":/assets/pedals/odds/modern.png",
-        ":/assets/pedals/odds/modern.png",
-        ":/assets/pedals/odds/metal.png",
-        ":/assets/pedals/odds/metal.png",
-        ":/assets/pedals/odds/metal.png",
-        ":/assets/pedals/odds/fuzz.png",
-        ":/assets/pedals/odds/fuzz.png",
-        ":/assets/pedals/odds/fuzz.png",
-        ":/assets/pedals/odds/custom.png"
-    };
     request = PedalArtworkRequest();
     request.family = PedalArtworkFamily::OverdriveDistortion;
     for (int raw = 0x00; raw <= 0x19; ++raw) {
         request.modelRaw = raw;
         ok &= expect(PedalArtworkResolver::resolve(request)
-                         == QString::fromLatin1(oddsArtwork[raw]),
-                     "OD/DS raw uses its category artwork");
-    }
-    const char *const oddsResources[] = {
-        ":/assets/pedals/odds/booster.png",
-        ":/assets/pedals/odds/blues.png",
-        ":/assets/pedals/odds/od.png",
-        ":/assets/pedals/odds/dist.png",
-        ":/assets/pedals/odds/classic.png",
-        ":/assets/pedals/odds/modern.png",
-        ":/assets/pedals/odds/metal.png",
-        ":/assets/pedals/odds/fuzz.png",
-        ":/assets/pedals/odds/custom.png"
-    };
-    for (const char *resource : oddsResources) {
-        const QImage image(QString::fromLatin1(resource));
-        ok &= expect(!image.isNull(),
-                     "OD/DS category resource loads through QRC");
-        ok &= expect(image.size() == QSize(1024, 1536),
-                     "OD/DS category resource keeps 1024x1536 dimensions");
-        ok &= expect(image.hasAlphaChannel() && hasTransparentPixel(image),
-                     "OD/DS category resource keeps real transparency");
-    }
-    request.modelRaw = 0x19;
-    for (int secondaryRaw = 0x00; secondaryRaw <= 0x07; ++secondaryRaw) {
-        request.secondaryRaw = secondaryRaw;
-        ok &= expect(PedalArtworkResolver::resolve(request)
-                         == ":/assets/pedals/odds/custom.png",
-                     "OD/DS Custom subtype uses the Custom artwork");
-    }
-    for (int secondaryRaw : {-1, 0x7E}) {
-        request.secondaryRaw = secondaryRaw;
-        ok &= expect(PedalArtworkResolver::resolve(request)
-                         == ":/assets/pedals/odds/custom.png",
-                     "OD/DS Custom ignores unknown secondary raw");
+                         == ":/assets/pedals/odds/od-ds.png",
+                     "OD/DS raw uses the generic block artwork");
     }
     for (int modelRaw : {-1, 0x1A, 0x7F}) {
         request.modelRaw = modelRaw;
         ok &= expect(PedalArtworkResolver::resolve(request)
-                         == ":/assets/effects/pedal_generic.png",
-                     "unknown OD/DS raw uses the generic fallback");
+                         == ":/assets/pedals/odds/od-ds.png",
+                     "transitional OD/DS raw uses the generic block artwork");
     }
+    for (int modelRaw : {0x00, 0x10, 0x19, 0x7F}) {
+        request.modelRaw = modelRaw;
+        for (int secondaryRaw : {-1, 0x00, 0x03, 0x07, 0x7F}) {
+            request.secondaryRaw = secondaryRaw;
+            ok &= expect(PedalArtworkResolver::resolve(request)
+                             == ":/assets/pedals/odds/od-ds.png",
+                         "OD/DS artwork ignores the secondary raw");
+        }
+    }
+    const QImage oddsImage(":/assets/pedals/odds/od-ds.png");
+    ok &= expect(!oddsImage.isNull(),
+                 "OD/DS generic block resource loads through QRC");
+    ok &= expect(oddsImage.size() == QSize(1024, 1536),
+                 "OD/DS generic block resource keeps 1024x1536 dimensions");
+    ok &= expect(oddsImage.hasAlphaChannel()
+                     && hasTransparentPixel(oddsImage),
+                 "OD/DS generic block resource keeps real transparency");
 
     request.family = PedalArtworkFamily::Preamp;
     request.variant = PedalArtworkVariant::ChannelA;

@@ -13,34 +13,7 @@ const char kLimiterArtwork[] =
     ":/assets/pedals/comp/01_limiter.png";
 const char kFx1Artwork[] = ":/assets/pedals/fx/fx-1.png";
 const char kFx2Artwork[] = ":/assets/pedals/fx/fx-2.png";
-const char *const kOddsArtwork[] = {
-    ":/assets/pedals/odds/booster.png",
-    ":/assets/pedals/odds/booster.png",
-    ":/assets/pedals/odds/booster.png",
-    ":/assets/pedals/odds/blues.png",
-    ":/assets/pedals/odds/blues.png",
-    ":/assets/pedals/odds/blues.png",
-    ":/assets/pedals/odds/od.png",
-    ":/assets/pedals/odds/od.png",
-    ":/assets/pedals/odds/od.png",
-    ":/assets/pedals/odds/od.png",
-    ":/assets/pedals/odds/dist.png",
-    ":/assets/pedals/odds/dist.png",
-    ":/assets/pedals/odds/dist.png",
-    ":/assets/pedals/odds/classic.png",
-    ":/assets/pedals/odds/classic.png",
-    ":/assets/pedals/odds/classic.png",
-    ":/assets/pedals/odds/modern.png",
-    ":/assets/pedals/odds/modern.png",
-    ":/assets/pedals/odds/modern.png",
-    ":/assets/pedals/odds/metal.png",
-    ":/assets/pedals/odds/metal.png",
-    ":/assets/pedals/odds/metal.png",
-    ":/assets/pedals/odds/fuzz.png",
-    ":/assets/pedals/odds/fuzz.png",
-    ":/assets/pedals/odds/fuzz.png",
-    ":/assets/pedals/odds/custom.png"
-};
+const char kOddsArtwork[] = ":/assets/pedals/odds/od-ds.png";
 const char *const kReverbArtwork[] = {
     ":/assets/pedals/reverb/00_ambience.png",
     ":/assets/pedals/reverb/01_room.png",
@@ -86,9 +59,8 @@ QString PedalArtworkResolver::resolve(const PedalArtworkRequest &request)
     }
 
     if (request.family == PedalArtworkFamily::OverdriveDistortion
-        && request.modelRaw >= 0x00 && request.modelRaw <= 0x19) {
-        return QString::fromLatin1(kOddsArtwork[request.modelRaw]);
-    }
+        && request.variant == PedalArtworkVariant::Default)
+        return QString::fromLatin1(kOddsArtwork);
 
     if (request.family == PedalArtworkFamily::Reverb
         && request.modelRaw >= 0x00 && request.modelRaw <= 0x06) {
