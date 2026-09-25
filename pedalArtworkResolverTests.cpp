@@ -173,6 +173,59 @@ int main(int argc, char **argv)
                  "unknown delay raw uses the generic fallback");
 
     request = PedalArtworkRequest();
+    request.family = PedalArtworkFamily::Fx;
+    const int fxModelRaws[] = {0x00, 0x10, 0x21, -1, 0x7F};
+    request.variant = PedalArtworkVariant::Fx1;
+    for (int modelRaw : fxModelRaws) {
+        request.modelRaw = modelRaw;
+        ok &= expect(PedalArtworkResolver::resolve(request)
+                         == ":/assets/pedals/fx/fx-1.png",
+                     "FX-1 artwork is independent of the model raw");
+    }
+    request.modelRaw = 0x10;
+    for (int secondaryRaw : {-1, 0x00, 0x7F}) {
+        request.secondaryRaw = secondaryRaw;
+        ok &= expect(PedalArtworkResolver::resolve(request)
+                         == ":/assets/pedals/fx/fx-1.png",
+                     "FX-1 artwork ignores the secondary raw");
+    }
+
+    request.variant = PedalArtworkVariant::Fx2;
+    request.secondaryRaw = -1;
+    for (int modelRaw : fxModelRaws) {
+        request.modelRaw = modelRaw;
+        ok &= expect(PedalArtworkResolver::resolve(request)
+                         == ":/assets/pedals/fx/fx-2.png",
+                     "FX-2 artwork is independent of the model raw");
+    }
+    request.modelRaw = 0x10;
+    for (int secondaryRaw : {-1, 0x00, 0x7F}) {
+        request.secondaryRaw = secondaryRaw;
+        ok &= expect(PedalArtworkResolver::resolve(request)
+                         == ":/assets/pedals/fx/fx-2.png",
+                     "FX-2 artwork ignores the secondary raw");
+    }
+
+    request.variant = PedalArtworkVariant::Default;
+    ok &= expect(PedalArtworkResolver::resolve(request)
+                     == ":/assets/effects/pedal_generic.png",
+                 "unsupported FX variant uses the generic fallback");
+
+    const char *const fxResources[] = {
+        ":/assets/pedals/fx/fx-1.png",
+        ":/assets/pedals/fx/fx-2.png"
+    };
+    for (const char *resource : fxResources) {
+        const QImage image(QString::fromLatin1(resource));
+        ok &= expect(!image.isNull(),
+                     "FX generic block resource loads through QRC");
+        ok &= expect(image.size() == QSize(1024, 1536),
+                     "FX generic block resource keeps 1024x1536 dimensions");
+        ok &= expect(image.hasAlphaChannel() && hasTransparentPixel(image),
+                     "FX generic block resource keeps real transparency");
+    }
+
+    request = PedalArtworkRequest();
     request.family = PedalArtworkFamily::NoiseSuppressor;
     request.variant = PedalArtworkVariant::Ns1;
     ok &= expect(PedalArtworkResolver::resolve(request)

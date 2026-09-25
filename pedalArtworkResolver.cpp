@@ -11,6 +11,8 @@ const char kCompressorArtwork[] =
     ":/assets/pedals/comp/00_compressor.png";
 const char kLimiterArtwork[] =
     ":/assets/pedals/comp/01_limiter.png";
+const char kFx1Artwork[] = ":/assets/pedals/fx/fx-1.png";
+const char kFx2Artwork[] = ":/assets/pedals/fx/fx-2.png";
 const char *const kOddsArtwork[] = {
     ":/assets/pedals/odds/booster.png",
     ":/assets/pedals/odds/booster.png",
@@ -101,6 +103,13 @@ QString PedalArtworkResolver::resolve(const PedalArtworkRequest &request)
     if (request.family == PedalArtworkFamily::Delay
         && request.modelRaw >= 0x00 && request.modelRaw <= 0x0A) {
         return QString::fromLatin1(kDelayArtwork[request.modelRaw]);
+    }
+
+    if (request.family == PedalArtworkFamily::Fx) {
+        if (request.variant == PedalArtworkVariant::Fx1)
+            return QString::fromLatin1(kFx1Artwork);
+        if (request.variant == PedalArtworkVariant::Fx2)
+            return QString::fromLatin1(kFx2Artwork);
     }
 
     if (request.family == PedalArtworkFamily::NoiseSuppressor) {

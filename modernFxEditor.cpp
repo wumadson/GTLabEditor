@@ -41,9 +41,17 @@ bool applyFxArtwork(EffectArtworkWidget *widget, FxSlot slot, int modelRaw)
     request.modelRaw = modelRaw;
     request.variant = slot == FxSlot::FX1
         ? PedalArtworkVariant::Fx1 : PedalArtworkVariant::Fx2;
-    return widget->setArtworkWithFallback(
-        PedalArtworkResolver::resolve(request),
-        PedalArtworkResolver::fallback(request));
+    const QString specificPath = PedalArtworkResolver::resolve(request);
+    const QString fallbackPath = PedalArtworkResolver::fallback(request);
+    bool usedFallback = false;
+    const bool artworkLoaded = widget->setArtworkWithFallback(
+        specificPath, fallbackPath, &usedFallback,
+        specificPath != fallbackPath);
+    if (artworkLoaded) {
+        widget->setGenericPedalPresentationEnabled(
+            specificPath == fallbackPath || usedFallback);
+    }
+    return artworkLoaded;
 }
 
 class ResponsiveSectionColumns : public QWidget
