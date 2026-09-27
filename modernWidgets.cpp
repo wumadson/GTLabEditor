@@ -840,6 +840,7 @@ BottomControlStrip::BottomControlStrip(QWidget *parent)
 
     QFrame *tunerRegion = new QFrame;
     tunerRegion->setObjectName("BottomRegion");
+    tunerRegion->setMinimumWidth(150);
     tunerRegion->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
     QVBoxLayout *tunerRegionLayout = new QVBoxLayout(tunerRegion);
     tunerRegionLayout->setContentsMargins(12, 9, 12, 9);
@@ -853,7 +854,7 @@ BottomControlStrip::BottomControlStrip(QWidget *parent)
     tunerCard->setFixedHeight(66);
     QVBoxLayout *tunerLayout = new QVBoxLayout(tunerCard);
     tunerLayout->setContentsMargins(7, 3, 5, 3);
-    tunerLayout->setSpacing(1);
+    tunerLayout->setSpacing(0);
     const QStringList tunerLabelTexts = {
         QObject::tr("REFERENCE"), QObject::tr("OUTPUT")
     };
@@ -867,6 +868,12 @@ BottomControlStrip::BottomControlStrip(QWidget *parent)
     tunerOutput->addItem(QObject::tr("BYPASSED"), 0x01);
     const QList<QComboBox *> tunerCombos = {tunerReference, tunerOutput};
     for (int row = 0; row < tunerCombos.size(); ++row) {
+        if (row > 0) {
+            QFrame *separator = new QFrame;
+            separator->setObjectName("BottomTunerSeparator");
+            separator->setFixedHeight(1);
+            tunerLayout->addWidget(separator);
+        }
         QWidget *field = new QWidget;
         QVBoxLayout *fieldLayout = new QVBoxLayout(field);
         fieldLayout->setContentsMargins(0, 0, 0, 0);
@@ -888,6 +895,7 @@ BottomControlStrip::BottomControlStrip(QWidget *parent)
         "border:1px solid #293A47;border-radius:5px;}"
         "QFrame#BottomTunerCard:hover{background:rgba(17,37,51,215);"
         "border-color:#354B5A;}"
+        "QFrame#BottomTunerSeparator{background:#263A48;border:none;}"
         "QLabel#BottomTunerLabel{color:#88949F;font-size:8px;"
         "font-weight:600;letter-spacing:0.4px;}"
         "QComboBox#BottomTunerCombo{padding:0 17px 0 0;color:#39B8F3;"
@@ -901,7 +909,7 @@ BottomControlStrip::BottomControlStrip(QWidget *parent)
         "QComboBox#BottomTunerCombo QAbstractItemView{color:#ECEFF2;"
         "background:#0D0F12;border:1px solid #24272C;"
         "selection-background-color:#123347;outline:none;}");
-    layout->addWidget(tunerRegion, 18);
+    layout->addWidget(tunerRegion, 12);
     outerLayout->addStretch();
     outerLayout->addWidget(contentWrapper, 1);
     outerLayout->addStretch();
