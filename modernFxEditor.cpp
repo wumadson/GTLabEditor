@@ -1397,8 +1397,8 @@ void ModernFxEditor::setFxType(int raw, bool writeBackend)
     updateBrowserForRaw(raw);
 
     const QString typeName = typeNameForRaw(raw);
-    if (editor && editor->typeLabel())
-        editor->typeLabel()->setText(typeName);
+    if (editor)
+        editor->setTypeText(typeName);
     if (artwork)
         artwork->setTextOverlayText("type", typeName.toUpper());
     if (available)
@@ -1423,6 +1423,8 @@ void ModernFxEditor::updateControls(bool controlsAvailable)
         hiddenType->setEnabled(controlsAvailable);
 
     if (!controlsAvailable) {
+        if (editor)
+            editor->clearTypeText();
         if (artwork)
             artwork->setGenericPedalState(false, false);
         if (stateToggle) {

@@ -437,6 +437,8 @@ void ModernPedalFxEditor::setMode(int raw, bool writeBackend)
         modeStack->setCurrentIndex(raw);
     if (modeDisplay)
         modeDisplay->setText(kModeNames.at(raw));
+    if (editor)
+        editor->setTypeText(kModeNames.at(raw));
     refreshBindings();
     updateCustomWahVisibility();
     updateContextPresentation();
@@ -471,6 +473,8 @@ void ModernPedalFxEditor::updateControls(bool controlsAvailable)
             browser->setCurrentIndex(-1);
         if (modeDisplay)
             modeDisplay->setText(QString::fromUtf8("—"));
+        if (editor)
+            editor->clearTypeText();
     }
 }
 

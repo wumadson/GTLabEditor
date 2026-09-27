@@ -135,6 +135,65 @@ private:
     }
 };
 
+class RibbonTypeLabel final : public QLabel
+{
+public:
+    explicit RibbonTypeLabel(QWidget *parent = nullptr)
+        : QLabel(parent)
+    {
+        setObjectName("SelectedEffectTypeBadge");
+        setAlignment(Qt::AlignCenter);
+        setMinimumWidth(0);
+        setMaximumWidth(220);
+        setMaximumHeight(24);
+        setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    }
+
+    void setFullText(const QString &text)
+    {
+        fullText = text.trimmed().toUpper();
+        QLabel::setText(fullText);
+        setToolTip(QString());
+        updateGeometry();
+        updateElision();
+    }
+
+    QSize sizeHint() const override
+    {
+        QSize result = QLabel::sizeHint();
+        result.setWidth(qMin(maximumWidth(),
+                             fontMetrics().horizontalAdvance(fullText) + 24));
+        return result;
+    }
+
+    QSize minimumSizeHint() const override
+    {
+        QSize result = QLabel::minimumSizeHint();
+        result.setWidth(0);
+        return result;
+    }
+
+protected:
+    void resizeEvent(QResizeEvent *event) override
+    {
+        QLabel::resizeEvent(event);
+        updateElision();
+    }
+
+private:
+    void updateElision()
+    {
+        if (fullText.isEmpty())
+            return;
+        const QString displayed = fontMetrics().elidedText(
+            fullText, Qt::ElideRight, qMax(0, width() - 18));
+        QLabel::setText(displayed);
+        setToolTip(displayed == fullText ? QString() : fullText);
+    }
+
+    QString fullText;
+};
+
 void drawScrew(QPainter &p, const QPointF &c)
 {
     QRadialGradient metal(c - QPointF(1.5, 1.5), 6);
@@ -178,6 +237,10 @@ SelectedEffectRibbon::SelectedEffectRibbon(const QString &effectName,
     title->setObjectName("SelectedEffectTitle");
     title->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
     contentLayout->addWidget(title, 0, Qt::AlignVCenter);
+
+    badge = new RibbonTypeLabel(this);
+    badge->hide();
+    contentLayout->addWidget(badge, 0, Qt::AlignVCenter);
     contentLayout->addStretch(1);
     setEffectIdentity(effectName);
 }
@@ -187,8 +250,32 @@ void SelectedEffectRibbon::setEffectIdentity(const QString &effectName,
 {
     title->setText(effectName);
     const QString category = accentName.isEmpty() ? effectName : accentName;
-    accent->setStyleSheet(QString("background:%1;").arg(
-        ModernTheme::activeEffectAccent(category)));
+    const QString activeAccent = ModernTheme::activeEffectAccent(category);
+    accent->setStyleSheet(QString("background:%1;").arg(activeAccent));
+    badge->setStyleSheet(QStringLiteral(
+        "QLabel#SelectedEffectTypeBadge {"
+        "background:%1;color:%2;border:1px solid %3;border-radius:4px;"
+        "padding:3px 8px;font-size:10px;font-weight:600;"
+        "letter-spacing:0.5px;}" )
+        .arg(ModernTheme::color(ModernTheme::ElevatedPanel),
+             ModernTheme::color(ModernTheme::PrimaryText), activeAccent));
+}
+
+QLabel *SelectedEffectRibbon::typeLabel() const { return badge; }
+
+void SelectedEffectRibbon::setBadgeText(const QString &text)
+{
+    const QString normalized = text.trimmed();
+    const bool valid = !normalized.isEmpty()
+        && normalized != QString::fromUtf8("—") && normalized != "-";
+    RibbonTypeLabel *label = static_cast<RibbonTypeLabel *>(badge);
+    if (!valid) {
+        label->setFullText(QString());
+        badge->hide();
+        return;
+    }
+    label->setFullText(normalized);
+    badge->show();
 }
 
 void SelectedEffectRibbon::setPowerButton(ModernToggleSwitch *power)
@@ -217,8 +304,7 @@ EffectEditorPanel::EffectEditorPanel(const QString &effectName, QWidget *parent)
     ribbon = new SelectedEffectRibbon(effectName);
     ribbon->hide();
 
-    currentType = new QLabel(QString::fromUtf8("—"), ribbon);
-    currentType->hide();
+    currentType = ribbon->typeLabel();
     root->addWidget(ribbon);
 
     QWidget *editorBody = new QWidget;
@@ -335,6 +421,17 @@ void EffectEditorPanel::setEffectIdentity(const QString &effectName,
 {
     if (ribbon)
         ribbon->setEffectIdentity(effectName, accentName);
+}
+
+void EffectEditorPanel::setTypeText(const QString &text)
+{
+    if (ribbon)
+        ribbon->setBadgeText(text);
+}
+
+void EffectEditorPanel::clearTypeText()
+{
+    setTypeText(QString());
 }
 
 void EffectEditorPanel::setModelBrowserWidget(QWidget *widget)

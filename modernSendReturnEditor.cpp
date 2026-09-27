@@ -144,6 +144,7 @@ void ModernSendReturnEditor::buildEditor()
             setSendReturnValue(kModeAddress, raw);
             artwork->setTextOverlayText("type",
                                         modeCombo->itemText(index));
+            editor->setTypeText(modeCombo->itemText(index));
         }
     });
     connect(sendLevelBar, &QAbstractSlider::valueChanged,
@@ -230,6 +231,7 @@ void ModernSendReturnEditor::updateControls(bool controlsAvailable)
         if (!modeAvailable) {
             const QSignalBlocker blocker(modeCombo);
             modeCombo->setCurrentIndex(-1);
+            editor->clearTypeText();
         }
     }
     if (sendLevelBar) {
@@ -274,8 +276,10 @@ void ModernSendReturnEditor::refreshSendReturn(
         const QSignalBlocker blocker(modeCombo);
         modeCombo->setCurrentIndex(modeCombo->findData(raw));
         artwork->setTextOverlayText("type", modeCombo->currentText());
+        editor->setTypeText(modeCombo->currentText());
     } else {
         artwork->setTextOverlayText("type", QString());
+        editor->clearTypeText();
     }
     if (bufferContains(kSendLevelAddress)) {
         const int raw = readValue(kSendLevelAddress);

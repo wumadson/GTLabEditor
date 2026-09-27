@@ -64,6 +64,8 @@ public:
                               QWidget *utilityWidget = nullptr);
     void setEffectIdentity(const QString &effectName,
                            const QString &accentName = QString());
+    void setTypeText(const QString &text);
+    void clearTypeText();
     void setModelBrowserWidget(QWidget *widget);
     void setRightPanelTitle(const QString &title);
     void setRightPanelWidget(QWidget *widget);
@@ -87,11 +89,14 @@ public:
                                   QWidget *parent = nullptr);
     void setEffectIdentity(const QString &effectName,
                            const QString &accentName = QString());
+    QLabel *typeLabel() const;
+    void setBadgeText(const QString &text);
     void setPowerButton(ModernToggleSwitch *power);
     void addAction(QWidget *action);
 private:
     QFrame *accent;
     QLabel *title;
+    QLabel *badge;
     QHBoxLayout *contentLayout;
 };
 

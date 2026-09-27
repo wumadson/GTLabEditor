@@ -5824,7 +5824,7 @@ void modernFloorBoard::updateReverbParameterControls(bool available)
             const QSignalBlocker blocker(combo);
             combo->setCurrentIndex(-1);
         }
-        if (reverbTypeDisplay) reverbTypeDisplay->setText(QString::fromUtf8("—"));
+        if (reverbEditor) reverbEditor->clearTypeText();
         if (reverbArtwork) reverbArtwork->setTextOverlayText("type", QString());
         if (reverbModelBrowser)
             reverbModelBrowser->setCurrentIndex(-1);
@@ -5847,9 +5847,8 @@ void modernFloorBoard::updateReverbParameterControls(bool available)
             "Structure", "0A", "00", address));
     }
 
-    if (reverbTypeDisplay && reverbType) {
-        reverbTypeDisplay->setText(reverbType->currentText());
-    }
+    if (reverbEditor && reverbType)
+        reverbEditor->setTypeText(reverbType->currentText());
     if (reverbType)
         applyPedalArtwork(reverbArtwork, PedalArtworkFamily::Reverb,
                           reverbType->currentIndex(),
@@ -5921,8 +5920,8 @@ void modernFloorBoard::setReverbType(int index)
     setReverbValue("31", index, false);
     if (reverbModelBrowser)
         reverbModelBrowser->setCurrentIndex(index);
-    if (reverbTypeDisplay)
-        reverbTypeDisplay->setText(reverbType->itemText(index));
+    if (reverbEditor)
+        reverbEditor->setTypeText(reverbType->itemText(index));
     if (reverbArtwork)
         reverbArtwork->setTextOverlayText(
             "type", reverbType->itemText(index).toUpper());
@@ -6854,6 +6853,10 @@ void modernFloorBoard::updatePreampTypeDisplay(PreampChannel channel)
     }
     if (state.artwork)
         state.artwork->setTextOverlayText("ampName", typeName.toUpper());
+    if (typeName.isEmpty())
+        state.editor->clearTypeText();
+    else
+        state.editor->setTypeText(typeName);
 }
 
 void modernFloorBoard::updatePreampParameterControls(
@@ -7109,8 +7112,8 @@ void modernFloorBoard::updateCompParameterControls(bool available)
             const QSignalBlocker blocker(compType);
             compType->setCurrentIndex(-1);
         }
-        if (compTypeDisplay)
-            compTypeDisplay->setText(QString::fromUtf8("—"));
+        if (compEditor)
+            compEditor->clearTypeText();
         if (compArtwork) {
             compArtwork->setTextOverlayText("type", QString());
             compArtwork->setGenericPedalState(false, false);
@@ -7132,8 +7135,8 @@ void modernFloorBoard::updateCompParameterControls(bool available)
         compModeStack->setCurrentIndex(type == 1 ? 1 : 0);
     if (compModelBrowser)
         compModelBrowser->setCurrentIndex(type);
-    if (compTypeDisplay && compType)
-        compTypeDisplay->setText(compType->currentText());
+    if (compEditor && compType)
+        compEditor->setTypeText(compType->currentText());
     applyPedalArtwork(compArtwork, PedalArtworkFamily::Compressor, type,
                       PedalArtworkVariant::Default, -1, true);
     const bool compEnabled = sysxIO->getSourceValue(
@@ -7183,8 +7186,8 @@ void modernFloorBoard::setCompType(int index)
         compModelBrowser->setCurrentIndex(index);
     if (compModeStack)
         compModeStack->setCurrentIndex(index == 1 ? 1 : 0);
-    if (compTypeDisplay)
-        compTypeDisplay->setText(compType->itemText(index));
+    if (compEditor)
+        compEditor->setTypeText(compType->itemText(index));
     if (compArtwork)
         compArtwork->setTextOverlayText("type", compType->itemText(index));
     applyPedalArtwork(compArtwork, PedalArtworkFamily::Compressor, index,
@@ -7268,6 +7271,8 @@ void modernFloorBoard::updateOddsParameterControls(bool available)
             oddsModelBrowser->setCurrentIndex(-1);
         if (oddsCustomSection)
             oddsCustomSection->hide();
+        if (oddsEditor)
+            oddsEditor->clearTypeText();
         return;
     }
 
@@ -7304,6 +7309,8 @@ void modernFloorBoard::updateOddsParameterControls(bool available)
     if (oddsArtwork && oddsType)
         oddsArtwork->setTextOverlayText(
             "type", oddsArtworkType(oddsType->currentText()));
+    if (oddsEditor && oddsType)
+        oddsEditor->setTypeText(oddsType->currentText());
 
     for (ParameterBar *bar : oddsBars) {
         if (!bar)
@@ -7344,6 +7351,8 @@ void modernFloorBoard::setOddsType(int index)
         oddsModelBrowser->setCurrentIndex(index);
     if (oddsCustomSection)
         oddsCustomSection->setVisible(index == 0x19);
+    if (oddsEditor)
+        oddsEditor->setTypeText(oddsType->itemText(index));
     if (oddsArtwork)
         oddsArtwork->setTextOverlayText(
             "type", oddsArtworkType(oddsType->itemText(index)));
@@ -7465,6 +7474,8 @@ void modernFloorBoard::updateDelayParameterControls(bool available)
         if (delayModelBrowser)
             delayModelBrowser->setCurrentIndex(-1);
         updateDelayPageForType(-1);
+        if (delayEditor)
+            delayEditor->clearTypeText();
         return;
     }
 
@@ -7488,6 +7499,8 @@ void modernFloorBoard::updateDelayParameterControls(bool available)
             "type", delayArtworkType(delayType->currentText()));
     if (delayModelBrowser && delayType)
         delayModelBrowser->setCurrentIndex(delayType->currentIndex());
+    if (delayEditor && delayType)
+        delayEditor->setTypeText(delayType->currentText());
     const bool delayEnabled = sysxIO->getSourceValue(
         "Structure", "0A", "00", "00") == 1;
     if (delayOnOff)
@@ -7558,6 +7571,8 @@ void modernFloorBoard::setDelayType(int index)
     setDelayValue("01", index);
     if (delayModelBrowser)
         delayModelBrowser->setCurrentIndex(index);
+    if (delayEditor)
+        delayEditor->setTypeText(delayType->itemText(index));
     updateDelayPageForType(index);
     if (delayArtwork)
         delayArtwork->setTextOverlayText(
@@ -7642,6 +7657,12 @@ void modernFloorBoard::updateChorusParameterControls(bool available)
                 ? chorusMode->currentText().toUpper()
                 : QString());
     }
+    if (chorusEditor && chorusMode) {
+        if (available && chorusMode->currentIndex() >= 0)
+            chorusEditor->setTypeText(chorusMode->currentText());
+        else
+            chorusEditor->clearTypeText();
+    }
     if (available && chorusMode) {
         applyPedalArtwork(
             chorusArtwork, PedalArtworkFamily::Chorus,
@@ -7699,6 +7720,8 @@ void modernFloorBoard::setChorusMode(int index)
     setChorusValue("21", raw);
     if (chorusModeBrowser)
         chorusModeBrowser->setCurrentIndex(index);
+    if (chorusEditor)
+        chorusEditor->setTypeText(chorusMode->itemText(index));
     if (chorusArtwork)
         chorusArtwork->setTextOverlayText(
             "type", chorusMode->itemText(index).toUpper());
