@@ -1456,6 +1456,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     signalChainScroll->setFrameShape(QFrame::NoFrame);
     signalChainScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     signalChainScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    signalChainScroll->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
     connect(signalChainScroll->verticalScrollBar(), &QScrollBar::valueChanged,
             this, [this](int value) {
         if (value != 0 && signalChainScroll)
@@ -5176,20 +5177,6 @@ void modernFloorBoard::rebuildSignalChainView()
 
     SignalChainContent *content = new SignalChainContent;
     signalChainContent = content;
-    const auto installContent = [this, content]() {
-        QWidget *wrapper = new QWidget;
-        wrapper->setObjectName("SignalChainViewportWrapper");
-        wrapper->setStyleSheet(QString(
-            "QWidget#SignalChainViewportWrapper{background:%1;}")
-            .arg(ModernTheme::color(ModernTheme::ControlBackground)));
-        QHBoxLayout *wrapperLayout = new QHBoxLayout(wrapper);
-        wrapperLayout->setContentsMargins(0, 0, 0, 0);
-        wrapperLayout->setSpacing(0);
-        wrapperLayout->addStretch(1);
-        wrapperLayout->addWidget(content, 0, Qt::AlignVCenter);
-        wrapperLayout->addStretch(1);
-        signalChainScroll->setWidget(wrapper);
-    };
     content->setDragHandler([this](int moduleId, const QPoint &position,
                                    bool commit) {
         return handleSignalChainDrag(moduleId, position, commit);
@@ -5217,7 +5204,7 @@ void modernFloorBoard::rebuildSignalChainView()
         signalChainConnectors.append(outputConnector);
         signalFlowLayout->addWidget(outputConnector, 0, Qt::AlignVCenter);
         signalChainScroll->setUpdatesEnabled(false);
-        installContent();
+        signalChainScroll->setWidget(content);
         signalChainScroll->setUpdatesEnabled(true);
         signalChainScroll->viewport()->update();
         return;
@@ -5303,7 +5290,7 @@ void modernFloorBoard::rebuildSignalChainView()
     // geometry for one or more frames. Keep the scroll area frozen until the
     // responsive geometry has been applied synchronously.
     signalChainScroll->setUpdatesEnabled(false);
-    installContent();
+    signalChainScroll->setWidget(content);
     applyResponsiveSignalChainLayout();
     signalChainScroll->setUpdatesEnabled(true);
     signalChainScroll->viewport()->update();
