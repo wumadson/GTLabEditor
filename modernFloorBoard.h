@@ -7,6 +7,7 @@
 #include <QHash>
 #include "modernSignalChainModel.h"
 #include "modernPatchListModel.h"
+#include "patchChangeGuard.h"
 
 class QLabel;
 class QPushButton;
@@ -141,6 +142,7 @@ private slots:
     void tunerOutputChanged(int index);
     void readCurrentPatch();
     void writeCurrentPatch();
+    void requestPatchSelection(int bank, int patch, QString name);
     void beginPatchRename(int bank, int patch);
     void beginPatchPaste(int sourceBank, int sourcePatch,
                          QString sourceNumber, QString sourceName,
@@ -165,6 +167,10 @@ private slots:
                                   bool verified, QString detail);
 
 private:
+    PatchChangeGuard::Snapshot currentPatchSnapshot(bool *valid = nullptr) const;
+    void captureCurrentPatchBaseline();
+    void restoreCurrentPatchSelection();
+    void loadRequestedPatch(const PatchNavigationTarget &target);
     EffectModule *createEffectBlock(const QString &name, bool available);
     bool hasValidReverbBuffer() const;
     void setReverbUnavailable();
@@ -487,6 +493,8 @@ private:
     bool readRequestInFlight = false;
     bool writeRequestInFlight = false;
     bool patchManagementInFlight = false;
+    bool resetPatchBaselineOnRefresh = false;
+    PatchChangeGuard patchChangeGuard;
     modernSignalChainModel signalChainModel;
     ModernPatchListModel patchListModel;
     SignalChainPanel *signalChainPanel = nullptr;

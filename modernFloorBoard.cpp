@@ -19,6 +19,7 @@
 #include "modernSignalChainSerializer.h"
 #include "parameterBar.h"
 #include "patchSidebar.h"
+#include "patchTransferCodec.h"
 #include "signalChainHardwareValidation.h"
 #include "quickSettingService.h"
 #include "modernQuickSettingDialog.h"
@@ -279,6 +280,35 @@ public:
         buttonRow->addWidget(copy);
         cancel->setFocus(Qt::OtherFocusReason);
         return exec() == QDialog::Accepted;
+    }
+
+    PatchNavigationChoice addUnsavedPatchConfirmation()
+    {
+        auto *cancel = new QPushButton(tr("Cancelar"), this);
+        auto *discard = new QPushButton(tr("Descartar"), this);
+        auto *save = new QPushButton(tr("Salvar"), this);
+        save->setObjectName("PrimaryDialogButton");
+        cancel->setDefault(true);
+        cancel->setAutoDefault(true);
+        discard->setAutoDefault(true);
+        save->setAutoDefault(true);
+        connect(cancel, &QPushButton::clicked, this, &QDialog::reject);
+        connect(discard, &QPushButton::clicked, this, [this]() {
+            done(static_cast<int>(PatchNavigationChoice::Discard));
+        });
+        connect(save, &QPushButton::clicked, this, [this]() {
+            done(static_cast<int>(PatchNavigationChoice::Save));
+        });
+        buttonRow->addWidget(cancel);
+        buttonRow->addWidget(discard);
+        buttonRow->addWidget(save);
+        cancel->setFocus(Qt::OtherFocusReason);
+        const int result = exec();
+        if (result == static_cast<int>(PatchNavigationChoice::Save))
+            return PatchNavigationChoice::Save;
+        if (result == static_cast<int>(PatchNavigationChoice::Discard))
+            return PatchNavigationChoice::Discard;
+        return PatchNavigationChoice::Cancel;
     }
 
     void addOkButton()
@@ -1424,7 +1454,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     connect(patchSidebar, SIGNAL(bankExpanded(int)),
             this, SIGNAL(requestPatchNames(int)));
     connect(patchSidebar, SIGNAL(patchActivated(int,int,QString)),
-            this, SIGNAL(selectPatchRequested(int,int,QString)));
+            this, SLOT(requestPatchSelection(int,int,QString)));
     connect(patchSidebar, SIGNAL(renamePatchRequested(int,int)),
             this, SLOT(beginPatchRename(int,int)));
     connect(patchSidebar,
@@ -3725,6 +3755,7 @@ void modernFloorBoard::backendConnected()
     invalidateQuickSettingPresentationCache();
     backendIsConnected = true;
     backendHasPatchData = false;
+    patchChangeGuard.clear();
     outputSystemDataRequested = false;
     outputSystemDataReady = false;
     tunerSystemDataReady = false;
@@ -3768,6 +3799,8 @@ void modernFloorBoard::backendDisconnected()
     tunerSystemDataReady = false;
     readRequestInFlight = false;
     writeRequestInFlight = false;
+    resetPatchBaselineOnRefresh = false;
+    patchChangeGuard.clear();
     emit connectionStateChanged(false);
     refreshTempoHeader();
     refreshPatchLevelHeader();
@@ -4581,6 +4614,10 @@ void modernFloorBoard::refreshReverbState()
         patchName->setText(displayName);
         patchName->setToolTip(displayName);
         patchListModel.setCurrentPatch(bank, patch);
+        if (resetPatchBaselineOnRefresh
+            || !patchChangeGuard.isCurrentPatch(bank, patch))
+            captureCurrentPatchBaseline();
+        resetPatchBaselineOnRefresh = false;
     }
 
     refreshTempoHeader();
@@ -4654,8 +4691,105 @@ void modernFloorBoard::readCurrentPatch()
         return;
 
     readRequestInFlight = true;
+    resetPatchBaselineOnRefresh = true;
     refreshReadButtonState();
     emit readCurrentPatchRequested();
+}
+
+PatchChangeGuard::Snapshot modernFloorBoard::currentPatchSnapshot(
+    bool *valid) const
+{
+    QString error;
+    const PatchChangeGuard::Snapshot snapshot =
+        PatchTransferCodec::comparableBlocks00To0C(
+            SysxIO::Instance()->getFileSource(), &error);
+    const bool snapshotValid = error.isEmpty() && snapshot.size() == 13;
+    if (valid)
+        *valid = snapshotValid;
+    return snapshotValid ? snapshot : PatchChangeGuard::Snapshot();
+}
+
+void modernFloorBoard::captureCurrentPatchBaseline()
+{
+    SysxIO *sysxIO = SysxIO::Instance();
+    bool valid = false;
+    const PatchChangeGuard::Snapshot snapshot = currentPatchSnapshot(&valid);
+    if (valid)
+        patchChangeGuard.setBaseline(sysxIO->getLoadedBank(),
+                                     sysxIO->getLoadedPatch(), snapshot);
+}
+
+void modernFloorBoard::restoreCurrentPatchSelection()
+{
+    SysxIO *sysxIO = SysxIO::Instance();
+    patchListModel.setCurrentPatch(sysxIO->getLoadedBank(),
+                                   sysxIO->getLoadedPatch());
+}
+
+void modernFloorBoard::loadRequestedPatch(
+    const PatchNavigationTarget &target)
+{
+    if (!target.isValid())
+        return;
+    emit selectPatchRequested(target.bank, target.patch, target.name);
+}
+
+void modernFloorBoard::requestPatchSelection(int bank, int patch, QString name)
+{
+    SysxIO *sysxIO = SysxIO::Instance();
+    const PatchNavigationTarget target{bank, patch, name};
+    const int currentBank = sysxIO->getLoadedBank();
+    const int currentPatch = sysxIO->getLoadedPatch();
+    if (bank == currentBank && patch == currentPatch) {
+        restoreCurrentPatchSelection();
+        return;
+    }
+    if (!backendHasPatchData || !backendIsConnected
+        || !sysxIO->isConnected() || !sysxIO->deviceReady()
+        || readRequestInFlight || writeRequestInFlight
+        || patchManagementInFlight || signalChainTransactionActive) {
+        restoreCurrentPatchSelection();
+        return;
+    }
+
+    bool snapshotValid = false;
+    const PatchChangeGuard::Snapshot current =
+        currentPatchSnapshot(&snapshotValid);
+    if (!snapshotValid) {
+        restoreCurrentPatchSelection();
+        return;
+    }
+
+    PatchNavigationChoice choice = PatchNavigationChoice::Cancel;
+    if (patchChangeGuard.isDirty(current)
+        && !patchChangeGuard.isCurrentPatch(bank, patch)) {
+        ModernMessageDialog confirmation(
+            ModernDialogIcon::Warning, tr("Alterações não salvas"),
+            QString(),
+            tr("Existem alterações neste patch que ainda não foram salvas. "
+               "Deseja salvar antes de carregar outro patch?"),
+            QString(), this);
+        choice = confirmation.addUnsavedPatchConfirmation();
+        if (sysxIO->getLoadedBank() != currentBank
+            || sysxIO->getLoadedPatch() != currentPatch) {
+            restoreCurrentPatchSelection();
+            return;
+        }
+    }
+
+    const PatchNavigationAction action = patchChangeGuard.requestNavigation(
+        target, current, choice);
+    if (action == PatchNavigationAction::Load) {
+        loadRequestedPatch(target);
+        return;
+    }
+    if (action == PatchNavigationAction::SaveThenLoad) {
+        writeCurrentPatch();
+        if (writeRequestInFlight)
+            return;
+        patchChangeGuard.cancelPendingSave();
+    }
+    restoreCurrentPatchSelection();
 }
 
 void modernFloorBoard::writeCurrentPatch()
@@ -4842,6 +4976,12 @@ void modernFloorBoard::persistentWriteFinished(int result, int bank, int patch,
 {
     writeRequestInFlight = false;
     refreshReadButtonState();
+    bool snapshotValid = false;
+    const PatchChangeGuard::Snapshot savedSnapshot =
+        currentPatchSnapshot(&snapshotValid);
+    const PatchNavigationTarget pendingTarget =
+        patchChangeGuard.completeSave(result == 0 && snapshotValid,
+                                      savedSnapshot);
     const QString target = patchListModel.patchNumber(bank, patch);
     if (result == 0) {
         if (!verifiedName.trimmed().isEmpty())
@@ -4869,6 +5009,8 @@ void modernFloorBoard::persistentWriteFinished(int result, int bank, int patch,
             tr("Nothing was written."), detail, this);
         notWritten.addOkButton();
     }
+    if (pendingTarget.isValid())
+        loadRequestedPatch(pendingTarget);
 }
 
 void modernFloorBoard::refreshReadButtonState()

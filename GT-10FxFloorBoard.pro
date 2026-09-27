@@ -108,7 +108,7 @@ msvc {
 SOURCES += modernFloorBoard.cpp modernTheme.cpp modernWidgets.cpp modernSignalChainModel.cpp \
            modernSignalChainMutationController.cpp modernSignalChainSerializer.cpp \
            signalChainHardwareValidation.cpp \
-           patchTransferCodec.cpp \
+           patchTransferCodec.cpp patchChangeGuard.cpp \
            pedalArtworkResolver.cpp \
            quickSettingCodec.cpp quickSettingService.cpp modernQuickSettingDialog.cpp \
            effectArtworkWidget.cpp effectModelBrowser.cpp parameterBar.cpp \
@@ -121,7 +121,7 @@ SOURCES += modernAboutDialog.cpp modernSettingsDialog.cpp \
 HEADERS += modernFloorBoard.h modernTheme.h modernWidgets.h modernSignalChainModel.h \
            modernSignalChainMutationController.h modernSignalChainSerializer.h \
            signalChainHardwareValidation.h \
-           patchTransferCodec.h \
+           patchTransferCodec.h patchChangeGuard.h \
            pedalArtworkResolver.h \
            quickSettingCodec.h quickSettingService.h modernQuickSettingDialog.h \
            effectArtworkWidget.h effectModelBrowser.h parameterBar.h \
@@ -166,6 +166,14 @@ contains(CONFIG, patchbackup_tests) {
     SOURCES -= ./main.cpp
     SOURCES += patchBackupTests.cpp
     TARGET = patchBackupTests
+    DESTDIR = $$OUT_PWD
+}
+
+# Offline state-machine regression harness for unsaved-patch navigation.
+contains(CONFIG, patchchangeguard_tests) {
+    SOURCES -= ./main.cpp
+    SOURCES += patchChangeGuardTests.cpp
+    TARGET = patchChangeGuardTests
     DESTDIR = $$OUT_PWD
 }
 
