@@ -354,22 +354,6 @@ QString ModernTheme::applicationStyleSheet()
             letter-spacing: 1.1px;
             padding: 4px 6px 2px 6px;
         }
-        QLineEdit#PatchSearch {
-            min-height: 32px;
-            max-height: 32px;
-            padding: 0 10px;
-            color: #ECEFF2;
-            background: #090D11;
-            border: 1px solid #242C34;
-            border-radius: 4px;
-            selection-background-color: #18536A;
-        }
-        QLineEdit#PatchSearch:hover { background: %8; border-color: #35404A; }
-        QLineEdit#PatchSearch:focus {
-            background: %8;
-            border-color: %1;
-        }
-        QLineEdit#PatchSearch:disabled { color: #666B72; }
         QPushButton#PatchBankHeader {
             min-height: 26px;
             max-height: 26px;

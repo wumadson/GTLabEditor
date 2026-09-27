@@ -1529,11 +1529,6 @@ Previously verified patches remain overwritten.</source>
         <translation>Para trocar patches pelo Editor, mantenha a GT-10 na tela Play.</translation>
     </message>
     <message>
-        <location filename="../patchSidebar.cpp" line="193"/>
-        <source>Search patches...</source>
-        <translation>Pesquisar Patches...</translation>
-    </message>
-    <message>
         <location filename="../patchSidebar.cpp" line="219"/>
         <source>USER</source>
         <translation>USER</translation>

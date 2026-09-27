@@ -1,5 +1,4 @@
 #include "patchSidebar.h"
-#include "modernTheme.h"
 #include "modernPatchListModel.h"
 
 #include <QEvent>
@@ -8,7 +7,6 @@
 #include <QFont>
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QLineEdit>
 #include <QMouseEvent>
 #include <QMenu>
 #include <QPainter>
@@ -160,23 +158,6 @@ void PatchBankSection::setExpanded(bool expandedState)
     if (expandedState && !wasExpanded) emit expanded(bankNumber);
 }
 
-bool PatchBankSection::matchesSearch(const QString &text)
-{
-    if (text.isEmpty()) {
-        for (PatchListItem *item : patchItems) item->show();
-        return true;
-    }
-    bool any = false;
-    for (PatchListItem *item : patchItems) {
-        const bool match = !item->patchName().isEmpty()
-            && item->patchName().contains(text, Qt::CaseInsensitive);
-        item->setVisible(match);
-        any |= match;
-    }
-    if (any) setExpanded(true);
-    return any;
-}
-
 PatchSidebar::PatchSidebar(ModernPatchListModel *model, QWidget *parent)
     : QFrame(parent), patchModel(model)
 {
@@ -190,16 +171,7 @@ PatchSidebar::PatchSidebar(ModernPatchListModel *model, QWidget *parent)
     QLabel *title = new QLabel(tr("PATCH LIBRARY"));
     title->setObjectName("PatchLibraryTitle");
     title->setToolTip(tr("To change patches from the Editor, keep the GT-10 on the Play screen."));
-    QLineEdit *search = new QLineEdit;
-    search->setObjectName("PatchSearch");
-    search->setPlaceholderText(tr("Search patches..."));
-    QPalette searchPalette = search->palette();
-    searchPalette.setColor(QPalette::PlaceholderText,
-                           QColor(ModernTheme::color(ModernTheme::DisabledText)));
-    search->setPalette(searchPalette);
-    connect(search, SIGNAL(textChanged(QString)), this, SLOT(applyFilter(QString)));
     layout->addWidget(title);
-    layout->addWidget(search);
 
     QScrollArea *scroll = new QScrollArea;
     scroll->setObjectName("PatchScroll");
@@ -230,7 +202,6 @@ PatchSidebar::PatchSidebar(ModernPatchListModel *model, QWidget *parent)
             section = new PatchBankSection(patch.bank,
                 tr("Bank %1").arg(patch.number.left(3)));
             connect(section, SIGNAL(expanded(int)), this, SLOT(expandBank(int)));
-            banks.append(section);
             bankSections.insert(patch.bank, section);
             bankLayout->addWidget(section);
             lastBank = patch.bank;
@@ -330,10 +301,4 @@ void PatchSidebar::setCurrentPatch(int bank, int patch)
         PatchBankSection *section = bankSections.value(bank, nullptr);
         if (section) section->setExpanded(true);
     }
-}
-
-void PatchSidebar::applyFilter(const QString &text)
-{
-    for (PatchBankSection *bank : banks)
-        bank->setVisible(bank->matchesSearch(text.trimmed()));
 }

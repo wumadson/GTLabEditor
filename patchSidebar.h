@@ -5,7 +5,6 @@
 #include <QMap>
 
 class QLabel;
-class QLineEdit;
 class QPushButton;
 class QVBoxLayout;
 class QContextMenuEvent;
@@ -45,7 +44,6 @@ public:
     PatchBankSection(int bank, const QString &label, QWidget *parent = nullptr);
     void addPatch(PatchListItem *item);
     void setExpanded(bool expanded);
-    bool matchesSearch(const QString &text);
 signals:
     void expanded(int bank);
 private slots:
@@ -77,7 +75,6 @@ public slots:
     void updatePatch(int bank, int patch);
     void setCurrentPatch(int bank, int patch);
 private slots:
-    void applyFilter(const QString &text);
     void activatePatch(int bank, int patch, QString name);
     void expandBank(int bank);
     void showPatchContextMenu(int bank, int patch, QString name,
@@ -86,7 +83,6 @@ private:
     ModernPatchListModel *patchModel;
     QMap<QString, PatchListItem *> items;
     QMap<int, PatchBankSection *> bankSections;
-    QList<PatchBankSection *> banks;
     int copiedBank = 0;
     int copiedPatch = 0;
     QString copiedNumber;
