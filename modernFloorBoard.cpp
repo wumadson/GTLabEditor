@@ -2415,15 +2415,6 @@ EffectEditorPanel *modernFloorBoard::createPreampEditor(
         channel == PreampChannel::A
             ? PedalArtworkVariant::ChannelA
             : PedalArtworkVariant::ChannelB);
-    QFont ampNameFont = state.artwork->font();
-    ampNameFont.setWeight(QFont::DemiBold);
-    ampNameFont.setLetterSpacing(QFont::PercentageSpacing, 103.0);
-    state.artwork->setTextOverlay(
-        "ampName",
-        channel == PreampChannel::A
-            ? QRectF(0.185, 0.217, 0.630, 0.145)
-            : QRectF(0.185, 0.177, 0.630, 0.155),
-        QString(), ampNameFont, QColor("#E8EDF1"), Qt::AlignCenter, 0.50);
     state.editor->setArtworkWidget(state.artwork);
 
     QVBoxLayout *layout = new QVBoxLayout(state.editor->parameterArea());
@@ -6851,8 +6842,6 @@ void modernFloorBoard::updatePreampTypeDisplay(PreampChannel channel)
                 typeName = typeName.mid(categoryEnd + 1).trimmed();
         }
     }
-    if (state.artwork)
-        state.artwork->setTextOverlayText("ampName", typeName.toUpper());
     if (typeName.isEmpty())
         state.editor->clearTypeText();
     else

@@ -289,15 +289,124 @@ int main(int argc, char **argv)
                      && hasTransparentPixel(oddsImage),
                  "OD/DS generic block resource keeps real transparency");
 
+    const char *const preampArtwork[] = {
+        ":/assets/pedals/preamp/00_boss_clean.png",
+        ":/assets/pedals/preamp/01_jc_combo.png",
+        ":/assets/pedals/preamp/01_jc_combo.png",
+        ":/assets/pedals/preamp/03_full_range.png",
+        ":/assets/pedals/preamp/04_american_blackface.png",
+        ":/assets/pedals/preamp/04_american_blackface.png",
+        ":/assets/pedals/preamp/06_tweed.png",
+        ":/assets/pedals/preamp/07_deluxe.png",
+        ":/assets/pedals/preamp/08_boss_crunch.png",
+        ":/assets/pedals/preamp/08_boss_crunch.png",
+        ":/assets/pedals/preamp/08_boss_crunch.png",
+        ":/assets/pedals/preamp/08_boss_crunch.png",
+        ":/assets/pedals/preamp/0c_vo_combo.png",
+        ":/assets/pedals/preamp/0c_vo_combo.png",
+        ":/assets/pedals/preamp/0c_vo_combo.png",
+        ":/assets/pedals/preamp/0f_match.png",
+        ":/assets/pedals/preamp/0f_match.png",
+        ":/assets/pedals/preamp/0f_match.png",
+        ":/assets/pedals/preamp/12_bg_lead.png",
+        ":/assets/pedals/preamp/12_bg_lead.png",
+        ":/assets/pedals/preamp/12_bg_lead.png",
+        ":/assets/pedals/preamp/15_ms_classic.png",
+        ":/assets/pedals/preamp/15_ms_classic.png",
+        ":/assets/pedals/preamp/17_ms_modern.png",
+        ":/assets/pedals/preamp/17_ms_modern.png",
+        ":/assets/pedals/preamp/19_r_fier.png",
+        ":/assets/pedals/preamp/19_r_fier.png",
+        ":/assets/pedals/preamp/19_r_fier.png",
+        ":/assets/pedals/preamp/1c_t_amp.png",
+        ":/assets/pedals/preamp/1c_t_amp.png",
+        ":/assets/pedals/preamp/1c_t_amp.png",
+        ":/assets/pedals/preamp/1f_boss_high_gain.png",
+        ":/assets/pedals/preamp/20_sldn.png",
+        ":/assets/pedals/preamp/1f_boss_high_gain.png",
+        ":/assets/pedals/preamp/1f_boss_high_gain.png",
+        ":/assets/pedals/preamp/23_boss_metal.png",
+        ":/assets/pedals/preamp/24_5150.png",
+        ":/assets/pedals/preamp/23_boss_metal.png",
+        ":/assets/pedals/preamp/23_boss_metal.png",
+        ":/assets/pedals/preamp/27_custom.png",
+        ":/assets/pedals/preamp/28_through.png"
+    };
+    request = PedalArtworkRequest();
     request.family = PedalArtworkFamily::Preamp;
-    request.variant = PedalArtworkVariant::ChannelA;
+    for (int raw = 0x00; raw <= 0x28; ++raw) {
+        request.modelRaw = raw;
+        request.variant = PedalArtworkVariant::ChannelA;
+        const QString channelA = PedalArtworkResolver::resolve(request);
+        request.variant = PedalArtworkVariant::ChannelB;
+        const QString channelB = PedalArtworkResolver::resolve(request);
+        ok &= expect(channelA == QString::fromLatin1(preampArtwork[raw]),
+                     "PREAMP A raw uses its specific artwork");
+        ok &= expect(channelB == QString::fromLatin1(preampArtwork[raw]),
+                     "PREAMP B raw uses its specific artwork");
+        ok &= expect(channelA == channelB,
+                     "PREAMP A and B share the same specific artwork");
+    }
+    for (int raw : {-1, 0x29, 0x7F}) {
+        request.modelRaw = raw;
+        request.variant = PedalArtworkVariant::ChannelA;
+        ok &= expect(PedalArtworkResolver::resolve(request)
+                         == ":/assets/effects/amp_a.png",
+                     "unknown PREAMP A raw uses the channel A fallback");
+        request.variant = PedalArtworkVariant::ChannelB;
+        ok &= expect(PedalArtworkResolver::resolve(request)
+                         == ":/assets/effects/amp_b.png",
+                     "unknown PREAMP B raw uses the channel B fallback");
+    }
+    request.modelRaw = 0x00;
+    request.variant = PedalArtworkVariant::Default;
     ok &= expect(PedalArtworkResolver::resolve(request)
-                     == ":/assets/effects/amp_a.png",
-                 "PREAMP A keeps its existing artwork");
-    request.variant = PedalArtworkVariant::ChannelB;
-    ok &= expect(PedalArtworkResolver::resolve(request)
-                     == ":/assets/effects/amp_b.png",
-                 "PREAMP B keeps its existing artwork");
+                     == ":/assets/effects/pedal_generic.png",
+                 "unsupported PREAMP variant uses the generic fallback");
+    request.modelRaw = 0x27;
+    for (PedalArtworkVariant variant : {
+             PedalArtworkVariant::ChannelA,
+             PedalArtworkVariant::ChannelB}) {
+        request.variant = variant;
+        for (int secondaryRaw : {0x00, 0x01, 0x02, 0x03, 0x04, 0x05,
+                                 0x06, -1, 0x7F}) {
+            request.secondaryRaw = secondaryRaw;
+            ok &= expect(PedalArtworkResolver::resolve(request)
+                             == ":/assets/pedals/preamp/27_custom.png",
+                         "custom PREAMP artwork ignores the secondary raw");
+        }
+    }
+    const char *const preampResources[] = {
+        ":/assets/pedals/preamp/00_boss_clean.png",
+        ":/assets/pedals/preamp/01_jc_combo.png",
+        ":/assets/pedals/preamp/03_full_range.png",
+        ":/assets/pedals/preamp/04_american_blackface.png",
+        ":/assets/pedals/preamp/06_tweed.png",
+        ":/assets/pedals/preamp/07_deluxe.png",
+        ":/assets/pedals/preamp/08_boss_crunch.png",
+        ":/assets/pedals/preamp/0c_vo_combo.png",
+        ":/assets/pedals/preamp/0f_match.png",
+        ":/assets/pedals/preamp/12_bg_lead.png",
+        ":/assets/pedals/preamp/15_ms_classic.png",
+        ":/assets/pedals/preamp/17_ms_modern.png",
+        ":/assets/pedals/preamp/19_r_fier.png",
+        ":/assets/pedals/preamp/1c_t_amp.png",
+        ":/assets/pedals/preamp/1f_boss_high_gain.png",
+        ":/assets/pedals/preamp/20_sldn.png",
+        ":/assets/pedals/preamp/23_boss_metal.png",
+        ":/assets/pedals/preamp/24_5150.png",
+        ":/assets/pedals/preamp/27_custom.png",
+        ":/assets/pedals/preamp/28_through.png"
+    };
+    for (const char *resource : preampResources) {
+        const QImage image(QString::fromLatin1(resource));
+        ok &= expect(!image.isNull(),
+                     "PREAMP specific resource loads through QRC");
+        ok &= expect(image.size() == QSize(1024, 1536),
+                     "PREAMP specific resource keeps 1024x1536 dimensions");
+        ok &= expect(image.hasAlphaChannel() && hasTransparentPixel(image),
+                     "PREAMP specific resource keeps real transparency");
+    }
 
     request.family = PedalArtworkFamily::PedalFx;
     request.variant = PedalArtworkVariant::FootVolume;

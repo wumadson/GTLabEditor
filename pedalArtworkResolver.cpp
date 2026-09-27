@@ -5,6 +5,49 @@ const char kGenericPedalArtwork[] =
     ":/assets/effects/pedal_generic.png";
 const char kPreampAArtwork[] = ":/assets/effects/amp_a.png";
 const char kPreampBArtwork[] = ":/assets/effects/amp_b.png";
+const char *const kPreampArtwork[] = {
+    ":/assets/pedals/preamp/00_boss_clean.png",
+    ":/assets/pedals/preamp/01_jc_combo.png",
+    ":/assets/pedals/preamp/01_jc_combo.png",
+    ":/assets/pedals/preamp/03_full_range.png",
+    ":/assets/pedals/preamp/04_american_blackface.png",
+    ":/assets/pedals/preamp/04_american_blackface.png",
+    ":/assets/pedals/preamp/06_tweed.png",
+    ":/assets/pedals/preamp/07_deluxe.png",
+    ":/assets/pedals/preamp/08_boss_crunch.png",
+    ":/assets/pedals/preamp/08_boss_crunch.png",
+    ":/assets/pedals/preamp/08_boss_crunch.png",
+    ":/assets/pedals/preamp/08_boss_crunch.png",
+    ":/assets/pedals/preamp/0c_vo_combo.png",
+    ":/assets/pedals/preamp/0c_vo_combo.png",
+    ":/assets/pedals/preamp/0c_vo_combo.png",
+    ":/assets/pedals/preamp/0f_match.png",
+    ":/assets/pedals/preamp/0f_match.png",
+    ":/assets/pedals/preamp/0f_match.png",
+    ":/assets/pedals/preamp/12_bg_lead.png",
+    ":/assets/pedals/preamp/12_bg_lead.png",
+    ":/assets/pedals/preamp/12_bg_lead.png",
+    ":/assets/pedals/preamp/15_ms_classic.png",
+    ":/assets/pedals/preamp/15_ms_classic.png",
+    ":/assets/pedals/preamp/17_ms_modern.png",
+    ":/assets/pedals/preamp/17_ms_modern.png",
+    ":/assets/pedals/preamp/19_r_fier.png",
+    ":/assets/pedals/preamp/19_r_fier.png",
+    ":/assets/pedals/preamp/19_r_fier.png",
+    ":/assets/pedals/preamp/1c_t_amp.png",
+    ":/assets/pedals/preamp/1c_t_amp.png",
+    ":/assets/pedals/preamp/1c_t_amp.png",
+    ":/assets/pedals/preamp/1f_boss_high_gain.png",
+    ":/assets/pedals/preamp/20_sldn.png",
+    ":/assets/pedals/preamp/1f_boss_high_gain.png",
+    ":/assets/pedals/preamp/1f_boss_high_gain.png",
+    ":/assets/pedals/preamp/23_boss_metal.png",
+    ":/assets/pedals/preamp/24_5150.png",
+    ":/assets/pedals/preamp/23_boss_metal.png",
+    ":/assets/pedals/preamp/23_boss_metal.png",
+    ":/assets/pedals/preamp/27_custom.png",
+    ":/assets/pedals/preamp/28_through.png"
+};
 const char kExpressionPedalArtwork[] =
     ":/assets/pedals/expression_pedal.png";
 const char kCompressorArtwork[] =
@@ -51,6 +94,13 @@ const char kSendReturnArtwork[] =
 
 QString PedalArtworkResolver::resolve(const PedalArtworkRequest &request)
 {
+    if (request.family == PedalArtworkFamily::Preamp
+        && (request.variant == PedalArtworkVariant::ChannelA
+            || request.variant == PedalArtworkVariant::ChannelB)
+        && request.modelRaw >= 0x00 && request.modelRaw <= 0x28) {
+        return QString::fromLatin1(kPreampArtwork[request.modelRaw]);
+    }
+
     if (request.family == PedalArtworkFamily::Compressor) {
         if (request.modelRaw == 0x00)
             return QString::fromLatin1(kCompressorArtwork);
