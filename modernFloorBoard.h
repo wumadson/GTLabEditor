@@ -51,6 +51,7 @@ class BottomControlStrip;
 class QuickSettingService;
 class ModernQuickSettingDialog;
 enum class QuickSettingEffect;
+namespace Ai { struct AIContext; }
 
 class modernFloorBoard : public QWidget
 {
@@ -59,6 +60,9 @@ class modernFloorBoard : public QWidget
 public:
     explicit modernFloorBoard(QWidget *parent = nullptr);
     void setQuickSettingService(QuickSettingService *service);
+    bool captureCurrentAiContext(Ai::AIContext *context,
+                                 QString *patchLabel,
+                                 QString *error = nullptr) const;
 
 public slots:
     void backendConnected();

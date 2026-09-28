@@ -1177,7 +1177,9 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     : QWidget(parent)
 {
     setObjectName("ModernFloorBoard");
-    setMinimumWidth(1280); // Vertical minimum comes from the visible layout.
+    // Keep a useful responsive floor while allowing the Assistant workspace
+    // to share ordinary laptop-sized windows without competing geometries.
+    setMinimumWidth(960); // Vertical minimum comes from the visible layout.
 
     setStyleSheet(ModernTheme::applicationStyleSheet());
     quickSettingDialog = new ModernQuickSettingDialog(this);
@@ -4748,6 +4750,59 @@ void modernFloorBoard::showAiPatchSnapshot()
         result.snapshot.patch.displayNumber,
         result.snapshot.patch.name, this);
     preview.exec();
+}
+
+bool modernFloorBoard::captureCurrentAiContext(Ai::AIContext *context,
+                                               QString *patchLabel,
+                                               QString *error) const
+{
+    if (context)
+        *context = Ai::AIContext();
+    if (patchLabel)
+        patchLabel->clear();
+    if (error)
+        error->clear();
+    if (!backendHasPatchData) {
+        if (error)
+            *error = tr("A complete patch has not been loaded.");
+        return false;
+    }
+
+    SysxIO *sysxIO = SysxIO::Instance();
+    const SysxData capturedSource = sysxIO->getFileSource();
+    QString snapshotError;
+    const PatchChangeGuard::Snapshot comparable =
+        PatchTransferCodec::comparableBlocks00To0C(capturedSource,
+                                                    &snapshotError);
+    const bool comparableValid = snapshotError.isEmpty()
+        && comparable.size() == 13;
+    const bool fromDevice = sysxIO->isDevice();
+    const bool connected = backendIsConnected && sysxIO->isConnected();
+    const bool dirty = !fromDevice
+        || (comparableValid && patchChangeGuard.isDirty(comparable));
+    const Ai::PatchCapture capture(
+        capturedSource, sysxIO->getCurrentPatchName().trimmed(),
+        sysxIO->getLoadedBank(), sysxIO->getLoadedPatch(),
+        fromDevice ? Ai::PatchProvenance::DeviceTemporaryBuffer
+                   : Ai::PatchProvenance::ImportedTemporaryBuffer,
+        connected, dirty, connected && fromDevice);
+    const Ai::PatchSnapshotBuildResult result =
+        Ai::PatchSnapshotBuilder().build(capture);
+    if (!result.ok) {
+        if (error)
+            *error = result.error;
+        return false;
+    }
+
+    if (context) {
+        *context = Ai::AIContextBuilder().build(
+            result.snapshot, Ai::AIContextDetail::Compact);
+    }
+    if (patchLabel) {
+        *patchLabel = result.snapshot.patch.displayNumber
+            + QStringLiteral(" — ") + result.snapshot.patch.name;
+    }
+    return true;
 }
 
 PatchChangeGuard::Snapshot modernFloorBoard::currentPatchSnapshot(

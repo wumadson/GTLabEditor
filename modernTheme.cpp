@@ -664,6 +664,122 @@ QString ModernTheme::applicationStyleSheet()
             min-height: 26px;
             padding: 2px 7px;
         }
+        QSplitter#AssistantWorkspace::handle {
+            background: #171A1E;
+            border-left: 1px solid #24272C;
+            border-right: 1px solid #24272C;
+        }
+        QSplitter#AssistantWorkspace::handle:hover {
+            background: #244B66;
+        }
+        QWidget#AssistantPanel { background: #060708; }
+        QFrame#AssistantHeader,
+        QFrame#AssistantContext {
+            background: @ELEVATED_PANEL@;
+            border: 1px solid #24272C;
+            border-radius: 5px;
+        }
+        QLabel#AssistantTitle {
+            color: #ECEFF2;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+        }
+        QLabel#AssistantProvider,
+        QLabel#AssistantContextCaption,
+        QLabel#AssistantActivity,
+        QLabel#AssistantMessageRole {
+            color: @SECONDARY_TEXT@;
+            font-size: 9px;
+            font-weight: 600;
+        }
+        QLabel#AssistantContextCaption,
+        QLabel#AssistantMessageRole { letter-spacing: 0.7px; }
+        QLabel#AssistantContextValue {
+            color: #666B72;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        QLabel#AssistantContextValue[available="true"] { color: #74AFC7; }
+        QPushButton#AssistantCloseButton {
+            color: #8C9198;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            font-size: 17px;
+        }
+        QPushButton#AssistantCloseButton:hover {
+            color: #ECEFF2;
+            background: #11161C;
+            border-color: #24272C;
+        }
+        QScrollArea#AssistantConversation,
+        QScrollArea#AssistantConversation > QWidget > QWidget,
+        QWidget#AssistantConversationContent {
+            background: transparent;
+            border: none;
+        }
+        QFrame#AssistantMessageCard {
+            background: #0D0F12;
+            border: 1px solid #24272C;
+            border-radius: 5px;
+        }
+        QFrame#AssistantMessageCard[role="user"] {
+            background: #0B171E;
+            border-color: #254553;
+        }
+        QFrame#AssistantMessageCard[role="system"] {
+            background: #100D09;
+            border-color: #3A2B1C;
+        }
+        QLabel#AssistantMessageText {
+            color: #D7DCE1;
+            background: transparent;
+            font-size: 11px;
+        }
+        QPlainTextEdit#AssistantPrompt {
+            color: #ECEFF2;
+            background: #050607;
+            border: 1px solid #24272C;
+            border-radius: 5px;
+            padding: 8px;
+            selection-background-color: #18536A;
+            font-size: 11px;
+        }
+        QPlainTextEdit#AssistantPrompt:focus { border-color: #258DB5; }
+        QPlainTextEdit#AssistantPrompt:disabled {
+            color: #666B72;
+            background: #090C0F;
+        }
+        QPushButton#AssistantPrimaryButton,
+        QPushButton#AssistantSecondaryButton {
+            min-height: 29px;
+            padding: 0 10px;
+            border-radius: 4px;
+            font-size: 9px;
+            font-weight: 700;
+        }
+        QPushButton#AssistantPrimaryButton {
+            color: #ECEFF2;
+            background: #123347;
+            border: 1px solid #258DB5;
+        }
+        QPushButton#AssistantPrimaryButton:hover { background: #17445B; }
+        QPushButton#AssistantSecondaryButton {
+            color: #B3B7BC;
+            background: #0D1217;
+            border: 1px solid #24272C;
+        }
+        QPushButton#AssistantSecondaryButton:hover {
+            color: #ECEFF2;
+            background: #11161C;
+        }
+        QPushButton#AssistantPrimaryButton:disabled,
+        QPushButton#AssistantSecondaryButton:disabled {
+            color: #56606A;
+            background: #090C0F;
+            border-color: #1D242B;
+        }
         QStatusBar {
             min-height: 24px;
             max-height: 24px;

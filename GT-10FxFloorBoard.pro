@@ -121,7 +121,8 @@ SOURCES += modernAboutDialog.cpp modernSettingsDialog.cpp \
 SOURCES += ai/PatchCapture.cpp ai/PatchParameterCatalog.cpp \
            ai/PatchSnapshot.cpp ai/PatchSnapshotBuilder.cpp \
            ai/PatchJsonSerializer.cpp ai/AIContextBuilder.cpp \
-           ai/PatchSnapshotPreviewDialog.cpp
+           ai/PatchSnapshotPreviewDialog.cpp ai/MockAIProvider.cpp \
+           ai/AssistantSession.cpp ai/AssistantPanel.cpp
 HEADERS += modernFloorBoard.h modernTheme.h modernWidgets.h modernSignalChainModel.h \
            modernSignalChainMutationController.h modernSignalChainSerializer.h \
            signalChainHardwareValidation.h \
@@ -138,7 +139,9 @@ HEADERS += modernAboutDialog.h modernSettingsDialog.h modernPopoverShell.h \
 HEADERS += ai/PatchCapture.h ai/PatchParameterCatalog.h \
            ai/PatchSnapshot.h ai/PatchSnapshotBuilder.h \
            ai/PatchJsonSerializer.h ai/AIContextBuilder.h \
-           ai/PatchSnapshotPreviewDialog.h
+           ai/PatchSnapshotPreviewDialog.h ai/AssistantMessage.h \
+           ai/AIProvider.h ai/MockAIProvider.h ai/AssistantSession.h \
+           ai/AssistantPanel.h
 
 # Explicit local harness. It replaces the application entry point only when
 # qmake is invoked with CONFIG+=signalchain_domain_tests.
@@ -222,4 +225,31 @@ contains(CONFIG, aicontext_tests) {
     DESTDIR = $$OUT_PWD
     DEFINES += AI_CONTEXT_FIXTURE_DIR=\"$$PWD/tests/fixtures\"
     DEFINES += AI_CONTEXT_MIDI_XML=\"$$PWD/midi.xml\"
+}
+
+# Pure Assistant session contract harness. It has no widget, hardware,
+# MIDI/SysEx or network dependency.
+contains(CONFIG, assistantsession_tests) {
+    SOURCES -= ./main.cpp
+    SOURCES += tests/assistantSessionTests.cpp
+    TARGET = assistantSessionTests
+    DESTDIR = $$OUT_PWD
+}
+
+# Offline deterministic provider harness. It does not open a network or MIDI
+# connection and never modifies a patch.
+contains(CONFIG, mockaiprovider_tests) {
+    SOURCES -= ./main.cpp
+    SOURCES += tests/mockAIProviderTests.cpp
+    TARGET = mockAIProviderTests
+    DESTDIR = $$OUT_PWD
+}
+
+# Widget-level localization harness for the Assistant surface. It loads the
+# same embedded pt-BR catalog as the application and opens no MIDI connection.
+contains(CONFIG, assistantlocalization_tests) {
+    SOURCES -= ./main.cpp
+    SOURCES += tests/assistantLocalizationTests.cpp
+    TARGET = assistantLocalizationTests
+    DESTDIR = $$OUT_PWD
 }
