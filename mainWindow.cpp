@@ -430,6 +430,12 @@ void mainWindow::createActions()
         summaryPatchListAct->setWhatsThis(tr("Display the GT-10 patch listing names<br>in a readable text format, which<br>can be printed or saved to file."));
         connect(summaryPatchListAct, SIGNAL(triggered()), this, SLOT(summaryPatchList()));
 
+        aiPatchSnapshotAct = new QAction(tr("AI Patch Snapshot..."), this);
+        aiPatchSnapshotAct->setWhatsThis(
+            tr("Preview a read-only JSON snapshot of the current patch."));
+        connect(aiPatchSnapshotAct, SIGNAL(triggered()),
+                this, SLOT(showAiPatchSnapshot()));
+
         helpAct = new QAction(QIcon(":/assets/menu/help.png"), tr("GT Lab Editor &Help"), this);
         helpAct->setShortcut(tr("Ctrl+F1"));
         helpAct->setWhatsThis(tr("Help page to assist with FxFloorBoard functions."));
@@ -492,6 +498,8 @@ void mainWindow::createMenus()
         toolsMenu->addAction(summaryAct);
         toolsMenu->addAction(summarySystemAct);
         toolsMenu->addAction(summaryPatchListAct);
+        toolsMenu->addSeparator();
+        toolsMenu->addAction(aiPatchSnapshotAct);
         //menuBar->addMenu(toolsMenu);
 
 
@@ -1026,6 +1034,12 @@ void mainWindow::summaryPatchList()
    summaryPatchList->setMinimumHeight(650);
    summaryPatchList->show();
 };   
+
+void mainWindow::showAiPatchSnapshot()
+{
+    if (modernFloorBoardWidget)
+        modernFloorBoardWidget->showAiPatchSnapshot();
+}
 
 void mainWindow::homepage()
 {

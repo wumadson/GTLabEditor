@@ -77,6 +77,7 @@ public slots:
         void summaryPage();       
         void summarySystemPage();
         void summaryPatchList();
+        void showAiPatchSnapshot();
         void help();
         void homepage();
         void donate();
@@ -113,6 +114,7 @@ private:
         QAction *summaryAct;       
         QAction *summarySystemAct;
         QAction *summaryPatchListAct;
+        QAction *aiPatchSnapshotAct;
         QAction *helpAct;
         QAction *homepageAct;
         QAction *donationAct;

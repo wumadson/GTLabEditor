@@ -1,11 +1,14 @@
 #include "ai/PatchCapture.h"
+#include "ai/AIContextBuilder.h"
 #include "ai/PatchJsonSerializer.h"
 #include "ai/PatchParameterCatalog.h"
 #include "ai/PatchSnapshotBuilder.h"
+#include "ai/PatchSnapshotPreviewDialog.h"
 #include "globalVariables.h"
 
 #include <QCoreApplication>
 #include <QFile>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QTextStream>
@@ -110,6 +113,26 @@ const ParameterValue *parameter(const EffectSnapshot *effect,
             return &candidate;
     }
     return nullptr;
+}
+
+QJsonObject jsonEffect(const QJsonObject &root, const QString &id)
+{
+    for (const QJsonValue &value : root.value("effects").toArray()) {
+        const QJsonObject candidate = value.toObject();
+        if (candidate.value("id").toString() == id)
+            return candidate;
+    }
+    return {};
+}
+
+QJsonObject jsonParameter(const QJsonArray &parameters, const QString &id)
+{
+    for (const QJsonValue &value : parameters) {
+        const QJsonObject candidate = value.toObject();
+        if (candidate.value("id").toString() == id)
+            return candidate;
+    }
+    return {};
 }
 
 QJsonObject goldenProjection(const QJsonObject &root)
@@ -259,6 +282,74 @@ int main(int argc, char **argv)
            && parameter(effect(build(customWahData).snapshot, "pedalFxFv"),
                         "customWah1")->available,
            "26 P.FX Mode");
+
+    SysxData footVolumeData = base;
+    setByte(&footVolumeData, "0A00", 0x40, 1);
+    setByte(&footVolumeData, "0A00", 0x45, 1);
+    setByte(&footVolumeData, "0A00", 0x5A, 81);
+    setByte(&footVolumeData, "0A00", 0x5B, 12);
+    setByte(&footVolumeData, "0A00", 0x5C, 99);
+    setByte(&footVolumeData, "0A00", 0x5D, 2);
+    setByte(&footVolumeData, "0100", 0x03, 3);
+    const PatchCapture footVolumeCapture(
+        footVolumeData, "Snapshot Test", 29, 1,
+        PatchProvenance::DeviceTemporaryBuffer, true, false, true);
+    const int footVolumeBlock =
+        footVolumeCapture.fileSource().address.indexOf("0A00");
+    expect(footVolumeBlock >= 0
+           && footVolumeCapture.fileSource()
+                  .hex.at(footVolumeBlock)
+                  .at(sysxDataOffset + 0x5A).toInt(nullptr, 16) == 81,
+           "26b PatchCapture preserves Foot Volume Level raw 81");
+    const auto footVolume = PatchSnapshotBuilder().build(footVolumeCapture);
+    const EffectSnapshot *footVolumeEffect =
+        effect(footVolume.snapshot, "pedalFxFv");
+    const ParameterValue *footVolumeLevel =
+        parameter(footVolumeEffect, "footVolumeLevel");
+    expect(footVolume.ok && footVolumeLevel
+           && footVolumeLevel->raw == 81
+           && footVolumeLevel->display == "81",
+           "26c Foot Volume Level preserves raw 81 in Snapshot");
+    expect(parameter(footVolumeEffect, "footVolumeMinimum")->raw == 12
+           && parameter(footVolumeEffect, "footVolumeMinimum")->display == "12"
+           && parameter(footVolumeEffect, "footVolumeMaximum")->raw == 99
+           && parameter(footVolumeEffect, "footVolumeMaximum")->display == "99"
+           && parameter(footVolumeEffect, "footVolumeCurve")->raw == 2
+           && parameter(footVolumeEffect, "footVolumeCurve")->enumText == "Normal",
+           "26d Foot Volume Min/Max/Curve preserve backend values");
+    const QJsonObject snapshotFootVolume = jsonParameter(
+        jsonEffect(PatchJsonSerializer::toJson(footVolume.snapshot),
+                   "pedalFxFv").value("parameters").toArray(),
+        "footVolumeLevel");
+    expect(snapshotFootVolume.value("raw").toInt() == 81
+           && snapshotFootVolume.value("display") == "81",
+           "26e Snapshot JSON preserves Foot Volume Level 81");
+    const AIContextBuilder contextBuilder;
+    const AIContext detailedFootVolume = contextBuilder.build(
+        footVolume.snapshot, AIContextDetail::Detailed);
+    const AIContext compactFootVolume = contextBuilder.build(
+        footVolume.snapshot, AIContextDetail::Compact);
+    const QJsonObject detailedFootVolumeValue = jsonParameter(
+        jsonEffect(detailedFootVolume.root, "pedalFxFv")
+            .value("parameters").toArray(), "footVolumeLevel");
+    expect(detailedFootVolumeValue.value("raw").toInt() == 81
+           && detailedFootVolumeValue.value("value") == "81",
+           "26f Detailed preserves Foot Volume Level 81");
+    const QJsonObject compactFootVolumeEffect =
+        jsonEffect(compactFootVolume.root, "pedalFxFv");
+    expect(compactFootVolumeEffect.value("footVolumeLevel") == "81"
+           && compactFootVolumeEffect.value("footVolumeMinimum") == "12"
+           && compactFootVolumeEffect.value("footVolumeMaximum") == "99"
+           && compactFootVolumeEffect.value("footVolumeCurve") == "Normal",
+           "26g Compact preserves Foot Volume family values");
+    const QJsonObject detailedRouting =
+        detailedFootVolume.root.value("routing").toObject();
+    expect(jsonParameter(detailedRouting.value("parameters").toArray(),
+                         "channelDelay").value("value") == "3ms",
+           "26h Detailed retains technical Channel Delay display");
+    expect(compactFootVolume.root.value("routing").toObject()
+               .value("channelDelay") == "3 ms",
+           "26i Compact normalizes Channel Delay unit spacing");
     expect(valid.snapshot.patchParameters.at(1).raw == 120
            && valid.snapshot.patchParameters.at(1).rawHex == "00 78",
            "27 two-byte value");
@@ -266,10 +357,54 @@ int main(int argc, char **argv)
     expect(!valid.snapshot.patchParameters.at(0).display.isEmpty()
            && valid.snapshot.routing.at(2).unit == "ms",
            "29 display/unit source");
+    expect(physicalUnitFromDisplay("Db").isEmpty(),
+           "29b musical note Db is not inferred as dB");
+    expect(physicalUnitFromDisplay("0 dB") == "dB",
+           "29c exact dB suffix is inferred");
+    const QStringList musicalNotes = {
+        "C", "Db", "D", "Eb", "E", "F", "F#", "G",
+        "Ab", "A", "Bb", "B"};
+    bool notesHaveNoUnits = true;
+    for (const QString &note : musicalNotes)
+        notesHaveNoUnits = notesHaveNoUnits
+            && physicalUnitFromDisplay(note).isEmpty();
+    expect(notesHaveNoUnits,
+           "29c2 Harmonist musical notes never infer physical units");
+    expect(valid.snapshot.patchParameters.at(1).unit == "BPM",
+           "29d Master BPM uses catalog unit metadata");
+    expect(parameter(effect(valid.snapshot, "reverb"), "reverbTime")->unit
+               == "sec"
+           && parameter(effect(valid.snapshot, "reverb"), "preDelay")->unit
+               == "ms",
+           "29e Reverb time units use catalog metadata");
+    expect(PatchParameterCatalog::canonicalId("Feed Back", "fallback")
+               == "feedback",
+           "29f generated canonical IDs normalize internal case");
 
     const QJsonObject first = PatchJsonSerializer::toJson(valid.snapshot);
     const QJsonObject second = PatchJsonSerializer::toJson(build(base).snapshot);
     expect(first == second, "30 duplicate build is semantically identical");
+    const QJsonObject beforeSerialization =
+        PatchJsonSerializer::toJson(valid.snapshot);
+    const QByteArray serialized =
+        PatchJsonSerializer::serialize(valid.snapshot, true);
+    expect(!serialized.isEmpty()
+           && PatchJsonSerializer::toJson(valid.snapshot)
+               == beforeSerialization,
+           "30b serializer does not mutate snapshot");
+    expect(PatchSnapshotPreviewDialog::suggestedFileName(
+               "U29-1", "GN WSHP LEAD")
+               == "U29-1_GN_WSHP_LEAD_snapshot.json",
+           "30c suggested export filename");
+    const QString unsafeFileName =
+        PatchSnapshotPreviewDialog::suggestedFileName("U01-1", "A/B:*? Lead");
+    expect(!unsafeFileName.contains('/') && !unsafeFileName.contains(':')
+           && !unsafeFileName.contains('*') && !unsafeFileName.contains('?')
+           && unsafeFileName.endsWith("_snapshot.json"),
+           "30d export filename sanitization");
+    expect(PatchSnapshotPreviewDialog::suggestedFileName(QString(), QString())
+               == "gtlab_patch_snapshot.json",
+           "30e empty export filename fallback");
     const auto offline = PatchSnapshotBuilder().build(PatchCapture(
         base, "Offline Capture", 1, 1,
         PatchProvenance::ImportedTemporaryBuffer,

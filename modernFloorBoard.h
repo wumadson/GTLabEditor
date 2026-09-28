@@ -66,6 +66,7 @@ public slots:
     void backendActivityChanged(int status);
     void refreshReverbState();
     void patchImportFinished(bool success);
+    void showAiPatchSnapshot();
     void patchNameResolved(int bank, int patch, QString name);
     void persistentWriteFinished(int result, int bank, int patch,
                                  QString verifiedName, QString detail);

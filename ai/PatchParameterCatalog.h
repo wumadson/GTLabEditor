@@ -30,6 +30,7 @@ struct ParameterDescriptor
 {
     QString id;
     ParameterAddress address;
+    QString unit;
     AvailabilityRule rule = AvailabilityRule::Always;
     ParameterAddress controller;
     QVector<int> controllerValues;

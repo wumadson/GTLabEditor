@@ -14,11 +14,14 @@ ParameterAddress address(const char *block, const char *offset,
 }
 
 ParameterDescriptor parameter(const char *id, const char *block,
-                              const char *offset, bool twoByte = false)
+                              const char *offset, bool twoByte = false,
+                              const char *unit = nullptr)
 {
     ParameterDescriptor descriptor;
     descriptor.id = QString::fromLatin1(id);
     descriptor.address = address(block, offset, twoByte);
+    if (unit)
+        descriptor.unit = QString::fromLatin1(unit);
     return descriptor;
 }
 
@@ -124,7 +127,7 @@ QList<ParameterDescriptor> PatchParameterCatalog::patchParameters()
 {
     return {
         parameter("patchLevel", "0A00", "60"),
-        parameter("masterBpm", "0A00", "66", true)
+        parameter("masterBpm", "0A00", "66", true, "BPM")
     };
 }
 
@@ -189,12 +192,15 @@ QString PatchParameterCatalog::canonicalId(const QString &source,
         word.remove(QRegExp("[^A-Za-z0-9]"));
         if (word.isEmpty())
             continue;
+        word = word.toLower();
         if (result.isEmpty()) {
-            result = word.left(1).toLower() + word.mid(1);
+            result = word;
         } else {
             result += word.left(1).toUpper() + word.mid(1);
         }
     }
+    if (result == QStringLiteral("feedBack"))
+        result = QStringLiteral("feedback");
     return result.isEmpty() ? fallback : result;
 }
 
@@ -421,7 +427,7 @@ QList<EffectDescriptor> PatchParameterCatalog::effects(
     result.append(delay);
 
     EffectDescriptor reverb = simpleEffect("reverb", "0A00", "30", "31");
-    reverb.parameters = {parameter("reverbTime", "0A00", "32"),parameter("preDelay", "0A00", "3A", true),parameter("lowCut", "0A00", "34"),parameter("highCut", "0A00", "35"),parameter("density", "0A00", "36"),parameter("effectLevel", "0A00", "37"),parameter("directLevel", "0A00", "38"),conditional(parameter("springSensitivity", "0A00", "39"), reverb.type, {5}, "spring_reverb_only")};
+    reverb.parameters = {parameter("reverbTime", "0A00", "32", false, "sec"),parameter("preDelay", "0A00", "3A", true, "ms"),parameter("lowCut", "0A00", "34"),parameter("highCut", "0A00", "35"),parameter("density", "0A00", "36"),parameter("effectLevel", "0A00", "37"),parameter("directLevel", "0A00", "38"),conditional(parameter("springSensitivity", "0A00", "39"), reverb.type, {5}, "spring_reverb_only")};
     result.append(reverb);
 
     return result;

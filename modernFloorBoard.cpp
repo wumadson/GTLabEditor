@@ -24,6 +24,11 @@
 #include "quickSettingService.h"
 #include "modernQuickSettingDialog.h"
 #include "ai/PatchParameterCatalog.h"
+#include "ai/PatchCapture.h"
+#include "ai/PatchJsonSerializer.h"
+#include "ai/PatchSnapshotBuilder.h"
+#include "ai/PatchSnapshotPreviewDialog.h"
+#include "ai/AIContextBuilder.h"
 
 #include <QComboBox>
 #include <QButtonGroup>
@@ -4688,6 +4693,61 @@ void modernFloorBoard::readCurrentPatch()
     resetPatchBaselineOnRefresh = true;
     refreshReadButtonState();
     emit readCurrentPatchRequested();
+}
+
+void modernFloorBoard::showAiPatchSnapshot()
+{
+    SysxIO *sysxIO = SysxIO::Instance();
+    if (!backendHasPatchData) {
+        ModernMessageDialog unavailable(
+            ModernDialogIcon::Error, tr("AI PATCH SNAPSHOT"), QString(),
+            tr("A complete patch must be loaded before a snapshot can be created."),
+            QString(), this);
+        unavailable.addOkButton();
+        return;
+    }
+
+    const SysxData capturedSource = sysxIO->getFileSource();
+    QString snapshotError;
+    const PatchChangeGuard::Snapshot comparable =
+        PatchTransferCodec::comparableBlocks00To0C(capturedSource,
+                                                    &snapshotError);
+    const bool comparableValid = snapshotError.isEmpty()
+        && comparable.size() == 13;
+    const bool fromDevice = sysxIO->isDevice();
+    const bool connected = backendIsConnected && sysxIO->isConnected();
+    const bool dirty = !fromDevice
+        || (comparableValid && patchChangeGuard.isDirty(comparable));
+
+    const Ai::PatchCapture capture(
+        capturedSource, sysxIO->getCurrentPatchName().trimmed(),
+        sysxIO->getLoadedBank(), sysxIO->getLoadedPatch(),
+        fromDevice ? Ai::PatchProvenance::DeviceTemporaryBuffer
+                   : Ai::PatchProvenance::ImportedTemporaryBuffer,
+        connected, dirty, connected && fromDevice);
+    const Ai::PatchSnapshotBuildResult result =
+        Ai::PatchSnapshotBuilder().build(capture);
+    if (!result.ok) {
+        ModernMessageDialog unavailable(
+            ModernDialogIcon::Error, tr("AI PATCH SNAPSHOT"), QString(),
+            tr("The current patch could not be captured safely."),
+            result.error, this);
+        unavailable.addOkButton();
+        return;
+    }
+
+    const QByteArray json = Ai::PatchJsonSerializer::serialize(
+        result.snapshot, true);
+    const Ai::AIContextBuilder contextBuilder;
+    const QByteArray compactContext = Ai::AIContextBuilder::serialize(
+        contextBuilder.build(result.snapshot, Ai::AIContextDetail::Compact));
+    const QByteArray detailedContext = Ai::AIContextBuilder::serialize(
+        contextBuilder.build(result.snapshot, Ai::AIContextDetail::Detailed));
+    Ai::PatchSnapshotPreviewDialog preview(
+        json, compactContext, detailedContext,
+        result.snapshot.patch.displayNumber,
+        result.snapshot.patch.name, this);
+    preview.exec();
 }
 
 PatchChangeGuard::Snapshot modernFloorBoard::currentPatchSnapshot(

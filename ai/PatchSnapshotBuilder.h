@@ -6,6 +6,8 @@
 
 namespace Ai {
 
+QString physicalUnitFromDisplay(const QString &display);
+
 struct PatchSnapshotBuildResult
 {
     bool ok = false;

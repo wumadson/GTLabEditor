@@ -120,7 +120,8 @@ SOURCES += modernAboutDialog.cpp modernSettingsDialog.cpp \
            backupCoordinator.cpp modernBackupDialog.cpp patchBackupCodec.cpp
 SOURCES += ai/PatchCapture.cpp ai/PatchParameterCatalog.cpp \
            ai/PatchSnapshot.cpp ai/PatchSnapshotBuilder.cpp \
-           ai/PatchJsonSerializer.cpp
+           ai/PatchJsonSerializer.cpp ai/AIContextBuilder.cpp \
+           ai/PatchSnapshotPreviewDialog.cpp
 HEADERS += modernFloorBoard.h modernTheme.h modernWidgets.h modernSignalChainModel.h \
            modernSignalChainMutationController.h modernSignalChainSerializer.h \
            signalChainHardwareValidation.h \
@@ -136,7 +137,8 @@ HEADERS += modernAboutDialog.h modernSettingsDialog.h modernPopoverShell.h \
            backupCoordinator.h modernBackupDialog.h patchBackupCodec.h
 HEADERS += ai/PatchCapture.h ai/PatchParameterCatalog.h \
            ai/PatchSnapshot.h ai/PatchSnapshotBuilder.h \
-           ai/PatchJsonSerializer.h
+           ai/PatchJsonSerializer.h ai/AIContextBuilder.h \
+           ai/PatchSnapshotPreviewDialog.h
 
 # Explicit local harness. It replaces the application entry point only when
 # qmake is invoked with CONFIG+=signalchain_domain_tests.
@@ -209,4 +211,15 @@ contains(CONFIG, patchsnapshot_tests) {
     TARGET = patchSnapshotBuilderTests
     DESTDIR = $$OUT_PWD
     DEFINES += PATCH_SNAPSHOT_FIXTURE_DIR=\"$$PWD/tests/fixtures\"
+}
+
+# Pure AI-context projection harness. It consumes PatchSnapshot values only and
+# has no widget, MIDI/SysEx, hardware or network dependency.
+contains(CONFIG, aicontext_tests) {
+    SOURCES -= ./main.cpp
+    SOURCES += tests/aiContextBuilderTests.cpp
+    TARGET = aiContextBuilderTests
+    DESTDIR = $$OUT_PWD
+    DEFINES += AI_CONTEXT_FIXTURE_DIR=\"$$PWD/tests/fixtures\"
+    DEFINES += AI_CONTEXT_MIDI_XML=\"$$PWD/midi.xml\"
 }

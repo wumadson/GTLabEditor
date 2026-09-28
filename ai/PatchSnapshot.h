@@ -12,6 +12,9 @@ struct ParameterValue
     QString address;
     bool available = true;
     QString unavailableReason;
+    // raw is the GT-10/editor value. display is MidiTable's formatted value,
+    // enumText is its named choice, and unit is a physical unit only when the
+    // catalog or an exact formatted suffix establishes it safely.
     bool hasRaw = false;
     int raw = 0;
     QString rawHex;

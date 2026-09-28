@@ -8,6 +8,7 @@
 
 #include <QMap>
 #include <QRegExp>
+#include <QRegularExpression>
 #include <QSet>
 
 namespace Ai {
@@ -48,16 +49,6 @@ QString rawHex(int raw, bool twoByte)
     return QString("%1 %2")
         .arg(raw / 128, 2, 16, QChar('0'))
         .arg(raw % 128, 2, 16, QChar('0')).toUpper();
-}
-
-QString unitFromDisplay(const QString &display)
-{
-    const QStringList units = {"BPM", "ms", "Hz", "kHz", "dB", "%"};
-    for (const QString &unit : units) {
-        if (display.trimmed().endsWith(unit, Qt::CaseInsensitive))
-            return unit;
-    }
-    return QString();
 }
 
 QString enumText(const Midi &map, int raw, bool twoByte)
@@ -109,7 +100,8 @@ ParameterValue valueFor(const ParameterDescriptor &descriptor,
     value.display = table->getValue(kStructure, bank, middle,
         descriptor.address.offset,
         QString::number(raw, 16).toUpper());
-    value.unit = unitFromDisplay(value.display);
+    value.unit = descriptor.unit.isEmpty()
+        ? physicalUnitFromDisplay(value.display) : descriptor.unit;
     value.enumText = enumText(map, raw, descriptor.address.twoByte);
     return value;
 }
@@ -178,6 +170,15 @@ QList<SignalChainModule> chainModules(
 }
 
 } // namespace
+
+QString physicalUnitFromDisplay(const QString &display)
+{
+    static const QRegularExpression unitPattern(
+        QStringLiteral("(?:^|[0-9.]\\s*)(kHz|BPM|ms|Hz|dB|sec|%)$"));
+    const QRegularExpressionMatch match =
+        unitPattern.match(display.trimmed());
+    return match.hasMatch() ? match.captured(1) : QString();
+}
 
 PatchSnapshotBuildResult PatchSnapshotBuilder::build(
     const PatchCapture &capture) const
