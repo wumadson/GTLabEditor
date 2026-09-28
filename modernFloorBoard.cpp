@@ -23,6 +23,7 @@
 #include "signalChainHardwareValidation.h"
 #include "quickSettingService.h"
 #include "modernQuickSettingDialog.h"
+#include "ai/PatchParameterCatalog.h"
 
 #include <QComboBox>
 #include <QButtonGroup>
@@ -925,15 +926,8 @@ qreal frequencyPresentationValue(const QString &text, bool *ok = nullptr)
 
 bool preampBrightAvailable(int type, int customType)
 {
-    static const QSet<int> brightTypes = {
-        0x00, 0x01, 0x02, 0x04, 0x05, 0x06,
-        0x08, 0x09, 0x0B, 0x12, 0x13, 0x14
-    };
-    static const QSet<int> brightCustomTypes = {
-        0x00, 0x01, 0x02, 0x04
-    };
-    return brightTypes.contains(type)
-        || (type == 0x27 && brightCustomTypes.contains(customType));
+    return Ai::PatchParameterCatalog::preampBrightAvailable(
+        type, customType);
 }
 
 QString preampDisplayText(const QString &value, int offset)

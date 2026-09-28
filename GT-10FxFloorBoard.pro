@@ -118,6 +118,9 @@ SOURCES += modernFloorBoard.cpp modernTheme.cpp modernWidgets.cpp modernSignalCh
            modernGlobalEqPopover.cpp modernInputPopover.cpp modernSystemEditor.cpp
 SOURCES += modernAboutDialog.cpp modernSettingsDialog.cpp \
            backupCoordinator.cpp modernBackupDialog.cpp patchBackupCodec.cpp
+SOURCES += ai/PatchCapture.cpp ai/PatchParameterCatalog.cpp \
+           ai/PatchSnapshot.cpp ai/PatchSnapshotBuilder.cpp \
+           ai/PatchJsonSerializer.cpp
 HEADERS += modernFloorBoard.h modernTheme.h modernWidgets.h modernSignalChainModel.h \
            modernSignalChainMutationController.h modernSignalChainSerializer.h \
            signalChainHardwareValidation.h \
@@ -131,6 +134,9 @@ HEADERS += modernFloorBoard.h modernTheme.h modernWidgets.h modernSignalChainMod
            modernGlobalEqPopover.h modernInputPopover.h modernSystemEditor.h
 HEADERS += modernAboutDialog.h modernSettingsDialog.h modernPopoverShell.h \
            backupCoordinator.h modernBackupDialog.h patchBackupCodec.h
+HEADERS += ai/PatchCapture.h ai/PatchParameterCatalog.h \
+           ai/PatchSnapshot.h ai/PatchSnapshotBuilder.h \
+           ai/PatchJsonSerializer.h
 
 # Explicit local harness. It replaces the application entry point only when
 # qmake is invoked with CONFIG+=signalchain_domain_tests.
@@ -193,4 +199,14 @@ contains(CONFIG, pedalartwork_tests) {
     SOURCES += pedalArtworkResolverTests.cpp
     TARGET = pedalArtworkResolverTests
     DESTDIR = $$OUT_PWD
+}
+
+# Offline snapshot foundation harness. It consumes immutable captures and does
+# not open MIDI devices or send/receive SysEx.
+contains(CONFIG, patchsnapshot_tests) {
+    SOURCES -= ./main.cpp
+    SOURCES += tests/patchSnapshotBuilderTests.cpp
+    TARGET = patchSnapshotBuilderTests
+    DESTDIR = $$OUT_PWD
+    DEFINES += PATCH_SNAPSHOT_FIXTURE_DIR=\"$$PWD/tests/fixtures\"
 }
