@@ -5,6 +5,7 @@
 #include "ai/knowledge/DocumentationKnowledgeSource.h"
 #include "ai/knowledge/GT10CapabilityService.h"
 #include "ai/knowledge/KnowledgeGuides.h"
+#include "ai/knowledge/QuestionIntentRouter.h"
 
 namespace Ai {
 namespace Knowledge {
@@ -34,6 +35,10 @@ public:
     LocalKnowledgeAnswer answer(const QString &question,
                                 const QString &language,
                                 const AIContext *context = nullptr) const;
+    LocalKnowledgeAnswer answerRouted(
+        const QString &question, const QString &language,
+        const QuestionRoutingResult &routing,
+        const AIContext *context = nullptr) const;
     const GT10CapabilityService &capabilities() const;
 
 private:
@@ -54,6 +59,24 @@ private:
         const QString &language) const;
     LocalKnowledgeAnswer documentationUnknown(
         const QString &language, const QString &topic = QString()) const;
+    LocalKnowledgeAnswer compareEffectTypes(
+        const QString &question, const QString &language,
+        const QuestionRoutingResult &routing,
+        const AIContext *context) const;
+    LocalKnowledgeAnswer compareParameters(
+        const QString &question, const QString &language,
+        const QuestionRoutingResult &routing) const;
+    LocalKnowledgeAnswer explainEffectType(
+        const QString &question, const QString &language,
+        const QuestionRoutingResult &routing) const;
+    LocalKnowledgeAnswer explainParameter(
+        const QString &question, const QString &language,
+        const QuestionRoutingResult &routing,
+        const AIContext *context) const;
+    LocalKnowledgeAnswer listEffectTypes(
+        const QString &question, const QString &language,
+        const QuestionRoutingResult &routing,
+        const AIContext *context) const;
 
     GT10CapabilityService capabilityService;
     QList<KnowledgeGuide> guides;

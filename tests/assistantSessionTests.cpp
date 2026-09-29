@@ -78,8 +78,11 @@ public:
         });
     }
 
+    void resetConversation() override { ++resetCount; }
+
     QList<AIRequest> requests;
     QString activeId;
+    int resetCount = 0;
 };
 
 } // namespace
@@ -161,8 +164,17 @@ int main(int argc, char **argv)
            && session.messages().last().text == "provider failed",
            "14 provider error produces Error state and status message");
 
+    for (int index = 0; index < 6; ++index) {
+        session.sendMessage(QString("history %1").arg(index),
+                            context("U02-1"), "U02-1 — SECOND");
+        drainEvents();
+    }
+    expect(provider.requests.last().conversationHistory.size() == 8,
+           "14b provider receives only bounded recent history");
+
     session.resetConversation();
-    expect(session.messages().isEmpty(), "15 reset clears only conversation");
+    expect(session.messages().isEmpty() && provider.resetCount == 1,
+           "15 reset clears history and provider conversation state");
     expect(firstContext.root == firstBefore, "16 session does not mutate context");
     expect(provider.capabilities().supportsConversation
            && !provider.capabilities().requiresNetwork,

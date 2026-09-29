@@ -73,7 +73,9 @@ bool AssistantSession::sendMessage(const QString &text,
     request.userMessage = prompt;
     request.language = currentResponseLanguage;
     request.context = context;
-    request.conversationHistory = history;
+    const int retainedMessages = 8;
+    request.conversationHistory = history.mid(
+        qMax(0, history.size() - retainedMessages), retainedMessages);
 
     currentContextLabel = contextLabel.trimmed().isEmpty()
         ? tr("Patch context unavailable") : contextLabel.trimmed();
@@ -100,6 +102,8 @@ void AssistantSession::resetConversation()
 {
     if (currentState == Sending)
         cancel();
+    if (currentProvider)
+        currentProvider->resetConversation();
     history.clear();
     emit conversationReset();
 }

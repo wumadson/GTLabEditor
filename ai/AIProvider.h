@@ -48,6 +48,7 @@ public:
     virtual void sendRequest(const QString &requestId,
                              const AIRequest &request) = 0;
     virtual void cancelRequest(const QString &requestId) = 0;
+    virtual void resetConversation() {}
 
 signals:
     void responseReady(QString requestId, Ai::AIResponse response);

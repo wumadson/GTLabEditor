@@ -126,7 +126,14 @@ SOURCES += ai/PatchCapture.cpp ai/PatchParameterCatalog.cpp \
            ai/knowledge/GT10CapabilityService.cpp \
            ai/knowledge/DocumentationKnowledgeSource.cpp \
            ai/knowledge/KnowledgeGuides.cpp \
-           ai/knowledge/LocalKnowledgeEngine.cpp
+           ai/knowledge/QuestionIntentRouter.cpp \
+           ai/knowledge/LocalKnowledgeEngine.cpp \
+    ai/tone/ToneRules.cpp ai/tone/ToneFeatureExtractor.cpp \
+    ai/tone/ToneAnalyzer.cpp ai/tone/ToneIntentParser.cpp \
+    ai/tone/ToneAdjustmentAdvisor.cpp \
+    ai/tone/ToneResponseComposer.cpp \
+    ai/tone/ToneConversationReasoner.cpp \
+    ai/tone/ContextualParameterAssessment.cpp
 HEADERS += modernFloorBoard.h modernTheme.h modernWidgets.h modernSignalChainModel.h \
            modernSignalChainMutationController.h modernSignalChainSerializer.h \
            signalChainHardwareValidation.h \
@@ -150,7 +157,14 @@ HEADERS += ai/PatchCapture.h ai/PatchParameterCatalog.h \
            ai/knowledge/DocumentationKnowledgeSource.h \
            ai/knowledge/GT10CapabilityService.h \
            ai/knowledge/KnowledgeGuides.h \
-           ai/knowledge/LocalKnowledgeEngine.h
+           ai/knowledge/QuestionIntentRouter.h \
+           ai/knowledge/LocalKnowledgeEngine.h \
+           ai/tone/ToneModels.h ai/tone/ToneRules.h \
+           ai/tone/ToneFeatureExtractor.h ai/tone/ToneAnalyzer.h \
+           ai/tone/ToneIntentParser.h ai/tone/ToneAdjustmentAdvisor.h \
+           ai/tone/ToneResponseComposer.h \
+           ai/tone/ToneConversationReasoner.h \
+           ai/tone/ContextualParameterAssessment.h
 
 # Explicit local harness. It replaces the application entry point only when
 # qmake is invoked with CONFIG+=signalchain_domain_tests.
@@ -285,5 +299,50 @@ contains(CONFIG, documentationknowledge_tests) {
     SOURCES -= ./main.cpp
     SOURCES += tests/documentationKnowledgeTests.cpp
     TARGET = documentationKnowledgeTests
+    DESTDIR = $$OUT_PWD
+}
+
+# Deterministic local tone-reasoning harness. It consumes compact AIContext
+# values only and has no patch mutation, MIDI/SysEx, hardware or network path.
+contains(CONFIG, tonereasoning_tests) {
+    SOURCES -= ./main.cpp
+    SOURCES += tests/toneReasoningTests.cpp
+    TARGET = toneReasoningTests
+    DESTDIR = $$OUT_PWD
+}
+
+# Stateful, deterministic conversational tone-reasoning harness. It validates
+# follow-ups and patch identity without MIDI, patch mutation or network access.
+contains(CONFIG, toneconversation_tests) {
+    SOURCES -= ./main.cpp
+    SOURCES += tests/toneConversationTests.cpp
+    TARGET = toneConversationTests
+    DESTDIR = $$OUT_PWD
+}
+
+# Deterministic bilingual intent/entity/destination corpus. It uses the local
+# MidiTable and embedded documentation only; no network, MIDI I/O or mutation.
+contains(CONFIG, questionintent_tests) {
+    SOURCES -= ./main.cpp
+    SOURCES += tests/questionIntentRoutingTests.cpp
+    TARGET = questionIntentRoutingTests
+    DESTDIR = $$OUT_PWD
+}
+
+# Contextual parameter assessment and compound-entity harness. Read-only and
+# deterministic: no network, MIDI/SysEx, hardware reads or patch mutation.
+contains(CONFIG, contextualassessment_tests) {
+    SOURCES -= ./main.cpp
+    SOURCES += tests/contextualParameterAssessmentTests.cpp
+    TARGET = contextualParameterAssessmentTests
+    DESTDIR = $$OUT_PWD
+}
+
+# Deterministic capability-list routing and catalog response harness. It reads
+# only MidiTable/midi.xml and compact patch context; no MIDI I/O or mutation.
+contains(CONFIG, capabilitylist_tests) {
+    SOURCES -= ./main.cpp
+    SOURCES += tests/capabilityListQueryTests.cpp
+    TARGET = capabilityListQueryTests
     DESTDIR = $$OUT_PWD
 }

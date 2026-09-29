@@ -2,6 +2,8 @@
 
 #include <QJsonArray>
 #include <QJsonObject>
+#include <QMap>
+#include <QRegularExpression>
 
 namespace Ai {
 namespace Knowledge {
@@ -49,6 +51,140 @@ LocalKnowledgeAnswer authoritative(const QString &topic,
     result.sourceKind = SourceKind::MidiTable;
     result.relatedBlocks = blocks;
     return result;
+}
+
+QList<QuestionEntity> entitiesOfKind(
+    const QuestionRoutingResult &routing, QuestionEntityKind kind)
+{
+    QList<QuestionEntity> result;
+    for (const QuestionEntity &entity : routing.entities) {
+        if (entity.kind == kind)
+            result.append(entity);
+    }
+    return result;
+}
+
+QString effectTypeSummary(const QString &family, const QString &type,
+                          bool pt)
+{
+    const QString key = GT10CapabilityService::normalize(family + " " + type);
+    if (key == QLatin1String("reverb ambience"))
+        return pt
+            ? QStringLiteral("simula um microfone de ambiência distante e prioriza sensação de abertura e profundidade, sem destacar tanto a reverberação")
+            : QStringLiteral("simulates a distant ambience microphone and emphasizes openness and depth rather than prominent reverberation");
+    if (key == QLatin1String("reverb mod")
+        || key == QLatin1String("reverb modulate"))
+        return pt
+            ? QStringLiteral("adiciona à reverberação a oscilação encontrada em reverbs de hall")
+            : QStringLiteral("adds the wavering character found in hall reverb to the reverberation");
+    if (key == QLatin1String("reverb room"))
+        return pt ? QStringLiteral("simula uma sala pequena, com reverberação quente")
+                  : QStringLiteral("simulates a small room with warm reverberation");
+    if (key == QLatin1String("reverb hall1"))
+        return pt ? QStringLiteral("simula um hall de concertos com reverberação clara e espaçosa")
+                  : QStringLiteral("simulates a concert hall with clear, spacious reverberation");
+    if (key == QLatin1String("reverb hall2"))
+        return pt ? QStringLiteral("simula um hall de concertos com reverberação suave")
+                  : QStringLiteral("simulates a concert hall with mild reverberation");
+    if (key == QLatin1String("reverb plate"))
+        return pt ? QStringLiteral("simula uma placa metálica, com caráter metálico e agudos distintos")
+                  : QStringLiteral("simulates a vibrating metal plate, with a metallic character and distinct upper range");
+    if (key == QLatin1String("reverb spring"))
+        return pt ? QStringLiteral("simula o reverb de mola integrado a amplificadores de guitarra")
+                  : QStringLiteral("simulates a guitar amplifier's built-in spring reverb");
+    if (key == QLatin1String("delay warp"))
+        return pt ? QStringLiteral("controla feedback e volume do delay em conjunto para produzir um efeito extremo")
+                  : QStringLiteral("controls delay feedback and volume together to produce an extreme effect");
+    if (key == QLatin1String("delay modulate"))
+        return pt ? QStringLiteral("adiciona uma oscilação suave ao som do delay")
+                  : QStringLiteral("adds a pleasant wavering effect to the delay sound");
+    return {};
+}
+
+QString parameterSummary(const QString &parameter, bool pt)
+{
+    const QString key = GT10CapabilityService::normalize(parameter);
+    if (key == QLatin1String("density"))
+        return pt ? QStringLiteral("ajusta a densidade do som reverberado")
+                  : QStringLiteral("adjusts the density of the reverb sound");
+    if (key == QLatin1String("pre delay"))
+        return pt ? QStringLiteral("ajusta o intervalo até o som do efeito aparecer")
+                  : QStringLiteral("adjusts the interval before the effect sound appears");
+    if (key == QLatin1String("high cut"))
+        return pt ? QStringLiteral("define a frequência a partir da qual o filtro corta agudos; Flat desativa o filtro")
+                  : QStringLiteral("sets the frequency where the high-cut filter begins; Flat disables the filter");
+    if (key == QLatin1String("low cut"))
+        return pt ? QStringLiteral("define a frequência a partir da qual o filtro corta graves; Flat desativa o filtro")
+                  : QStringLiteral("sets the frequency where the low-cut filter begins; Flat disables the filter");
+    if (key == QLatin1String("reverb time"))
+        return pt ? QStringLiteral("ajusta a duração da reverberação")
+                  : QStringLiteral("adjusts the length of reverberation");
+    if (key == QLatin1String("effect level"))
+        return pt ? QStringLiteral("ajusta o volume do som processado pelo efeito")
+                  : QStringLiteral("adjusts the volume of the processed effect sound");
+    if (key == QLatin1String("direct level"))
+        return pt ? QStringLiteral("ajusta o volume do som direto")
+                  : QStringLiteral("adjusts the direct-sound volume");
+    if (key == QLatin1String("gain"))
+        return pt ? QStringLiteral("ajusta o ganho do pré-amplificador")
+                  : QStringLiteral("adjusts preamp gain");
+    if (key == QLatin1String("treble"))
+        return pt ? QStringLiteral("ajusta a faixa de agudos do pré-amplificador")
+                  : QStringLiteral("adjusts the preamp's treble range");
+    if (key == QLatin1String("presence"))
+        return pt ? QStringLiteral("ajusta a presença do pré-amplificador")
+                  : QStringLiteral("adjusts preamp presence");
+    return {};
+}
+
+QString capabilityBlock(const QString &family)
+{
+    return family == QLatin1String("preamp")
+        ? QStringLiteral("preampA") : family;
+}
+
+QString capabilityFamilyLabel(const QString &family)
+{
+    if (family == QLatin1String("comp")) return QStringLiteral("Compressor");
+    if (family == QLatin1String("odDs")) return QStringLiteral("OD/DS");
+    if (family == QLatin1String("preamp")) return QStringLiteral("PREAMP");
+    if (family == QLatin1String("fx1")) return QStringLiteral("FX1");
+    if (family == QLatin1String("fx2")) return QStringLiteral("FX2");
+    if (family == QLatin1String("pedalFxFv")) return QStringLiteral("P.FX/FV");
+    QString result = family;
+    if (!result.isEmpty()) result[0] = result.at(0).toUpper();
+    return result;
+}
+
+QString presentCapabilityType(const QString &family, const QString &type)
+{
+    const QString key = GT10CapabilityService::normalize(type);
+    if (family == QLatin1String("delay")) {
+        static const QMap<QString, QString> names = {
+            {"single", "Single"}, {"pan", "Pan"}, {"stereo", "Stereo"},
+            {"dual s", "Dual Series"}, {"dual series", "Dual Series"},
+            {"dualseries", "Dual Series"},
+            {"dual p", "Dual Parallel"}, {"dual parallel", "Dual Parallel"},
+            {"dualparallel", "Dual Parallel"},
+            {"dual l r", "Dual L/R"}, {"dual l/r", "Dual L/R"},
+            {"duall/r", "Dual L/R"}, {"duall r", "Dual L/R"},
+            {"reverse", "Reverse"},
+            {"analog", "Analog"}, {"tape", "Tape"}, {"warp", "Warp"},
+            {"modulate", "Modulate"}
+        };
+        if (names.contains(key)) return names.value(key);
+    }
+    if (family == QLatin1String("reverb")) {
+        static const QMap<QString, QString> names = {
+            {"ambience", "Ambience"}, {"room", "Room"},
+            {"hall1", "Hall 1"}, {"hall 1", "Hall 1"},
+            {"hall2", "Hall 2"}, {"hall 2", "Hall 2"},
+            {"plate", "Plate"}, {"spring", "Spring"},
+            {"mod", "Modulate"}, {"modulate", "Modulate"}
+        };
+        if (names.contains(key)) return names.value(key);
+    }
+    return type.trimmed();
 }
 
 } // namespace
@@ -100,6 +236,18 @@ LocalKnowledgeAnswer LocalKnowledgeEngine::answer(
     const QString &question, const QString &language,
     const AIContext *context) const
 {
+    QuestionRoutingContext routingContext;
+    routingContext.patchContext = context;
+    const QuestionRoutingResult routing = QuestionIntentRouter().route(
+        question, routingContext);
+    if (routing.intent == QuestionIntent::CompareEffectTypes
+        || routing.intent == QuestionIntent::CompareParameters
+        || routing.intent == QuestionIntent::ExplainEffectType
+        || routing.intent == QuestionIntent::ExplainParameter
+        || routing.intent == QuestionIntent::ListEffectTypes
+        || routing.intent == QuestionIntent::CurrentPatchFact)
+        return answerRouted(question, language, routing, context);
+
     const QString text = GT10CapabilityService::normalize(question);
     const auto enriched = [&](const LocalKnowledgeAnswer &base) {
         return enrichWithDocumentation(base, question, language);
@@ -201,9 +349,333 @@ LocalKnowledgeAnswer LocalKnowledgeEngine::answer(
     return unknown(language);
 }
 
+LocalKnowledgeAnswer LocalKnowledgeEngine::answerRouted(
+    const QString &question, const QString &language,
+    const QuestionRoutingResult &routing, const AIContext *context) const
+{
+    switch (routing.intent) {
+    case QuestionIntent::CompareEffectTypes:
+        return compareEffectTypes(question, language, routing, context);
+    case QuestionIntent::CompareParameters:
+        return compareParameters(question, language, routing);
+    case QuestionIntent::ExplainEffectType:
+        return explainEffectType(question, language, routing);
+    case QuestionIntent::ExplainParameter:
+        return explainParameter(question, language, routing, context);
+    case QuestionIntent::ListEffectTypes:
+        return listEffectTypes(question, language, routing, context);
+    case QuestionIntent::CurrentPatchFact:
+        return currentPatchAnswer(GT10CapabilityService::normalize(question),
+                                  language, context);
+    default:
+        break;
+    }
+    return answer(question, language, context);
+}
+
+LocalKnowledgeAnswer LocalKnowledgeEngine::listEffectTypes(
+    const QString &question, const QString &language,
+    const QuestionRoutingResult &routing, const AIContext *context) const
+{
+    const bool pt = portuguese(language);
+    const QList<QuestionEntity> families = entitiesOfKind(
+        routing, QuestionEntityKind::EffectFamily);
+    if (families.isEmpty()) {
+        const QString text = GT10CapabilityService::normalize(question);
+        if (text.contains("quais efeitos") || text.contains("que efeitos")
+            || text.contains("what effects")) {
+            LocalKnowledgeAnswer result = authoritative(
+                "effect_type_list",
+                (pt ? QStringLiteral("Blocos de efeito conhecidos pela base local da GT-10:\n")
+                    : QStringLiteral("Effect blocks known by the local GT-10 catalog:\n"))
+                    + capabilityService.blockIds().join(QStringLiteral(", "))
+                    + QLatin1Char('.'));
+            result.metadata.insert("listCount", capabilityService.blockIds().size());
+            result.metadata.insert("destinationService", "GT10CapabilityService");
+            result.metadata.insert("sourceKindName", "StructuralTruth");
+            return result;
+        }
+        LocalKnowledgeAnswer result = unknown(language, "effect_type_list");
+        result.metadata.insert("listCount", 0);
+        result.metadata.insert("destinationService", "GT10CapabilityService");
+        result.metadata.insert("sourceKindName", "StructuralTruth");
+        return result;
+    }
+
+    const QString family = families.first().family;
+    const QString block = capabilityBlock(family);
+    const QStringList catalogTypes = capabilityService.effectTypesForBlock(block);
+    if (catalogTypes.isEmpty()) {
+        LocalKnowledgeAnswer result = unknown(language, "effect_type_list");
+        result.metadata.insert("listCount", 0);
+        result.metadata.insert("resolvedFamily", family);
+        result.metadata.insert("destinationService", "GT10CapabilityService");
+        result.metadata.insert("sourceKindName", "StructuralTruth");
+        return result;
+    }
+
+    QStringList types;
+    for (const QString &type : catalogTypes)
+        types.append(presentCapabilityType(family, type));
+    const QString label = capabilityFamilyLabel(family);
+    LocalKnowledgeAnswer result = authoritative(
+        "effect_type_list",
+        (pt ? QStringLiteral("A GT-10 possui estes tipos/modelos de %1:\n")
+                  .arg(label)
+            : QStringLiteral("The GT-10 provides these %1 types/models:\n")
+                  .arg(label))
+            + types.join(QStringLiteral(", ")) + QLatin1Char('.'), {block});
+    result.metadata.insert("listCount", types.size());
+    result.metadata.insert("resolvedFamily", family);
+    result.metadata.insert("destinationService", "GT10CapabilityService");
+    result.metadata.insert("sourceKindName", "StructuralTruth");
+
+    if (context && family != QLatin1String("preamp")) {
+        const QString current = effect(context->root, block).value("type").toString();
+        if (!current.isEmpty()) {
+            result.text += pt
+                ? QStringLiteral("\n\nNo seu patch atual, o tipo selecionado é %1.")
+                      .arg(current)
+                : QStringLiteral("\n\nIn your current patch, the selected type is %1.")
+                      .arg(current);
+        }
+    }
+    return result;
+}
+
 const GT10CapabilityService &LocalKnowledgeEngine::capabilities() const
 {
     return capabilityService;
+}
+
+LocalKnowledgeAnswer LocalKnowledgeEngine::compareEffectTypes(
+    const QString &question, const QString &language,
+    const QuestionRoutingResult &routing, const AIContext *context) const
+{
+    const bool pt = portuguese(language);
+    const QList<QuestionEntity> types = entitiesOfKind(
+        routing, QuestionEntityKind::EffectType);
+    if (types.size() < 2) {
+        LocalKnowledgeAnswer result = unknown(language, "effect_type_comparison");
+        result.text = pt
+            ? QStringLiteral("Reconheci apenas um dos tipos informados na base local da GT-10. Confira o nome do outro algoritmo para que eu possa compará-los sem inventar características.")
+            : QStringLiteral("I recognized only one of the supplied types in the local GT-10 catalog. Check the other algorithm name so I can compare them without inventing characteristics.");
+        return result;
+    }
+    const QuestionEntity first = types.at(0);
+    const QuestionEntity second = types.at(1);
+    if (first.family != second.family) {
+        LocalKnowledgeAnswer result = unknown(language, "effect_type_comparison");
+        result.text = pt
+            ? QStringLiteral("Os dois tipos pertencem a famílias diferentes; informe se você quer comparar o papel dos blocos ou algoritmos da mesma família.")
+            : QStringLiteral("The two types belong to different families; specify whether you want to compare block roles or algorithms from one family.");
+        return result;
+    }
+
+    const QString firstSummary = effectTypeSummary(first.family,
+                                                   first.canonicalName, pt);
+    const QString secondSummary = effectTypeSummary(second.family,
+                                                    second.canonicalName, pt);
+    if (firstSummary.isEmpty() || secondSummary.isEmpty()) {
+        LocalKnowledgeAnswer documented = documentationSource->answer(
+            question, language);
+        if (documented.answered)
+            return documented;
+        return unknown(language, "effect_type_comparison");
+    }
+
+    LocalKnowledgeAnswer result;
+    result.answered = true;
+    result.confidence = Confidence::Derived;
+    result.sourceKind = SourceKind::DerivedFromOfficialDocumentation;
+    result.topicId = QStringLiteral("effect_type_comparison");
+    result.relatedBlocks.append(first.family);
+    result.text = pt
+        ? QStringLiteral("%1 e %2 têm propostas diferentes. %1 %3. %2 %4.\n\nEm termos práticos, escolha pelo caráter descrito — não existe um tipo absolutamente melhor.")
+              .arg(first.canonicalName, second.canonicalName,
+                   firstSummary, secondSummary)
+        : QStringLiteral("%1 and %2 serve different purposes. %1 %3. %2 %4.\n\nIn practice, choose by the described character—neither type is absolutely better.")
+              .arg(first.canonicalName, second.canonicalName,
+                   firstSummary, secondSummary);
+
+    QJsonArray documentationMatches;
+    for (const QuestionEntity &entity : {first, second}) {
+        const QList<DocumentationSearchResult> matches = documentationSource->search(
+            entity.family + QLatin1Char(' ') + entity.canonicalName,
+            language, 1);
+        if (!matches.isEmpty()) {
+            QJsonObject match;
+            match.insert("entity", entity.canonicalName);
+            match.insert("documentId", matches.first().entry.documentId);
+            match.insert("section", matches.first().entry.section);
+            match.insert("pageStart", matches.first().entry.pageStart);
+            match.insert("pageEnd", matches.first().entry.pageEnd);
+            documentationMatches.append(match);
+        }
+    }
+    result.metadata.insert("documentationMatches", documentationMatches);
+
+    if (context && first.family == QLatin1String("reverb")) {
+        const QString current = effect(context->root, "reverb")
+                                    .value("type").toString();
+        if (!current.isEmpty())
+            result.text += pt
+                ? QStringLiteral("\n\nNo patch atual, o tipo selecionado é %1.").arg(current)
+                : QStringLiteral("\n\nThe currently selected patch type is %1.").arg(current);
+    }
+    return result;
+}
+
+LocalKnowledgeAnswer LocalKnowledgeEngine::compareParameters(
+    const QString &question, const QString &language,
+    const QuestionRoutingResult &routing) const
+{
+    Q_UNUSED(question)
+    const bool pt = portuguese(language);
+    const QList<QuestionEntity> parameters = entitiesOfKind(
+        routing, QuestionEntityKind::Parameter);
+    if (parameters.size() < 2)
+        return unknown(language, "parameter_comparison");
+    const QuestionEntity first = parameters.at(0);
+    const QuestionEntity second = parameters.at(1);
+    const QString firstSummary = parameterSummary(first.canonicalName, pt);
+    const QString secondSummary = parameterSummary(second.canonicalName, pt);
+    if (firstSummary.isEmpty() || secondSummary.isEmpty())
+        return unknown(language, "parameter_comparison");
+    LocalKnowledgeAnswer result;
+    result.answered = true;
+    result.confidence = Confidence::Derived;
+    result.sourceKind = SourceKind::DerivedFromOfficialDocumentation;
+    result.topicId = QStringLiteral("parameter_comparison");
+    result.text = pt
+        ? QStringLiteral("%1 e %2 controlam aspectos diferentes: %1 %3; %2 %4.")
+              .arg(first.canonicalName, second.canonicalName,
+                   firstSummary, secondSummary)
+        : QStringLiteral("%1 and %2 control different aspects: %1 %3; %2 %4.")
+              .arg(first.canonicalName, second.canonicalName,
+                   firstSummary, secondSummary);
+    return result;
+}
+
+LocalKnowledgeAnswer LocalKnowledgeEngine::explainEffectType(
+    const QString &question, const QString &language,
+    const QuestionRoutingResult &routing) const
+{
+    const QList<QuestionEntity> types = entitiesOfKind(
+        routing, QuestionEntityKind::EffectType);
+    if (types.isEmpty())
+        return unknown(language, "effect_type");
+    const QuestionEntity entity = types.first();
+    const QString summary = effectTypeSummary(entity.family,
+                                              entity.canonicalName,
+                                              portuguese(language));
+    if (!summary.isEmpty()) {
+        LocalKnowledgeAnswer result;
+        result.answered = true;
+        result.confidence = Confidence::Derived;
+        result.sourceKind = SourceKind::DerivedFromOfficialDocumentation;
+        result.topicId = QStringLiteral("effect_type");
+        result.relatedBlocks.append(entity.family);
+        const QString displayName = entity.family == QLatin1String("delay")
+            ? entity.canonicalName + QStringLiteral(" Delay")
+            : entity.canonicalName;
+        result.text = QStringLiteral("%1: %2.").arg(displayName, summary);
+        const LocalKnowledgeAnswer documented = documentationSource->answer(
+            entity.family + QLatin1Char(' ') + entity.canonicalName, language);
+        if (documented.metadata.contains("documentationTrace"))
+            result.metadata.insert("documentationTrace",
+                                   documented.metadata.value("documentationTrace"));
+        return result;
+    }
+    const LocalKnowledgeAnswer documented = documentationSource->answer(
+        question, language);
+    return documented.answered ? documented : unknown(language, "effect_type");
+}
+
+LocalKnowledgeAnswer LocalKnowledgeEngine::explainParameter(
+    const QString &question, const QString &language,
+    const QuestionRoutingResult &routing, const AIContext *context) const
+{
+    Q_UNUSED(question)
+    const QList<QuestionEntity> parameters = entitiesOfKind(
+        routing, QuestionEntityKind::Parameter);
+    if (parameters.isEmpty())
+        return unknown(language, "parameter");
+    const QuestionEntity entity = parameters.first();
+    if (entity.family == QLatin1String("assign")) {
+        const bool pt = portuguese(language);
+        if (entity.id == QLatin1String("sourceMode"))
+            return authoritative("assign", pt
+                ? "Source Mode define como o evento de Source é interpretado pelo Assign. Os modos disponíveis vêm do catálogo local da GT-10: " + capabilityService.assignSourceModes().join(", ") + "."
+                : "Source Mode defines how the Assign interprets the Source event. Available modes come from the local GT-10 catalog: " + capabilityService.assignSourceModes().join(", ") + ".");
+        if (entity.id == QLatin1String("targetMin")
+            || entity.id == QLatin1String("targetMax"))
+            return authoritative("assign", pt
+                ? "Target Min e Target Max definem os dois extremos que o Assign aplica ao parâmetro Target. A faixa válida depende do Target real selecionado no catálogo."
+                : "Target Min and Target Max define the two endpoints that the Assign applies to the Target parameter. The valid range depends on the actual Target selected in the catalog.");
+        if (entity.id == QLatin1String("target"))
+            return authoritative("assign", pt
+                ? "Target é o parâmetro real da GT-10 que o Assign controla. A disponibilidade deve ser confirmada no catálogo para o bloco e tipo de efeito em uso."
+                : "Target is the actual GT-10 parameter controlled by the Assign. Availability must be confirmed in the catalog for the active block and effect type.");
+        if (entity.id == QLatin1String("source"))
+            return authoritative("assign", pt
+                ? "Source é o controle ou evento que aciona o Assign, como CTL, EXP ou outra fonte presente no catálogo local."
+                : "Source is the control or event that drives the Assign, such as CTL, EXP, or another source present in the local catalog.");
+    }
+    const QString documentationQuery = entity.family.isEmpty()
+        ? entity.canonicalName
+        : entity.family + QLatin1Char(' ') + entity.canonicalName;
+    const LocalKnowledgeAnswer documented = documentationSource->answer(
+        documentationQuery, language);
+    const QString summary = parameterSummary(entity.canonicalName,
+                                              portuguese(language));
+    if (summary.isEmpty())
+        return documented.answered ? documented : unknown(language, "parameter");
+    LocalKnowledgeAnswer result;
+    result.answered = true;
+    result.confidence = Confidence::Derived;
+    result.sourceKind = SourceKind::DerivedFromOfficialDocumentation;
+    result.topicId = QStringLiteral("parameter");
+    result.relatedBlocks.append(entity.family);
+    result.text = QStringLiteral("%1: %2.").arg(entity.canonicalName, summary);
+    if (entity.id == QLatin1String("preDelay")) {
+        const bool pt = portuguese(language);
+        if (entity.family == QLatin1String("chorus")) {
+            result.text += pt
+                ? QStringLiteral(" Tempos maiores aumentam a separação do som direto e podem produzir efeito de doubling.")
+                : QStringLiteral(" Longer times increase separation from the direct sound and can produce a doubling effect.");
+        } else {
+            result.text += pt
+                ? QStringLiteral(" Valores maiores separam mais o ataque do início da reverberação; valores menores aproximam o efeito da nota.")
+                : QStringLiteral(" Higher values separate the attack further from the start of the reverberation; lower values bring the effect closer to the note.");
+        }
+        if (!entity.userValue.isEmpty()) {
+            result.text += pt
+                ? QStringLiteral(" Em %1, o efeito começa %2 depois do som direto, criando uma separação perceptível.")
+                    .arg(entity.family == QLatin1String("chorus")
+                             ? QStringLiteral("Chorus")
+                             : QStringLiteral("Reverb"), entity.userValue)
+                : QStringLiteral(" In %1, the effect begins %2 after the direct sound, creating audible separation.")
+                    .arg(entity.family == QLatin1String("chorus")
+                             ? QStringLiteral("Chorus")
+                             : QStringLiteral("Reverb"), entity.userValue);
+            if (context && !entity.family.isEmpty()) {
+                const QString current = effect(context->root, entity.family)
+                    .value(entity.id).toString();
+                if (!current.isEmpty()
+                    && GT10CapabilityService::normalize(current)
+                       == GT10CapabilityService::normalize(entity.userValue)) {
+                    result.text += pt
+                        ? QStringLiteral(" Esse é o valor presente nesse bloco do patch atual.")
+                        : QStringLiteral(" That is the value currently present in this patch block.");
+                }
+            }
+        }
+    }
+    if (documented.metadata.contains("documentationTrace"))
+        result.metadata.insert("documentationTrace",
+                               documented.metadata.value("documentationTrace"));
+    return result;
 }
 
 bool LocalKnowledgeEngine::portuguese(const QString &language) const
@@ -323,6 +795,23 @@ LocalKnowledgeAnswer LocalKnowledgeEngine::currentPatchAnswer(
                 portuguese(language) ? QString("O patch atual usa Reverb %1.").arg(type)
                                      : QString("The current patch uses %1 Reverb.").arg(type),
                 {"reverb"});
+    }
+    if (text.contains("preamp") || text.contains("amplificador")
+        || QRegularExpression(QStringLiteral("(^| )amp($| )"))
+               .match(text).hasMatch()) {
+        const QString selected = root.value("routing").toObject()
+            .value("channelSelect").toString();
+        const QString block = selected.endsWith("B", Qt::CaseInsensitive)
+            ? QStringLiteral("preampB") : QStringLiteral("preampA");
+        const QString type = effect(root, block).value("type").toString();
+        if (!type.isEmpty())
+            return authoritative("current_preamp",
+                portuguese(language)
+                    ? QString("O patch atual usa %1 no PREAMP %2.")
+                          .arg(type, block.endsWith("B") ? "B" : "A")
+                    : QString("The current patch uses %1 in PREAMP %2.")
+                          .arg(type, block.endsWith("B") ? "B" : "A"),
+                {block});
     }
     if (any(text, {"cadeia", "signal chain"})) {
         const QJsonObject chain = root.value("signalChain").toObject();
