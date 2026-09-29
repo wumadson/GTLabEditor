@@ -122,7 +122,11 @@ SOURCES += ai/PatchCapture.cpp ai/PatchParameterCatalog.cpp \
            ai/PatchSnapshot.cpp ai/PatchSnapshotBuilder.cpp \
            ai/PatchJsonSerializer.cpp ai/AIContextBuilder.cpp \
            ai/PatchSnapshotPreviewDialog.cpp ai/MockAIProvider.cpp \
-           ai/AssistantSession.cpp ai/AssistantPanel.cpp
+           ai/LocalGT10Provider.cpp ai/AssistantSession.cpp ai/AssistantPanel.cpp \
+           ai/knowledge/GT10CapabilityService.cpp \
+           ai/knowledge/DocumentationKnowledgeSource.cpp \
+           ai/knowledge/KnowledgeGuides.cpp \
+           ai/knowledge/LocalKnowledgeEngine.cpp
 HEADERS += modernFloorBoard.h modernTheme.h modernWidgets.h modernSignalChainModel.h \
            modernSignalChainMutationController.h modernSignalChainSerializer.h \
            signalChainHardwareValidation.h \
@@ -141,7 +145,12 @@ HEADERS += ai/PatchCapture.h ai/PatchParameterCatalog.h \
            ai/PatchJsonSerializer.h ai/AIContextBuilder.h \
            ai/PatchSnapshotPreviewDialog.h ai/AssistantMessage.h \
            ai/AIProvider.h ai/MockAIProvider.h ai/AssistantSession.h \
-           ai/AssistantPanel.h
+           ai/LocalGT10Provider.h ai/AssistantPanel.h \
+           ai/knowledge/KnowledgeModel.h \
+           ai/knowledge/DocumentationKnowledgeSource.h \
+           ai/knowledge/GT10CapabilityService.h \
+           ai/knowledge/KnowledgeGuides.h \
+           ai/knowledge/LocalKnowledgeEngine.h
 
 # Explicit local harness. It replaces the application entry point only when
 # qmake is invoked with CONFIG+=signalchain_domain_tests.
@@ -251,5 +260,30 @@ contains(CONFIG, assistantlocalization_tests) {
     SOURCES -= ./main.cpp
     SOURCES += tests/assistantLocalizationTests.cpp
     TARGET = assistantLocalizationTests
+    DESTDIR = $$OUT_PWD
+}
+
+# Read-only GT-10 structural capability harness backed by MidiTable/midi.xml.
+contains(CONFIG, gt10capability_tests) {
+    SOURCES -= ./main.cpp
+    SOURCES += tests/gt10CapabilityServiceTests.cpp
+    TARGET = gt10CapabilityServiceTests
+    DESTDIR = $$OUT_PWD
+}
+
+# Deterministic bilingual local-knowledge and anti-hallucination harness.
+contains(CONFIG, localknowledge_tests) {
+    SOURCES -= ./main.cpp
+    SOURCES += tests/localKnowledgeEngineTests.cpp
+    TARGET = localKnowledgeEngineTests
+    DESTDIR = $$OUT_PWD
+}
+
+# Deterministic, offline documentation-index harness. It covers both synthetic
+# conflict fixtures and the approved indexes embedded in Qt resources.
+contains(CONFIG, documentationknowledge_tests) {
+    SOURCES -= ./main.cpp
+    SOURCES += tests/documentationKnowledgeTests.cpp
+    TARGET = documentationKnowledgeTests
     DESTDIR = $$OUT_PWD
 }

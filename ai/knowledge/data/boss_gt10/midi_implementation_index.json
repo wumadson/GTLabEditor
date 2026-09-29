@@ -1,0 +1,1091 @@
+{
+  "schemaVersion": 1,
+  "document": {
+    "id": "midi_implementation",
+    "title": "GT-10 MIDI Implementation",
+    "language": "en",
+    "sourceKind": "OfficialDocumentation",
+    "pageCount": 48,
+    "sha256": "23e0b71932cf4f8280d01f9fb72f779950c2e43f61fba5aaaff1a877c4d334e0",
+    "extraction": "localOCRBecauseEmbeddedCharacterMapIsInvalid",
+    "ocrPages": [
+      1,
+      48
+    ]
+  },
+  "chunks": [
+    {
+      "id": "midi_page_001",
+      "documentId": "midi_implementation",
+      "title": "Recognized Receive Data",
+      "section": "Recognized Receive Data",
+      "pageStart": 1,
+      "pageEnd": 1,
+      "language": "en",
+      "body": "GUITAR EFFECTS PROCESSOF odel GT-10 MIDI Implementation te : Sep. 30.204 rsion : 1. 1.RECOGNIZED RECEIVE DATA (Main Section) •CHANNEL VOICE MESSAGE IDI channel on which they arrive. Also, when \"Omni Mode\" for \"SYSTEM MENU/MIDI/SETTING\" i eceived when the \"Rx Channel\" setting for \"SYSTEM MENU/MIDI/SETTING\" matches the number of th channel number. \" all MIDI channel numbers are received, regardless of the MIDI receive •Control Change OBank Select Status BnH .--------- 2nd byte 00H .—.—-——_ 3rd byte mmH m - Bank number MIDI channel number will be ignored. * After start-up, the CT-10 will operate with bank number 08H until it receives a bank OControl Change Number #1 - #31. #64 - #95 Status 2nd byte 3rd byte BnH CCH vvH --------- Cc - Montrohaer Mumunber :01H - vv = Value: :00H -7FH :40H - 5FH { 64 - 64 : 127 * By specifying this as a Source for \"ASSIGN 1-16\" you can use these messages to control a larget •Program Change Status 2nd byte CnH ppH PP = Program Number: = MIDI channel number :00H - 7FH : 0H - 1 (Nо:1 - No.128) * Patches are changed as shown below Patches will be selected accordina to the broaram number that is receivedl in correspondence with the bank number and oroer am numoer is set to \"Fix.\" received when \"Map Select\" for \"SYSTEM MENU/MIDI/SETTING\" BANK PROG MSB CHG GT-10 BANK PROG MSB CHG GT-10 BANK PROG MSB CHG GT-10 BANK PROG MSB CHG GT-10 2-#U01-2 1 2=*026-2 2 2=#P01-2 } ½= ·26-2 1 - #U01-1 100 - #U25-4 99 • #U25-3 1 100 = #U50-4 99 - #U50-3 2 2 100 - #P25-4 199 - 1P25-3 199 : 5050-3 102 - #U25-4 101 = #U-4 1 102 - #U50-4 1 101 = #050-4 2 102 - #P25-4 3101 = #P50-4 3 102 - #P50-4 ° 126 : 127 - #U25-4 21272543127:#050- - #P50-4 * Whe patch Seleces mads Yr M STE MMDT/SET PC MAs, set to \"PROG,\" patches change in accord with •SYSTEM REALTIME MESSAGE •Timing Clock Status F8H This is detected when \"Sync Clock\" for \"SYSTEM MENU/MIDI/SETTING\" is set to \"Aut id \"Master BPM\" for \"MASTER BPM/KEY\" is updated accordingl •Active Sensing Status FEH will begin to be monitored.ifa ointer whtl Begint toe msnit medie an recervad reatereranomseuoseeeen essag the display will indicate •SYSTEM EXCLUSIVE MESSAGE Status ---------- Data Byte Status FOH iiH, ddH,... eeH F7H Byte Explanation iiH FOH Exclusive status ddH Data Manufacturer ID F7H Pox (End of Exclusive) @Universal Non-realtime System Exclusive Messages OIdentity Request Message Status Data Byte Status",
+      "answerEn": "The MIDI Implementation documents received Bank Select, Control Change, Program Change, timing and Active Sensing messages, plus System Exclusive communication.",
+      "answerPtBr": "O MIDI Implementation documenta recepção de Bank Select, Control Change, Program Change, timing e Active Sensing, além da comunicação System Exclusive.",
+      "aliases": [
+        "midi implementation",
+        "midi protocol",
+        "recognized receive data",
+        "control change",
+        "bank select",
+        "program change",
+        "active sensing"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_002",
+      "documentId": "midi_implementation",
+      "title": "RQ1/DT1 and Transmitted Data",
+      "section": "RQ1/DT1 and Transmitted Data",
+      "pageStart": 2,
+      "pageEnd": 2,
+      "language": "en",
+      "body": "2 FOH 7EH, dev, 06H, 01H F7H Byte Explanation FOH Exclusive status 7EH Dev ID number (Universal Non-realtime Message) 06H Device ID 01H ub ID#1 (General Information) ub ID#2 (Identity Request) F7H EOX (End of Exclusive) * When this mays reces eecereed, leentity Reply tissage will be tra setted •ONE WAY COMMUNICATION (Model ID = 00H 00H 2FH - GT-10 ) ORequest Data 1 RQ1(11H) Status Data Byte Status FOH -------- Byte Explanation 41H FOH Exclusive status 00H Dev Device ID (Dev-00H-1FH, 7FH) Manufacturer ID (Roland) odel I0 #2 (GT-10 GT-10 Command ID (RQ1) Model ID #3 (GT-10 ) Address MSB Address Address LSB Address ssH Size MSB tth uuH Size Size F7H sum Eox CEnD or Exclusivo) : Thè se ding cea nge for the deice 10 5 2 through 12. he feciory defa it sevedng is 1. OData Set 1 DT1(12H) Status Data Byte Status FOH 41H, dev, 00H, 0OH, 2FH, 12H, aaH, FZH bbH, ccH, ddH, eeH, ... Byte FOH ----- ExpLanation 41H Exnuaiverst 10 (Roland) Medec 10D 1 CGT-9-1FH, 7FH. (GT-10 ) Modet 10 #3 (C-10 ) Command ID (DT1) Address MSB Address Address eeH Address LSB Data Data F7H sum Checksun EOX (End of Exclusive) * The se devi range for the deice 10 t552 through 32 Te dectory de taut seveing is 1. 2. TRANSMITTED DATA (Main Section) •CHANNEL VOICE MESSAGE For the MIDI transmit channel number for Channel Voice messages, set \"Tx Channel\" for \"SYSTEM MENU/MIDI/SETTING.\" •Control Change OBank Select Status 2nd byte 3rd byte BnH BnH 00H 20H 11H mmH T Markt Chabne Nusber Bank number (MSB) :00H - 7FH : 0H - FH (ch.1 - ch.16) - Bank number (LSB) 127) informaseonisotrontmittedenswitching patch parameter \"SYSTEM MENU/MIDI/SETTING/Pc Out\" for \"On, program chang OControl Change Number #1 - #31, #33 - #95 Status 2nd byte 3rd byte Bnh ccH vvH *c = ciot chlenel Mumber :01H - 1FH : 0H - FH (ch.1 - ch.16) vv - Value: :40H - 5FH {64= 31) :00H - 7FH 0- 127) 95) If you set up a control change number at a system paramet ange information is transmitted when operating each controller \"SYSTEM MENU/MIDI/SETTING\" control •Program Change Status 2nd byte CnH ppH ___. n = MIDI Channel Number : 0H - FH (ch.1 - ch.16)",
+      "answerEn": "The GT-10 uses Roland System Exclusive messages with model ID 00H 00H 2FH. RQ1 (11H) requests data and DT1 (12H) transfers data; messages include device ID, address, size or data, checksum and EOX.",
+      "answerPtBr": "A GT-10 usa mensagens Roland System Exclusive com model ID 00H 00H 2FH. RQ1 (11H) solicita dados e DT1 (12H) transfere dados; as mensagens incluem device ID, endereço, tamanho ou dados, checksum e EOX.",
+      "aliases": [
+        "midi implementation",
+        "midi protocol",
+        "sysex",
+        "system exclusive",
+        "rq1",
+        "request data",
+        "dt1",
+        "data set",
+        "roland checksum"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_003",
+      "documentId": "midi_implementation",
+      "title": "Transmitted System Exclusive Messages",
+      "section": "Transmitted System Exclusive Messages",
+      "pageStart": 3,
+      "pageEnd": 3,
+      "language": "en",
+      "body": "pp = Program Number :00H - 7FH (No.1 - No.128) * If you set up a system parameter \"SYSTEM MENU/MIDI/SETTING/Pc Out\" for \"On,\" program change MSB LSB CHG GT-10 MSB LSB CHG GT-10 MSB LSB CHG GT-10 ASE L SS CHG 1001-2=0 2 #26-2:1° ≤ #012= 2° ≤ #26-2 #P26-2- 3 0ž #025-3:°°100 #U50-4: 1 100 425-4: 2 ° 100 #P50-4:3 ° 100 •SYSTEM REALTIME MESSAGE •Start Status FAH * This is transmitted at the time of controller operation when \"MIDI Start/Stop\" s set to \"Taraet\" tor \"ASSIGN.I •Stop Status FCH * TS seis tr anargtted at tAS ti. of controller operation when \"MIDI Start/Stop\" •Active Sensing Status FEH * This is transmitted at intervals of approximately 200 msec. SYSTEM EXCLUSIVE MESSAGE Status Data Byte Status FOH iiH, ddH, ... eeH F7H Byte ----. Explanation FOH iiH Exclusive status ddH Manufacturer ID Data F7H eeH Bot (End of Exclusive) •Universal System Exclusive Message OIdentity Reply Message *Receiving Identity Request Message, the GT-10 send this message. Status Data Byte Status FOH 06H, 02H, 41H, 2FH, 02H ------- F7H Byte Explanation FOH 7EH Exclusive status D number (Universal Non-realtime Message Dev Sub ID#1 (General Information) )ev-00H-1FH] O ID#Z (Identity Reques 2FH 02H number (Rolan 00H 00H Device family number code Device family code OMIDI Machine Control Command STOP (MCS) Status --------. Data Byte Status FOH 7H, Dev, 06H, 01H F7H --------.. Byte Explanation FOH 7FH Exclusive status Dev Device ID (7FH) Universal System Exclusive Realtime Header 06H 01H MMC command message F7H OX (End of Exclusive] TOP (MCS) * Th'sets tr anamgeted or thsstim of controller operation when \"NNC NMcPLay/Stop\" OMIDI Machine Control Command PLAY (MCS) Status Data Byte Status FOH 7НDev, 06, 03н F7H Byte Explanation FOH 7FH iversal System Exclusive Realtime Heao clusive stat Dev 06H Device ID (7FH) 02H MMC command message F7H LAY (MCS) Ox (End of Exclusive] * Th' seis tor a amgeted ar thsstin. of controller peration when \"\"MC NNcPlay/Stop\" DONE WAY COMMUNICATION (Model ID - 00H 00H 2FH - GT-10) OData Set 1 DT1(12H)",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_004",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 4,
+      "pageEnd": 4,
+      "language": "en",
+      "body": "Status FOH ---------- Data Byte Status 41H, dev, 00H, 00H, 2FH, 12H, aaH, FZH ---------- bbH, ccH, ddH, eeH,... ffH, sum Byte Explanation 41H FOH Exclusive status Dev Device ID (Dev-00H-1FH)| Manufacturer ID (Roland) F788 Nodel 10 #2 (-10) Command ID (DT1) Model ID #3 (GT-10 ) Address MSB CCH Address ddH Address eeH Address LSB Data Data EOX (End of Exclusive) Checksum * The setting range for the device ID is 1 through 32. The factory default setting is 1. 3.PARAMETER ADDRESS MAP (Model ID - 00H 00H 2FH - GT-10 ) The address and size are displayed under 7-bit hexadecimal notation. --6r veodecinal 400 aa cesb btbb oc c 6o60 oa0d) Size MSB Binary 7-bit Hexadecimal SS Osss ssss ott tttt Bunu uenu Address Block Map Address Block Sub Block Note 00 0000 00 +- I SYSTEM * Refer to Table 'SYSTEM' 00 02 00 00 I MIDI * Refer to Table 'MIDI' 10 00 00 00 USER Patch #U01-1 * Refer to Table 'PATCH' 10 01 00 00 | #U01-2 10 7F 00 00 | #U32-4 11 00 00 00 1 #U33-1 11 46 00 00 #U50-3 11 47 00 00 #U50-4 20 00 00 00 PRESET Patch #P01-1 * Refer to Table 'PATCH' (Read only) #P01-2 #P33-1 #P50-3 #P50-4 I USER QUICK SETTING #U01 * Refer to Table 'PATCH' #U02 #U09 #U10 PRESET QUICK SETTING #P01 (Read only) * Refer to Table 'PATCH' #P02 #P19 #P20",
+      "answerEn": "The Parameter Address Map uses 7-bit hexadecimal notation and defines blocks for System, MIDI, User and Preset patches, Quick Settings and the temporary area. The Editor backend remains authoritative for implemented addresses.",
+      "answerPtBr": "O Parameter Address Map usa notação hexadecimal de 7 bits e define blocos para System, MIDI, patches User/Preset, Quick Settings e área temporária. O backend do Editor continua sendo a autoridade para endereços implementados.",
+      "aliases": [
+        "midi implementation",
+        "midi protocol",
+        "parameter address map",
+        "address block map",
+        "user patch address",
+        "preset patch address",
+        "quick setting address"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_005",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 5,
+      "pageEnd": 5,
+      "language": "en",
+      "body": "5 60 00 00 00 TEMPORARY PATCH * Refer to Table \"PATCH' ...- * Although system exclusive message can be received at any time, be sure to appropriately describe the value for one * Do not use an address appended with \"#\" parameter in one packet [FO...F7]. Parameters for which Size is 2 or higher should not be as the first address. * Parameters with Size of 2 or higher transmitted from the specified addresses in sequence, separated; make sure these are sent in the same packet. from MSB to LSB Table 'PATCH' Address(H) Size(H) Data(H) Parameter Description 00 00 00 88 01 88 00 01 00 00 20 20 PATCH \"NAME \"NAME 00 00 88 88 88 88 01 PATCH PACH 00 88 888 888 88888 888 PATCH PATCH PATCH 88 88 88 0A 88 88 8888 88 8888888888882 888888888888888 88888888888888888 RRRRRRRRRRRRRRRRa PATCH PATCH #N**HRRRRİRFRIRI Re 00 88 88 88 88 01 88 8888 888888 888 8888 888 00 00 PATCH * Refer to Table 'NAME\" Refer to Table \"NAME' CATEGORY 00 - 09 : USER1 - USER10 : METAL : ACOUSTII : CRUNCH : CLEAN 11: DRIVE 13 : EFFECTS :LEAD 00 00 00 11 00 00 00 01 00 00 - 00 07 OUTPUT SELECT 00 : JC-120 ... SMAO ANE SC-120 Return OC STAE HONES : COMBO Return : STACK Return 00 00 00 40 00 00 00 01 00 00 - 00 01 COMPRESSOR:Sw 00 00 00 41 00 00 00 01 00 00 - 00 01 COMPRESSOR:Type 02: Cimpressor 00 00 00 42 00 00 00 00 43 00 00 00 01 00 00 44 00 00 00 00 01 00 00 - 00 64 00 00 00 - 00 64 00 - 00 64 COMPRESSOR:Attack COMPRESSOR:Sustain 0 - 100 00 00 00 45 00 00 00 01 00 01 00 00 00 - 00 64 COMPRESSOR:Threshold 0 - 100 0 - 100 00 00 00 8000 00 01 00 00 - 00 64 00 - 00 64 COMPRESSOR:Release COMPRESSOR:Level COMPRESSOR: Tone 0 - 100 00 00 00 00 70 00 00 01 01 0 - 100 00 - 00 00 - 00 01 OD/DS:Sw 01 : On 00: 00 00 00 00 71 00 00 00 01 00 00 - 00 19 OD/DS:Type 00 00 00 01 00 01 00 00 - 00 64 OD/DS:Drive *R Table \"OD/DS TYPE' 00 00 00 00 00 00 00 88 00 01 00 00 - 00 64 OD/DS:Bottom 00 01 00 00 - 00 - 00 64 OD/DS: Tone 00 00 -50 00 00 00 00 00 00 01 00 OD/DS:EffectLev -50 00 00 00 00 00 00 77 00 00 - 00 01 OD/DS:Solo Sw OD/DS:DirectLev 0 - 100 00: 01 : Or 00 00 00 00 00 00 78 00 00 00 00 01 00 00 01 00 00 - 00 0/ 00 00 - 00 64 OD/DS:SoloLevel OD/DS CUSTOM TYPE SETTING:Type 00 00 00 7A 00 00 00 01 00 00 - 00 0A OD/DS CUSTOM TYPE SETTING:Bottom 00 00 00 7B 00 00 00 01 00 00 - 00 0A OD/DS CUSTOM TYPE SETTING:Top 00 00 00 7C 00 00 00 01 00 00 - 00 0A OD/DS CUSTOM TYPESETTING:Low 00 00 00 7D 00 00 00 01 00 00 - 00 0A OD/DS CUSTOM TYPE SETTING:High 00 00 01 00 00 00 00 01 00 00 - 00 01 PREAMP :Sw 00 00 01 01 00 00 00 01 00 00 - 00 03 PREAMP COMMON SETTING:Ch.Mode Mono L/R 00 00 01 02 00 00 00 01 00 00 - 00 01 PREAMP COMMON SETTING:Ch.Select 00 00 01 03 00 00 01 04 00 00 00 01 00 00 00 01 00 00 - 00 64 00 00 - 00 64 PREAMP COMMON SETTING:Dyna.Sens PREAMP COMMON SETTING:Ch.DlyTim 100ms",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_006",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 6,
+      "pageEnd": 6,
+      "language": "en",
+      "body": "6 00 00 10 00 00 11 00 00 00 01 00 00 12 00 00 00 01 00 00 - 00 00 00 - 00 28 78 PREAMP A:Type PREAMP A:Gain * Refer to Table 'AMP TYPE' 88 01 13 00 00 00 00 00 01 00 01 00 00 - 00 64 PRFAMD A:Rasc Ø - 120 00 00 - 00 64 PREAMP A:Middle - 1 PREAMP A:Treble - 1 00 00 01 01 00 00 01 17 16 00 00 00 00 00 00 00 01 00 0 00 01 00 00 - 00 64 00 - 00 64 PREAMP A:Level PREAMP A:Presence 0 - 100 0 - 100 00 00 - 00 01 PREAMP A:Bright 0 - 100 0 : Of: 1 : Or 00 00 01 18 00 00 00 01 00 00 - 00 02 PREAMP A:Gain Sw 00 : Low 01 : Middle 02 : High 00 00 01 19 00 00 00 01 00 00 - 00 01 PREAMP A: Solo Sw 00 00 01 1B 00 00 Ø1 1A 00 00 00 01 00 00 00 01 00 00 - 00 09 00 00 - 00 64 PREAMP A: SoloLevel - 10 SPEAKER A:Mic Type SPEAKER A:SP Type Refer to Table 'SP TYPE 00 00 01 1C 00 00 01 10 00 00 00 01 00 00 00 01 00 00 - 00 04 00 00 - 00 01 SPEAKER A:Mic Dis. * Refer to Table 'MIC TYPE' 1 : On Mi 0: Off Mic 00 00 01 1E 00 00 00 01 00 00 - 00 0A SPEAKER A:Mic Pos. 0: Center 1 - 0A : 1 - 10 00 00 01 20 00 00 Ø1 1F 00 00 00 01 00 00 01 21 00 00 00 01 00 00 00 01 00 00 - 00 64 00 00 - 00 64 SPEAKER A:Mic Level 00 00 - 00 06 PREAMP CUSTOM AMP SETTING A: Type SPEAKER A:DirectLev 0- 100 - 100 03 00 00 Ø1 22 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING A:Bottom 00 00 01 23 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING A:Edge 00 00 01 24 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING A:Bass Frea 00 00 01 25 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING A:Tre Frea 00 00 01 26 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING A:PreampLow 00 00 01 27 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING A:Preamp Hi 00 00 Ø1 28 00 00 00 01 00 00 - 00 OA SPEAKER CUSTOM SPEAKER SETTING A:SP Size .......... 00 00 01 2A 00 00 01 29 00 00 00 01 00 00 01 2B 00 00 00 01 00 00 00 01 00 00 - 00 14 00 00 - 00 14 SPEAKER CUSTOM SPEAKER SETTING A:Color Low 00 00 - 00 03 SPEAKER CUSTOM SPEAKER SETTING A:ColorHigh SPEAKER CUSTOM SPEAKER SETTING A:SP Number 01 :x2 00 : x1 03: x8 32 : x4 00 00 01 2C 00 00 00 01 00 00 - 00 01 SPEAKER CUSTOM SPEAKER SETTING A:Cabinet 82:CoSe 00 00 01 30 00 00 00 01 00 00 00 - 00 00 00 00 28 PREAMP B:Type * Refer to Table 'AMP TYPE' 00 00 00 01 00 64 PREAMP B:Gain 0 - 120 PREAMP B:Bass PREAMP B:Treble VKTANYAA 0 - 100 Ø - 100 8888888 8888888 88 00 00 00 01 00 00 00 - 00 64 00 00 64 PREAMP B:Level PREAMP B:Presence 0 - 100 00 00 00 01 00 00 00 - 00 01 00 00 64 0 - 100 0 - 100 PREAMP B:Bright 00: onf 00 00 01 38 00 00 00 01 00 00 - 00 02 PREAMP B:Gain Sw 1 : Middle 30 : Lon 02 : High 00 00 01 39 00 00 00 01 00 00 - 00 01 PREAMP B:Solo Sw 00 : Off 01 : On 00 00 01 3А 00 00 00 01 01 3B 00 00 00 01 00 00 01 3D 3C 00 00 00 00 00 00 - 00 64 00 00 - 00 09 PREAMP B: SoloLevel 00 00 00 01 00 00 00 - 00 01 00 - 00 04 SPEAKER B:SP Type SPEAKER B:Mic Dis. SPEAKER B:Mic Type 01 : On Mic 00 00 01 ЗЕ 00 00 00 01 00 00 - 00 0A SPEAKER B:Mic Pos. 30: Center 31 - ØA : 1 - 10 00 00 Ø1 3F 00 00 01 00 00 01 41 40 00 00 00 01 00 00 00 01 00 00 01 00 00 - 00 64 00 00 - 00 06 00 00 - 00 64 SPEAKER B:Mic Level PREAMP CUSTOM AMP SETTING B:Type SPEAKER B:DirectLev Ø - 100 0 - 100 ) : JC Cle .: TW Cle 2 : Crunch 04: BG Lead 3 : VO Drive 05 : MS HiGain",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_007",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 7,
+      "pageEnd": 7,
+      "language": "en",
+      "body": "7 06 : Modern Stk 00 00 01 42 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING B:Bottom 00 00 01 43 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING B:Edge 00 00 01 44 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING B:Bass Freq DÀ : +50 00 00 01 45 00 00 00 01 00 00 - 00 OA PREAMP CUSTOM AMP SETTING B:Tre Freq 1 : -4 OÀ: +50 00 00 01 46 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING B:PreampLow ..28 OA: +50 00 00 01 47 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMPSETTING B:Preamp Hi 0: -56 00 00 01 48 00 00 00 01 00 00 - 00 0A SPEAKER CUSTOM SPEAKER SETTING B:SP Size 01 : 6 00 : 5' ..... 988 00 00 01 49 0 00 01 44 00 00 00 01 30 00 01 4E 00 00 00 00 00 01 00 01 00 00 - 00 14 SPEAKER CUSTOM SPEAKER SETTING B:Color Low 00 00 - 00 03 00 00 - 00 14 SPEAKER CUSTOM SPEAKER SETTING B:ColorHigh 00- 14:10- 110 SPEAKER CUSTOM SPEAKER SETTING B:SP Number 00 : x1 88 01 : x2 03 : x8 02 : x4 00 00 01 4C 00 00 00 01 00 00 - 00 01 SPEAKER CUSTOM SPEAKER SETTING B:Cabinet 00 00 01 70 00 00 00 01 00 00 - 00 01 EQUALIZER:Sw 20 : off 00 00 01 00 00 00 00 01 00 00 00 01 00 00 - 00 0A 888 88 01 00 00 00 00 - 00 00 28 EQUALIZER:Low Cut 1B EQUALIZER:Low Gain 8898 EQUALIZER: Lo-Mid f 00 00 KAREKANO 00 00 01 00 00 00 28 EQUALIZER:Lo-Mid G EQUALIZER:Lo-Mod Q 00 - 28 :-20dB - * Refer to Table 'MID FREQ' +20dB 881 00 00 00 00 01 00 00 00 - 00 - 00 00 05 EQUALIZER:Hi-Mid Q * Refer to Table 'MID Q' 00 00 88 888 00 00 00 01 00 00 00 00 00 00 - 00 29 00 - 00 EQUALIZER:High Gain 00 00 - 00 01 00 00 - 00 28 EQUALIZER:High Cut C - e Oo PO MECG FREO 00 00 02 7B 0 90 90 0) FX-1:Sw EQUALIZER:Level 00 : Off 00 - 28 :-20dB - +20dB 01 : On 00 00 02 01 00 00 02 02 00 00 00 01 00 00 00 01 00 00 - 00 07 00 00 - 00 21 FX-1:FX SELECT FX-1:ADV.COMP:Type @ : BOSS Com •Refer to Table 'FX TYPE FX-1:ADV.COMP:Sustain 88888 88888 88888 8888 8998 88888 88888 FX-1:ADV. COMP:Attack FX-1:ADV. COMP: Tone FX-1:LIMITER:Type FX-1:ADV.COMP:Level 64 00 01 00 : BOSS Limitr 02 : Vtg Rack U 01 : Rack 160D 8888 8888 88 FX-1:LIMITER:Attack 88888 88888 88888 FX-1:LIMITER:Threshold 0 - 10% 8898₫ 88888 88888 FX-1:LIMITER:Ratio * Refer to Table 'LIMITER RATIO' Ø - 100 00 00 01 02 00 00 00 00 00 00 00 64 FX-1: LIMITER:Release 01 T-Level 0 - 100 01 FX-1:T.WAH:Mode 0 - 100 30 : LP! 1 : BP 00 00 02 0E 00 00 00 01 00 00 - 00 01 FX-1:T.WAH:Polarity • Du 00 00 02 10 00 00 01 00 888888 00 888 FX-1:T.WAH:Frequency FX-1:T.WAH:Sens Ø - 100 0- 100 00 00 02 12 00 02 88 881 01 888 64 r-nmAn anecezew FX-1:T.WAH:DirectLev 0 - 100 0 - 100 02 14 00 00 00 FX-1:AUTO WAH:Mode 00 : LPF 0 - 100 01 : BPF 00 00 00 15 00 88 888 00 01 888 888 00 00 00 FX-1:AUTO WAH:Peak FX-1:AUTOWAH:Frequency 0 - 100 0 - 100 00 00 71 FX-1:AUTO WAH:Rate 65 - 71 : * Refer to Table 'BPM NOTE2' 00 - 64 : 0 - 100 00 00 00 18 FX-1:AUTO WAH:DirectLev 0 - 100 0 - 100 88 55 00 88888 88888 88888 88888 T-AUU An aecezey FX-1: TREMOLO:Rate FX-1: TREMOLO:WaveShape 0 - 100 00 88 1C 00 0 - 100 00 - 64:0-100 65 - 71 : * Refer to Table 'BPM NOTE2' 00 00 02 1E 00 00 00 00 - 00 03 00 00 - 00 64 00 01 FX-1:IKEMULU:Ueptn FX-1:PHASER: Type 0 - 100 00 : 4 Stage",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_008",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 8,
+      "pageEnd": 8,
+      "language": "en",
+      "body": "8 01 : 8 Stage 02 : 12 Stage 03 : Bi-Phase 00 00 02 1F 00 00 00 01 00 00 - 00 71 FX-1:PHASER:Rate 00 = 51 : ° Refer to Table \"BPM NOTEZ' 00 00 00 02 20 00 02 21 00 00 00 00 01 00 01 00 00 00 - 00 64 00 00 - 00 04 00 - 00 64 FX-1:PHASER:Manual FX-1:PHASER:Depth 0 - 10 00 00 - 00 72 FX-1:PHASER:Step Rate FX-1:PHASEK: kesonance 9- 100 - 10 00 00 02 23 00 00 00 01 65 - 71 : * Refer to Table 'BPM NOTE2' 00 - 64 : 0 -100 00 00 00 02 00 24 00 00 00 00 00 01 00 00 26 00 00 01 00 01 00 00 00 - 00 64 00 00 - 00 71 00 - 00 FX-1:PHASER:EffectLev FX-1:PHASER:DirectLev FX-1:FLANGER:Rate 0 - 100 00 - 64 :0 - 100 65 - 71 : * Refer to Table 'BPM NOTE2' 01 01 :88 00 - 00 - 00 64 00 64 FX-1:FLANGER :Manual FX-1:FLANGER:Depth 0 - 100 64 FX-1: FLANGER: Sepration HX-ANGr• kesonance 0 - 100 8888888 8888888 8888888 88888888 8888888 88888 8888 88888 64 H-TANGK ow un 0 - 100 FX-1:FLANGER:EffectLev 0 - 100 * Refer to Table 'LOW FREQ' 00 00 00 00 01 00 00 - 00 01 00 : Auto 0 - 100 FX-1:PAN: Type 01 : Manual 00 00 02 2F 00 00 00 01 00 00 - 00 64 FX-1:PAN:Position 00 : L100 01 : L98 33 : R2 32 : Center 64 : R100 00 00 02 31 00 00 02 30 00 00 - 00 71 00 00 - 00 64 FX-1:PAN: WaveShape FX-1:PAN:Rate 0 - 100 00 00 00 02 33 00 00 00 00 00 00 71 FX-1:PAN:Depth FX-1: VIBRATO:Rate 0 - 100 00 = 61:° Refer to Table \"BPM NOTEZ' 00 00 00 02 00 02 35 34 00 00 00 00 00 01 00 01 00 00 00 - 00 - 00 00 01 FX-1:VIBRATO:Depth FX-1:VIBRATO:Trigger 00 00 02 00 02 37 00 00 00 00 00 01 01 00 00 - 00 - 00 00 64 FX-1:UNI-V:Rate FX-1:VIBRATO:Rise Time 0 - 100 00 00 88 88 01 00 00 00 - 00 00 00 00 FX-1 :UNI-V:Depth 00 00 02 00 00 00 01 FX-1:RING MOD.:Mode 01 : Intelligent 00 00 00 00 00 01 00 00 FX-1:RING MOD.:Frequency FX-1:RING MOD. :DirectLev FX-1:RING MOD.:EffectLev 0 - 100 0 - 100 888 888 8888 8888 01 88 00 01 88888 8888 0 - 100 00 00 00 64 Fx-1:SLUW GEAk:sens T-NKACKKNDO FX-1:SLOW GEAR:Rise Time 0 - 100 00 : OSC 01 : Natural 00 88 88 00 00 00 01 00 00 00 - 00 - 00 00 FX-1:FEEDBACKER:Rise T(^) FX-1:FEEDBACKER:Rise Time 0 - 100 0 - 100 888 :88 888 01 00 00 - 00 00 FX-1:FEEDBACKER: F.B.Lv(^) FX-1:FEEDBACKER:F.B.Level 0 - 100 FX-1:FEEDBACKER:Vib.Rate 00 - 64 : 0 - 100 0 - 100 65 - 71 : * Refer to Table 'BPM NOTE2' 88 00 01 00 00 00 - 8888 00 88 FX-1:FEEDBACKER:Vib.Depth Ø - 100 881 888 888888 01 ra-_.ANIL-rEtUbAck.rrea _ 88 88 88 FX-1:ANTI-FEEDBACK:Freq 2 FX-1:ANTI-FEEDBACK:Depth 1 0 - 100 0 - 100 88 88 88 88 00 00 00 88 FX-1:ANTI-FEEDBACK:Freq 3 FX-1:ANTI-FEEDBACK:Depth 2 0 - 100 00 00 00 4D 00 00 00 FX-1:ANTI-FEEDBACK:Depth 3 Ø - 100 0 - 100 00 01 00 00 - 00 FX-1:HUMANIZER:Mode 00 : Picking 02 : Random VTAuT 00 00 02 4E 00 00 00 01 00 00 - 00 04 FX-1:HUMANIZER:Vowel 1 04 00 00 02 4F 00 00 00 01 00 00 - 00 04 FX-1:HUMANIZER: Vowel 2 01 : e 00 : 0 03 : 0 02 : i 00 00 00 02 00 02 50 00 00 00 00 00 01 00 00 00 - 00 71 00 - 00 64 FX-1:HUMANIZER:Sens FX-1:HUMANIZER:Rate 00 - 64 : 0 - 100 0 - 100 65 - 71 : * Refer to Table 'BPM NOTE2' 00 00 02 52 00 00 00 00 64 FX-1:HUMANIZER:Depth 0 - 100 00 00 54 88 88 00 00 00 55 00 01 00 00 00 00 00 00 - 00 12 00 00 64 FX-1:HUMANIZER: Level 0 - 100 Ø - 100 56 00 00 - 00 71 00 - 13 : P1 - P2O 55 - 71 : * Refer to Table \"BPM NOTE2) 30 - 04:0- 10 00 00 00 00 00 - 00 FX-1:SLICER:Trig Sens FX-1:PARA EQ:Low Gain FX-1:PARA EQ:Low Cut 0 - 100 88 88 00 01 88 00 - 00 00 00 28 88 88 00 01 88 00 - 00 05 FX-1:PARA FX-1:PARA EO:Lo-Mid f 8888888888888 00 00 01 00 00 - 28 EQ: Lo-Mid Q FX-1:PARA EQ:Hi-Mid f * Refer to Table 'MID FREQ' 00 - 78 : -0dR - +70dR 8888888888 00 88 888888 888888888 FX-1:PARA FX-1:PARA EQ:High EQ:Hi-Mid G * Refer to Tahle 'MTD O' 88 8888888 00 00 FX-1:PARA EQ:High Cut Gain 00 - 28 :-20dB - +20dB 88 88 888 : 00 - FX-1:PARA EQ: Level 00 00 01 FX-1:HARMONIST:Voice 01 : 2-Mono 00 : 1-Voice 02 : 2-Stereo",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_009",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 9,
+      "pageEnd": 9,
+      "language": "en",
+      "body": "9 88 88 88 88 88 88 88 88 33 H- HARMONSHKHaNm FX-1:HAKMONLSI:HKL PreUL 92 30 - 2 55 Rofе ro Таbe \"BW NOТЕ- 888 888 888 888 888 888 888 888 888 FX-1:HARMONIST:HR1 Level FX-1:HARMONIST:HR2 0 - 100 FX-1:HARMONIST:HR2 PreDl Harm * Refer to Table 'HARMONY\" 02 2D - 02 33 : * Refer to Table 'BPM NOTE' 00 00 - 02 2C : 0ms - 300ms FX-1:HARMONIST:HR1 FX-1:HARMONIST: HR2 Level FX-1:HARMONIST: HR1 FX-1:HAKMUNLS|:UirectLev Fbk 0 - 100 0 - 100 8888888 8888888 8888888 888888g 0 - 100 88888888888 FX-1:HARMONIST: HR1 FX-1:HARMONIST:HR1 88 FX- FX- FX-1:HARN 5188888 FX-1:HARN Fx- H-HARMONSHK H-HARMONSHK :HR (ey 888 888888888888888888888888888 8888888888888888888888888888 8888888888888888888888888888 8888888888888888888888888888 FX- SHAKO TST: FX-1:HARMONIST: HR2 :HR ey \"\"\"\"\"\"\"\"\"•\"••••••••• • FX- FX- FX-1:HARM FX-1:HARN -1: HARMON MONIST:HR2 IST: HR2 88 FX-1:HARM FX-1:HARMONIST:HR2 H- HARMONSSHR :HR2 88888888 88888888 8888888888 FX-1:HARMONIST: HR2 :HARMONIST: HR2 888888 888888 FX-1:HARMONIST:HR2 FX-1: :HARMONIST: HR2 -24 ) - FX-1:PITCH SHIFTER:Voice -24 - +24 62:30000 00 00 03 07 00 00 00 01 00 00 - 00 03 FX-1:PITCH SHIFTER:PS1 Mode 01 : Medium 00 : Fast 03 : Mono 02 : Slow 00 00 00 03 03 08 00 03 09 00 00 00 00 01 00 00 00 01 00 00 00 - 00 30 00 00 - 00 - 00 02 64 FX-1:PITCH SHIFTER:PS1 Fine FX-1:PITCH SHIFTER:PS1 Pitch 00 - 30 : -24 - +24 FX-1:PITCH SHIFTER:PS1PreDly 00 - 64 : -50 - +50 00 00 - 02 2C : 0ms - 300ms 02 2D - 02 33 : * Refer to Table 'BPM NOTE' 00 00 03 0C 00 00 00 01 00 00 00 01 00 00 - 00 64 00 00 - 00 0= FX-1:PITCH SHIFTER:PS2 Mode FX-1:PITCH SHIFTER:PS1 Level 0 - 100 00 : Fast 01 : Medium 03 : Mono 00 00 03 0E 00 00 03 03 10 OF 00 00 00 00 01 00 00 00 00 02 00 01 00 00 00 - 00 30 00 00 - 00 00 - 02 33 64 FX-1:PITCH SHIFTER:PS2 Pitch FX-1:PITCH SHIFTER:PS2 Fine 30 - 64:-30 - +3 0 - 30 :-24 - +24 FX-1:PITCH SHIFTER:PS2PreDly 02 2D - 02 33 : * Refer to Table 'BPM NOTE' 00 00 - 02 2C : 0ms - 300ms 00 00 03 12 00 00 00 01 00 00 00 64 00 00 - 00 FX-1:PITCH SHIFTER:PS1 Fbk FX-1:PITCH SHIFTER:PS2 Level 0 - 100 88 00 03 00 03 00 00 00 00 00 00 01 00 00 - 00 00 00 00 FX-1:OCTAVE:Range FX-1:PITCH SHIFTER:DirectLev 00 - 03 : Range 1 - Range 4 0 - 100 00 00 03 16 00 00 03 03 17 00 00 88 00 18 00 00 00 01 00 00 - 00 00 00 00 00 64 FX-1:OCTAVE:Oct.Level FX-1:ROTARY:Speed Sel FX-1:OCTAVE:DirectLev 0 - 100 01 0 - 100 01 : Fast 00 : Slov 00 00 03 19 00 00 00 01 00 00 - 00 71 FX-1:ROTARY:Rate-Slow 60 - 71: * Refer to Table \"BPM NOTE2' 00 00 03 1A 00 00 00 01 00 00 - 00 71 FX-1:ROTARY:Rate-Fast 6S - * Refer to Table \"BeM NOTEZ' 00 00 00 1C 1B 88 88 00 00 - 00 - 00 00 64 64 FX-1:ROTARY:Rise Time FX-1:ROTARY:Fall Time - 10 00 10 FX-1:2X2 CHORUS:Xover f H-KKYantn 0 - 104 - 100 00 00 00 03 03 1E 00 00 01 00 00 00 * Refer to Table '2x2 CHORUS XOVER FREQ' 55 - 71 : * Refer to Table 'BPM NOTE2) 00 00 03 21 00 00 05 <0 00 00 00 01 00 00 00 01 00 00 - 00 50 00 00 - 00 64 FX-1:2X2 CHORUS:Lo Depth FX-1:2X2 CHORUS:Lo PreDly 00 00 03 23 00 00 00 01 00 00 00 - 00 fi 00 71 FX-1:2X2 CHORUS:Hi Rate 65 - 71 : * Refer to Table 'BPM NOTE2' 00 00 03 24 00 00 03 25 00 00 00 01 00 00 00 01 00 00 00 - 00 64 00 - 00 50 FX-1:2X2 CHORUS:Hi PreDly FX-1:2X2 CHORUS:Hi Depth 00 00 03 26 00 00 00 00 01 00 00 03 27 00 00 01 - 0E EF 00 00 - 00 64 FX-1:2X2 CHORUS:Hi Level 00 02 FX-1:SUB DELAY:Dly Time 88 88 88 88 8888 88 01 01 88 00 00 - 00 00 64 FX-1:SUB DELAY:Feedback 88 00 - 00 - 00 FX-1:SUB DELAY:Hi-Cut FX-1:SUB DELAY:DirectLev FX-1:SUB DELAY:EffectLev * Refer to Table 'HIGH FREQ 8888 88 01 00 00 64 0 - 120 FX-1:DEFRETTER:Tone 0 - 100 88 88 88 01 00 00 00 01 00 00 00 64 FX-1:DEFRETTER:Attack FX-1:DEFRETTER:Sens 888 888 01 00 00 01 01 00 00 88 64 r-KKKesonenca FX-1:DEFRETTER:Depth 0 - 100 0 - 100 88 88 88 00 01 00 00 88 64 01 01 88 00 64 r-KKHPoreu FX-1:DEFRETTER:EffectLev 0 - 100 8888888888888 888888888888888 8888 88 00 64 64 FX-1:SITAR SIM.:Tone FX-1:SITAR SIM. :Sens 00 - FX-1:SITAR SIM. :Resonance FX-1:SITAR SIM.:Depth 0 - 100 88888888 88 01 8888888 88 88 64 0 - 100 FX-1:SITAR SIM. :EffectLev FX-1:SITAR SIM. :Buzz 0 - 100 0 - 100 8888 888 01 888 8888 FX-1:STTAR STM :Directl ev 0 - 100 00 00 01 FX-1:WAVE SYNIH:lave 00 : Saw",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_010",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 10,
+      "pageEnd": 10,
+      "language": "en",
+      "body": "10 01 00 00 00 00 00 00 01 00 00 - 01 00 00 00 00 00 - 00 00 64 FX-1: WAVE SYNTH:Cutoff FX-1:WAVE SYNTH:Resonance 0 - 10 8888888 00 00 00 00 00 00 00 64 88888888 00 01 00 00 - 00 - 00 64 64 FX-1:WAVE SYNTH:FLT.Decay 00 00 00 01 00 00 00 - 00 - 00 FX-1:WAVE SYNTH:FLT.Depth 00 00 00 00 00 01 00 01 00 00 - 00 03 00 64 FX-1 :WAVE FX-1: WAVE SYNTH:Synth Lev FX-1:GUITAR SYNTH:Wave SYNTH:DirectLev 00 00 03 45 00 00 03 44 00 00 00 01 00 00 00 01 10 00 - 00 01 FX-1:GUITAR SYNTH: Sens FX-1:GUITAR SYNTH:Chromatic 0 - 100 00 :Off 00 00 03 46 00 00 00 01 00 00 - 00 02 FX-1:GUITAR SYNTH:Oct Shift 01 : 00 : 0 00 00 00 03 47 00 88 49 48 00 00 00 00 00 01 00 00 00 01 , 00 - 00 64 00 00 - 00 6 30 - 00 64 FX-1:GUITAR SYNTH:PWM Depth FX-1:GUITAR SYNTH:PWM Rate 00 00 00 01 01 00 00 FX-1:GUITAR SYNTH:Resonance FX-1:GUITAR SYNTH:Cutoff 88 88 00 00 00 00 - 00 4D 00 00 00 01 00 01 00 00 - 00 64 00 00 - 00 64 1 - 00 FX-1:GUITAR SYNTH:FLT.Sens FX-1:GUITAR SYNTH:FLT.Decay FX-1:GUITAR SYNTH:FLT.Depth 00 00 03 4E 00 00 00 01 00 00 - 00 65 FX-1:GUITAR SYNTH:Attack 01 00 100 90 90 90 01 00 00 00 01 00 00 00 - 00 64 00 - 00 FX-1:GUITAR SYNTH:Release FX-1:GUITAR SYNTH:Velocity FX-1:GUITAR SYNTH:Hold 01 00 00 00 03 53 00 03 52 00 00 00 00 00 01 00 01 00 00 - 00 00 00 FX-1:GUITAR SYNTH:Synth Lev 00 00 03 54 00 00 T-KNHrponey 0 - 100 ra-L.AUlu karr.Pnrase IE - 1D : Preset1 - Preset30 : User 00 00 03 55 00 00 00 01 00 00 - 00 01 FX-1:AUTO RIFF:Loop 00 : Off On 00 00 03 56 00 00 00 01 00 00 - 00 / FX-1:AUTO RIFF:Tempo * Refer to Table 'BPM NOTE2) 00 00 03 57 00 00 03 58 00 00 00 01 00 00 00 - 00 00 64 FX-1:AUTO RIFF:Sens 00 00 - 00 01 T-AKATTACK 0 - 100 59 00 00 00 01 -1:AUORI:Hold 0 - 100 01 : On 00 : Off 00 00 FX-1:AUTO FX-1:AUTO RIFF:EffectLev FX-1:AUTO RIFF:DirectLev 100 88 88 e0 00 00 RIFF:User RIFF:User Phrase Phrase Phrase 00 00 Phrase e0 Phrase Phrase 88 888 ccccG • Phrase 88 • Phrase Phrase Phrase Phrase e0 00 Phrase 00 88 Q C • Phrase Phrose 88 Phrase 00 00 00 Phrase Phrase 1 : AUTO RIFF :User Phrase 8888888 ПШШШН!! ПРУ121211211211212//20/1110170110112 888888888888888888888888888888888888888888 888888888888888888888888888888888888888888 222222222222722272222222222222222222272222 Phrase IIII REEFN CHUSC Phrase 888888888888 FF",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_011",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 11,
+      "pageEnd": 11,
+      "language": "en",
+      "body": "8888888 8888888888 88888888 rase 38888888 888888888888888888888888888888888888888 8888888888888888888888888888888888888888 ase 888888888888888888888888888888888888888888 88888888888888888888888888888888888888888888 Phrase BAsAAAAAAeAcee0306303333333300000003033033330 888888888 8888888 888888 g ggg ooo ggrg: 888888 88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888 10И11910121 00020013020123011020032021212321212001202012011001001129 20101 110 11021191 13121211121211171012 ĐBRXRXNRRRRARRRRRRRRRRXRRNRRRRRDRRRRRRRRRRRNRRNRRRRRDRRRRRRRRRRNNRRNRRRRRRRRRRRRRRRRRNRRRRRRRARRRRRRRRRRRRRRRRRRRRARRRRE 88888 88888 888888 BABBEREABBBBBEREEBBBEBEREBBER 8888888888888888: 888888888888888888888888 8888888888888888888888888888888888888888888888888888888888 Phrase 8888888888888888888888888888888888888888888 Phrase Phrase rase LF rase Phrase Phras 8888888888 888888888888 50088998888888 FF 88888888 888888888 8888888888 czng 88888",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_012",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 12,
+      "pageEnd": 12,
+      "language": "en",
+      "body": "12 0000 - 80 32 8888888 88888888 8888888 89888 00 - 00 - 00 00 88888888 88888888 00 00 00 - 00 00 - 32 32 00 00 00 00 00 00 00 888 00 - 00 00 00 01 00 - 00 01 00 - 00 5-1:SODOD:ald 00 00 00 00 00 00 00 00 00 01 00 00 00 00 01 88 00 - 00 64 00 00 - 00 78 FX-1:SOUND HOLD:Rise Time 00 - 00 07 FX-1:TONE MODIFY:Type FX-1: SOUND HOLD:EffectLev - 120 100 00 00 01 \"Presence Fat Mild Enhance Tight Keconaton Resonator1 : Resonator3 00 00 - 00 64 00 00 - 00 64 00 00 - 00 64 FX-1: TONE MODIFY:Resonance FX-1:TONE MODIFY:Low 00 00 - 00 07 00 00 - 00 64 FX-1:TONE MODIFY:Level FX-1:TONE MODIFY:High -50 - +50 - +50 8888 88888 00 00 01 FX-1:GUITAR SIM.:Type \"H'-> 'HF\" 'H'->'s* S-Hollon 'p'->AC \"H'->AC 8001 FX-1:GUITAR SIM.:Low 88888 88888 RRRTE 88888 FX-1:GUITAR SIM.:Level FX-1:GUITAR SIM.:High 88 88 00 00 01 FX-1:GUITAR SIM. : Body FX-1:AC.PROCESSOR:Type Medium Power Bright 88 01 8888 88 FX-1:AC.PROCESSOR:Bass FX-1:AC.PROCESSOR:Middle +50 8888888 8888888 RRRRRRE 888888 8888888 88 8888888 18 FX-1:AC.PROCESSOR:Treble FX-1:AC.PROCESSOR:Middle F 88 00 00 01 88 00 00 64 FX-1:AC.PROCESSOR: Level FX-1:AC.PROCESSOR:Presence 01 FX-1:SUB WAH: Type WAH WAH 88 01 88 88 FX-1:SUB WAH:Pedal -1:SUB WAH:Pedal Min Pos 88888888 88 888888888 01 FX-1:SUB WAH:Pedal (-1:SUB WAH:EffectLev Max 988888888888800000 988898088:88 88888888888 88888888888 00 01 00 00 FX-1:GRAPHIC H-TKNAH: recti ey EQ: Level 00 01 00 00 00 00 00 88888888888888888 FX-1:GRAPHIC EQ:62Hz 88 88 88 FX-1:GRAPHIC EQ:500Hz FX-1:GRAPHIC EQ: 250Hz 88 88 88 8888 88 01 00 00 00 00 FX-1:GRAPHIC FX-1:GRAPHIC EQ:1kHz FX-1:GRAPHIC EQ:4kHz EQ:2kHz 00 88 8888 00 01 00 bo 5o FX-1:GRAPHIC H-RAРHРО nKH7 EQ:8kHz 00 00 06 00 88 00 01 00 00 01 FX-2:Sw 00 00 06 01 00 00 06 02 00 00 00 00 00 01 00 01 00 00 00 - 00 00 - 00 FX-2:FX SELECT FX-2:ADV.COMP:Type le 'FX TYPE' FX-2:ADV.COMP:Sustain 88888 88888 88888 8888 88888 8888 88888 88888 8888 FX-2:ADV.COMP:Attack 00 64 FX-2:ADV.COMP:Level FX-2:ADV.COMP:Tone - +50 00 00 FX-2:LIMITER:Type tr 08 00 01 88888 88 88888 88 88888 88 01 FX-2:LIMITER:Attack 888888 88888 ri-CLMKKato FX-2: LIMITER: Threshold FX-2:LIMITER:Level FX-2:LIMITER:Release le \"LIMITER RATIO 88 88 88 00 06 ØD 00 00 00 00 FX-2:T.WAH:Mode FX-2:T.WAH:Polarity 00 00 00 06 ØF 00 00 00 00 06 06 10 00 00 00 00 00 01 11 00 00 01 00 00 00 - 00 - 00 00 00 - 00 FX-2:T.WAH:Sens 00 00 FX-2:T.WAH:Peak FX-2:T.WAH:Frequency 00 00 88 13 12 88 88 00 06 14 00 00 00 00 01 00 00 00 00 00 64 FX-2:T.WAH:EffectLev FX-2:T.WAH:DirectLev FX-2:AUTO WAH:Mode 00 00 06 00 00 00 01 00 00 00 64 FX-2:AUTO WAH:Frequency 00 00 06 17 00 00 00 01 00 00 - 00 FX-2:AUTO WAH:Rate 100 fer to Table \"BPM NOTE2' 00 00 00 00 01 00 00 FX-2:AUTO WAH:Depth 8888 8888 88888 8888 88888 888 8888 8888 64 FX-2:AUTOWAH:EffectLev FX-2:AUTO WAH:DirectLev 00 00 71 FX-2: TREMOLO:Rate FX-L:IKEMULU:navesnape 100",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_013",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 13,
+      "pageEnd": 13,
+      "language": "en",
+      "body": "13 65 - 71 : * Refer to Table 'BPM NOTE2' 00 00 06 00 00 06 1E 00 00 00 00 00 01 01 00 00 00 - 00 64 00 - 00 03 FX-2:TREMOLO:Depth 0 - 100 FX-2:PHASER: Type 00 : 4 Stage 01 : 8 Stage 02 : 12 Stage 03 : Bi-Phase 00 00 06 1F 00 00 00 01 00 00 - 00 71 FX-2:PHASER:Rate 65 - 64 : ° Refer to Table \"BeM NOTEZ' 00 00 06 21 00 00 00 01 00 00 - 00 64 00 00 - 00 64 FX-2:PHASER:Depth 00 00 - 00 64 FX-2:PHASER:Manual - 1( 00 00 06 23 00 00 00 01 00 - 00 72 T-TNKKaSonenca FX-2:PHASER:Step Rate 0 - 100 0 - 64 :0 - 10 55 - 71 : * Refer to Table 'BPM NOTE2) 00 00 00 06 06 25 24 00 00 00 00 00 01 00 00 - 00 64 00 - 00 64 FX-2:PHASER:EffectLev 00 00 - 00 71 FX-2:PHASER:DirectLev 0 - 100 00 00 06 26 00 00 01 FX-2: FLANGER:Rate 0 - 100 65 - 71 : * Refer to Table 'BPM NOTE2' 00 - 64 : 0 - 100 888 01 00 - 00 64 00 00 00 - 00 64 00 - 00 64 FX-2:FLANGER:Depth FX-2:FLANGER :Manual 0 - 100 888888 8888888 88888888 8888888 8888888 88 01 00 00 00 - 00 FX-2:FLANGER: Sepration FX-Z: FLANGER:Resonance 0 - 100 * Refer to Table 'LOW FREQ' 0 - 100 0 - 100 00 00 00 - 00 64 OA FX-2:FLANGER: Low Cut 00 00 00 00 00 00 - 00 00 - 00 64 FX-2: FLANGER:DirectLev FX-2: FLANGER: EffectLev 00 FX-2:PAN: Type 0 - 100 01 : Manual 00 : Auto 00 00 - 00 64 FX-2:PAN:Position 02: L980 32: Center 33: R2 64: Ri0D 00 00 00 06 06 31 00 88 01 00 00 00 00 - 00 71 FX-2:PAN:Rate FX-2:PAN:WaveShape 0 - 100 69 - 64 : ° Refer to Table \"BPM NOTE2\" 00 06 32 33 00 00 00 00 00 01 00 01 00 00 00 - 00 - 00 00 71 FX-2:VIBRATO:Rate FX-2:PAN:Depth 0 - 100 69 - 64 : ° Refer to Table \"BPM NOTE2\" 00 00 35 00 00 00 00 01 00 00 00 - 00 - 00 00 64 FX-2:VIBRATO:Trigger FX-2:VIBRATO:Depth 0 - 100 00 00 01 31: Or 00 00 06 36 00 00 00 01 00 00 - 00 64 r-TN-VKTe FX-2: VIBRATO:Rise Time Ø - 100 5 - 71 : * Refer to Table 'BPM NOTEÍ 00 00 00 06 00 00 06 38 06 ЗА 39 00 00 00 00 01 00 00 00 00 00 00 00- 00 - 00 64 00 00 - 00 00 64 FX-2:UNI-V:Level FX-2:UNI-V:Depth 0 - 100 0 - 100 01 FX-2:RING MOD.:Mode 00 : Normal 100 01 : Intelligent 00 00 06 3B 00 00 88 3D 3C 00 00 00 01 00 00 00 64 FX-2:RING MOD.:Frequency FX-2:RING MOD.:DirectLev NUPeney 0 - 100 00 00 - 00 64 0 - 100 3Е 00 00 00 01 0 - 100 00 00 06 06 40 3F 00 00 00 00 00 01 00 00 00 00 - 00 - 00 0 - 100 0 - 100 01 00 01 FX-2: FEEDBACKER:Mode FX-2:SLOW GEAR:Rise Time 00 : OSC 01 : Natural 00 00 00 06 42 00 00 00 00 00 01 01 00 00 00 64 FX-2: FEEDBACKER:Rise FX-2:FEEDBACKER:Rise Time FX-L:FEEUBACKEK:F.B.Leve T(^) 0 - 100 0 - 100 00 00 06 44 00 00 00 01 00 00 00 64 FX-2:FEEDBACKER:F.B.LV(^) 0 - 100 FX-2:FEEDBACKER:Vib.Rate 85 - 61 : ° efer to Table \"BeM NOTEZ' 00 00 00 06 00 00 06 46 06 47 88 00 00 01 00 00 00 00 00 00 00 00 00- 00 00 00 - 00 00 - 00 64 FX-2:ANTI-FEEDBACK:Freq 1 FX-2:FEEDBACKER:Vib.Depth 0 - 100 FX-2:ANTI-FEEDBACK:Freq 2 FX-2:ANTI-FEEDBACK:Depth 1 0 - 100 0 - 100 00 00 00 06 49 00 00 00 01 00 00 00 64 0 - 100 888 888 888 *·9 00 00 00 00 00 01 00 00 00 64 FX-2:ANTI-FEEDBACK:Freq 3 FX-2:ANTI-FEEDBACK:Depth 00 00 0 - 100 00 00 00 01 00 00 02 FX-2:HUMANIZER:Mode FX-2:ANTI-FEEDBACK:Depth 3 00 : Picking 0 - 100 02 : Random 01 : Autc 00 00 06 4E 00 00 00 01 00 00 - 00 04 FX-2:HUMANIZER:Vowel 1 00 : 0 04 : 00 00 06 4F 00 00 00 01 00 00 - 00 04 FX-2:HUMANIZER:Vowel 2 01 00 : c 02 04 : 1 03 :0 00 00 06 50 00 00 06 51 00 00 00 00 01 00 01 00 00 - 00 64 FX-2:HUMANIZER:Sens 00 00 - 00 71 FX-2:HUMANIZER:Rate i - 71 : * Refer to Table 'BPM NOTE: 8888 8888 88 01 00 00 00 - 00 00 - 00 64 8888 8888 88888 00 00 00 - 00 64 64 FX-2:HUMANIZER:Depth FX-2:HUMANIZER:Manual 0 - 100 FX-2:SLICER:Pattern FX-2:HUMANIZER:Level 0 - 100 0 - 100 00 00 00 00 01 00 01 00 00 00 - 00 - 00 00 71 13 FX-2:SLICER:Rate 00 - 13 : P1 - P20 5 - 71 : * Refer to Table 'BPM NOTE2 01 88 00 - 00 GA 00 00 64 FX-2:SLICER:Trig Sens * Refer to Table 'LOW FREO' 0- 100 01 00 00 28 FX-2:PARA EQ: Low Gain FX-)•PARA FO:I0-Mid f • Reter to T MD GREo +20dB FX-2:PARA EQ:Lo-Mid G FX-2:PARA EQ: Lo-Mid Q 888888888888 888888888888 888888888888 888888888888 888888888888 888888888888 8888888888 8888888888 : FX-2:PARA EQ:Hi-Mid Q FX-2:PARA EQ:Hi-Mid f • Rerter to Wi gece : 88888888 FX-2:PARA EQ:High FX-2:PARA EQ:Hi-Mid G FX-LiPAKA Eu:High Cut Gain o - e to Tole ME FRee FX-2:PARA EQ:Level 00 - 28 : -20dB - +20dB",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_014",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 14,
+      "pageEnd": 14,
+      "language": "en",
+      "body": "14 00 00 06 63 00 00 00 01 00 00 - 00 02 FX-2:HARMONIST:Voice 00 : 1-Voice 01 : 2-Mono 02 : 2-Stereo 64 00 00 00 00 00 01 00 02 00 00 - 00 00 - 00 02 1D 33 FX-2:HARMONIST:HR1 Harm FX-2:HARMONIST:HR1 PreDl 52 20 - 0 35 Rorer ТрЫе \"BАИ NоTЕ » 00 06 67 00 00 00 01 00 00 00 64 FX-2:HARMONIST:HR1 Level FX-2:HARMONIST: HR2 PreDl FX-2:HARMONIST:HR2 Harm 0 - 100 00 00 06 69 88 00 00 02 00 00 02 33 * Refer to Table 'HARMONY' 0 00 - 02 2C : 0ms - 300ms 7 20 - 02 23 : * Refer to Tahle 'RPM NOTF 888 FX-2:HARMONIST:HR2 Level FX-2:HARMONIST: HR1 0 - 100 88888 888881 88888 88888 0 - 100 88 00 00 01 00 88888 8888888888888881 „üv2<à -3:3. 88888888888888888888888888 88888888888888888888888888 24 - +2 e0 00 00 e0 88888 E -3 24 8888888 88888888888 .. üt. 00 00 -24 - +24 00 00 88888 01 -24 - +24 -24 - +24 -24 - +24 07 00 00 07 06 00 00 00 00 01 01 00 00 - 00 00 30 -24 - +24 -24 - +24 00 : 1-Voice 1 : 2-Mono 2 : 2-Sterer 00 00 07 07 00 00 00 01 00 00 - 00 03 FX-2:PITCH SHIFTER:PS1 Mode 01 : Medium 00 : Fast 03 : Mono 02 : Slow 00 00 00 07 09 88 88 88 00 00 - 00 00 64 FX-2:PITCH SHIFTER:PS1 Pitch FX-2:PITCH SHIFTER:PS1 Fine 00 - 30 : -24 - +24 01 00 - 64 : 00 00 - 02 2C : Oms - 300ms -50 - +50 ra-c.rticn snirlck.ro_rreuLy 02 2D - 02 33 : * Refer to Table 'BPM NOTE' 00 00 00 07 0D 00 07 0C 00 00 00 00 00 00 00 00 00 - 00 - 00 03 00 64 FX-2:PITCH SHIFTER:PS1 Level FX-2:PITCH SHIFTER:PS2 Mode 00 : Fast 03 : Mono 02 : Slow 01 : Medium 00 00 07 ØF 00 00 00 01 00 00 00 00 64 FX-2:PITCH SHIFTER:PS2 Pitch FX-2:PITCH SHIFTER:PS2 Fine 00 - 64 : 00 - 30 :-24 - +24 00 00 - 02 2C : Oms - 300ms -50 - +50 ra-c.rticn snirlck.rocrreuLy 02 2D - 02 33 : * Refer to Table 'BPM NOTE' 88 88 88 88 00 00 01 88 00 - 00 00 64 FX-2:PITCH SHIFTER:PS2 Level FX-2:PITCH SHIFTER:PS1 Fbk 0 - 100 888 88 88 88 00 88881 88 88 03 FX-2:OCTAVE:Range FX-2:PITCH SHIFTER:DirectLev 0 - 100 0 - 100 00 01 00 00 64 FX-2:OCTAVE:0ct.Level 00 - 03 : Range 1 - Range 4 00 00 17 00 00 00 00 01 FX-2:ROTARY:Speed Sel FX-2:OCTAVE:DirectLev 0 - 100 0 - 10% 00 : Slow 01 : Fast 00 00 07 19 00 00 00 01 00 00 - 00 71 FX-2:ROTARY:Rate-Slow 00 - 64 : ° Refer to Table \"BPM NOTEZ' 00 00 07 1A 00 00 00 01 00 00 - 00 71 FX-2:ROTARY:Rate-Fast 65 = 61: ° Reter to Table \"BPM NOTEZ' 888 00 07 07 1C 00 00 00 01 64 FX-2:ROTARY:Fall Time -X-KARY kıseinme 0- 10 9 - 100 00 00 07 1F 00 07 1E 00 00 00 01 00 01 FX-2:2X2 FX-2:ROTARY:Depth 0000 - 80 12 FX-2:2X2 CHORUS:Lo Rate CHORUS:Xover f * Refer to Table '2x2 CHORUS XOVER FREQ' 0 - 100 00 - 64 : 0 - 100 65 - 71 : * Refer to Table 'BPM NOTE2' 00 00 07 21 00 00 07 20 00 00 00 01 00 00 00 01 00 00 - 00 50 00 00 - 00 64 FX-2:2X2 CHORUS:Lo PreDly FX-2:2X2 CHORUS:Lo Depth 0 - 100 00 : 0.0ms 01 : 0.5ms 50 : 40.0ms 00 00 07 22 00 00 07 23 00 00 00 01 00 00 00 01 00 00 - 00 71 00 00 - 00 64 FX-2:2X2 CHORUS:Hi Rate FX-2:2X2 CHORUS:Lo Level 0 - 100 60 - 51: * -fer to Table \"BPM NOTEZ' 00 00 07 24 00 00 07 25 00 00 00 00 00 01 00 01 00 00 - 00 64 00 00 - 00 50 FX-2:2X2 CHORUS:Hi PreDly FX-2:2X2 CHORUS:Hi Depth 0 - 100 1 : 0.5л 0: 0.0 S0 : 40.0ms 00 00 07 26 00 00 00 01 01 - BE E 00 00 00 64 ra-L.JUb UCLATULy Ilme FX-2:2X2 CHORUS:Hi Level 0 - 100 Refer to Table 'BPM NOTE 00 00 07 00 07 2B 2A 88: 00 00 00 01 00 00 01 00 01 00 00 - 00 64 00 - 00 09 FX-2:SUB DELAY:Feedback FX-2: SUB DELAY:Hi-Cut * Refer to Table 'HIGH FREQ' 0 - 100 00 00 07 2C 00 00 01 00 00 00 - 00 78 00 00 64 FX-2:SUB DELAY:EffectLev FX-2: SUB DELAY:DirectLev 0 - 100 0 - 120 00 00 07 2E 00 00 00 01 00 00 00 64 FX-2:DEFRETTER:Sens ra-c.ucrkerick.lone Ø - 100 00 - 64 :-50 - +50 00 00 07 07 30 07 31 00 00 00 01 00 00 00 00 00 00 00 64 r-cverkakkesonanci FX-2:DEFRETTER:Depth 0- 0 - 100 64 64 0 - 100 100 07 32 33 00 00 88 01 01 00 - 00 00 00 64 FX-2:DEFRETTER:EffectLer FX-2:SITAR SIM. :Tone FX-2:DEFRETTER:DirectLev - 10 88 88 881 88 88 01 00 00 01 88 00 64 FX-2: SITAR SIM. :Sens 0 - 100 00 - 64 : -50 - +50 00 00 07 37 00 00 00 01 00 00 00 64 FX-2:SITAR SIM. :Depth FX-2:SITAR SIM. :Resonance 0 - 100",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_015",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 15,
+      "pageEnd": 15,
+      "language": "en",
+      "body": "00 00 07 38 00 00 07 39 00 00 00 01 00 00 00 - 00 64 00 - 00 64 FX-2:SITAR SIM.:Buzz 00 00 07 3В 00 00 00 01 00 00 - 00 01 00 - 00 64 FX-2:SITAR SIM. :EffectLev FX-2:WAVE SYNTH:Wave rA-L.JLIAK JIM..ULreccLev 38811 00 00 00 07 3D 00 07 3C 00 00 00 00 00 01 00 00 07 3E 00 00 00 01 00 00 00 - 00 64 00 01 00 00 00 - 00 FX-2:WAVE SYNTH:Cutoff 00 64 FX-2: WAVE SYNTH:FLT.Sens FX-2:WAVE SYNTH:Resonance 00 00 07 40 00 00 00 01 00 00 00 64 FX-2: WAVE SYNTH:FLT.Depth FX-2: WAVE SYNTH:FLT.Decay 00 00 07 42 00 00 00 01 00 00 00 64 FX-2:WAVE SYNTH:DirectLev FX-L:WAVE SINIH:Synth Lev FX-2:GUITAR SYNTH:Wave 00 00 07 44 00 00 07 45 00 00 00 01 00 00 00 01 00 00 - 00 01 00 00 - 00 64 FX-2:GUITAR SYNTH:Sens FX-2:GUITAR SYNTH:Chromatic 00 00 07 46 00 00 00 01 00 00 - 00 02 FX-2:GUITAR SYNTH:Oct Shift 00 00 00 0/ 48 00 07 47 00 00 00 00 01 00 01 00 00 00 - 00 - 00 00 64 64 FX-2:GUITAR SYNTH:PWM Depth FX-2:GUITAR SYNTH:PWM Rate 00 00 07 49 00 00 00 00 00 00 00 64 FX-2:GUITAR SYNTH:Resonance FX-2:GUITAR SYNTH:Cutoff 00 00 07 4B 00 00 00 01 00 00 00 64 FX-2:GUITAR SYNTH:FLT.Sens 00 00 07 4D 00 00 00 01 00 00 00 64 FX-2:GUITAR SYNTH:FLT.Decay FX-2:GUITAR SYNTH:FLT.Depth 00 00 07 4E 00 00 00 01 00 00 - 00 65 FX-2:GUITAR SYNTH:Attack : Dec 00 00 07 50 00 00 00 00 00 01 00 01 00 00 00 - 00 04 00 64 FX-2:GUITAR SYNTH:Velocity FX-2:GUITAR SYNTH:Release 0- 10 0 - 100 01 : On 00 00 00 07 52 00 00 00 07 54 07 00 00 00 00 00 01 00 00 00 - 00- 00 64 00 00 - 00 FX-2:GUITAR SYNTH:SynthLev 00 1E FX-2:GUITAR SYNTH:DirectLev 0 - 100 00 00 00 01 FX-2:AUTO RIFF:Phrase 0 - 100 18 - 10 : Preset1 - Preset30 : User 00 00 07 55 00 00 00 01 00 00 - 00 01 FX-2:AUTO RIFF:Loop 0 : Ofi 00 00 07 56 00 00 00 01 00 00 - 00 71 FX-2:AUTO RIFF:Tempo 60 - 51: * -fer to Table \"BPM NOTEZ' 00 00 00 07 57 00 00 07 07 59 58 00 00 00 01 00 00 00 00 01 00 01 00 00 - 00 64 00 00 00 - 00 00 - 00 64 FX-2:AUTO RIFF:Attack FX-2:AUTO RIFF:Sens 0 - 100 FX-2:AUTORIFF:Hold 00 : Off 0 - 100 01 : Or 00 00 07 SA 00 00 00 01 00 00 FX-2:AUTO RIFF:EffectLev 00 00 00 07 5C e0 00 SD 00 00 00 00 01 00 00 00 00 FX-2:AUTO FX-2:AUTO RIFF:User Phrase Setting # RIFF:User Phrase Setting 00 88 07 00 00 88 00 00 Rirr: User Phrase Phrase 00 00 00 88 88 RiFF:USer Phrase 01 888888 FX-2 :AUTO RIFF:User RIFF:User Phrase Phrase FX-2:AUTO 00 8888888 FX-2:AUTO RIFF:User RIFF :User Phrase FX-2: AUTO Phrase Setting FX-2:AUTO FX-2:AUTO RIFF:User Phrase RIFF:User Phrase 00 FX-2:AUTO RIFF: User Phrase 01 01 00 00 00 00 00 CAUU RIFF:User RIFF: User Phrase 01 FX-2:AUTO RIFF:User Phrase Phrose 00 6D 01 00 00 FX-2:AUTO RIFF:User RIFF:User Phrase Phrase 8888 888888 88888 888888 8888888888888888888888 8888888888888888888888888888888888888888888888888888888888888 ·7777·······7·7·7·7·777·································· 2222222222222222222222222222 #02000000000222202200000022220222 988888889d009982B8B28üů 88888888888888888888888888888888888888888 88888888888888888888888888888888888888888 бååååååååååååååååååååååååååĞåĞğååååğĞẵ 1111111111211111111111121121111111111 888888888888 8888888888 88888888 888888888 US 888888",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_016",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 16,
+      "pageEnd": 16,
+      "language": "en",
+      "body": "8888888 8888888888 88888 888888888888888888888888888888888888888 8888888888888888888888888888888888888888 88888888888888888888888888888888888888888888 888888888888888888888888888888888888888888888: 888888 888888 8888888888888 88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888 ·ž···ÑŽÑŽ·&······ử·ửÑÑ&Ñ&·&······Ñ·Ñ7ÑÑ⅝Ñ⅝7···········Ñ·Ñ·Ñ··&···············Ñ·Ñ··················Ñ·Ñ·········| 888888888 8888888 888888 88888 888888 888888888888888888888888888888888888888888888888888888888888888888888888888 8888 8888888888888888888888888 888888888888888888888888888888888888888888888 e b be 38888888888 irase 88888888 888888 88888888 8888888888 8888888 &a&dEEE US",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_017",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 17,
+      "pageEnd": 17,
+      "language": "en",
+      "body": "17 8888 88 00 01 00 00 00 - 00 32 88888 88888 8888 00 01 00 - 00 00 00 32 14 00 00 00 01 00 00 00 - 00 00 - 00 AEТЕД 00 00 88 88 16 17 00 88 00 00 00 - 00 32 00 00 88 18 00 00 00 00 00 32 00 00 - 00 - 00 00 32 FX-2:AUTO FX-2:AUTO RIFF:User Phrase Setting #11 FX-2:AUTO RIFF:User Phrase Setting #12 BRENANANNONEE 19 00 01 00 00 00 - 00 00 32 FX-2:AUTO 00 00 09 00 00 00 01 00 00 00 - 00 01 00- 00 32 FX-2:AUTO RIFF:User FX-2:SOUND HOLD:Hold 00 00 00 00 09 09 1D 00 00 09 1E 00 000001 1F 00 0 00 - 00 6- 00 00 - 00 07 10 00 - 00 78 FX-2:SOUND HOLD:Rise Time FX-2:SOUND HOLD:EffectLev 0 - 100 - 120 00 00 00 01 FX-2:TONE MODIFY:Type 80 : Presence : Mild - : enhance Tight 05 06 : Resonator2 Resonator1 07 : Resonator3 00 00 88 88 00 00 00 00 00 00 88888 00 00 01 00 00 00 00 - 00 64 00 00 00 - 00 00 - 00 00 - 00 64 64 FX-2: TONE MODIFY:Low FX-2: TONE MODIFY:Resonance 00 00 00 00 00 01 01 00 00 - 00 07 64 FX-2:TONE MODIFY:High FX-2: TONE MODIFY:Level FX-2:GUITAR SIM.:Type 18898 llan 88 :88 00 01 00 00 64 FX-2:GUITAR SIM.:Low 88888 88888 88888 00 00 00 00 - 00 FX-2:GUITAR SIM.:High 88 00 01 00 64 FX-2:GUITAR SIM. :Level FX-2:GUITAR SIM.:Body FX-2:AC.PROCESSOR:Type 88 00 00 00 00 00 00 01 01 00 88 88 00 00 00 00 - 00 00 01 00 - 00 64 FX-2:AC.PROCESSOR:Middle FX-2:AC.PROCESSOR:Bass 8888888 88888 8888888 FX-2:AC.PROCESSOR:Middle F FX-2:AC.PROCESSOR:Treble 88z·5 FREQ 00 00 01 88888 8888 88888 FX-2:AC.PROCESSOR:Level FX-2:SUB WAH:Type WAH VAH WAH 00 88 88 00 01 FX-2:SUB WAH:Pedal Pos 00 FX-2 : SUB WAH:Pedal Min 8888 888 888 88 01 FX-2:SUB WAH: EffectLev 88 88 88 888 FX-2:GRAPHIC EQ:31Hz FX-2:GRAPHIC EQ: Level 88 88 8888888888888888 8888888888 8888 01 8888888888888 8888888888888 8888888888888888 FX-2:GRAPHIC FX-2:GRAPHIC EQ:62Hz -X-RAРHI(Z EQ: 125Hz 888888 8888 88888 01 H-RAPHIC FX-2: GRAPHIC EQ: 500Hz ttttttttttt 88 01 00 FX-2:GRAPHIC Г-KANAKHT EQ: 2kHz 00 00 00 00 00 00 0A 00 40 00 00 01 00 00 00 00 00 00 01 00 00 - 00 FX-2:GRAPHIC EQ:16kHz FX-2:GRAPHIC EQ:8kHz 00 00 00 01 DELAY:Sw 00 00 0A 01 00 00 00 01 00 00 - 00 0A DELAY: Type 0B : Hold OA : Modulate 00 00 0A 02 00 00 00 02 00 01 - 1A 55 DELAY:Dly Time 49 - 1A 55 : * Refer to Table 'BPM NOT 01 - 1A 48 : 1ms - 3400 00 00 0A 04 00 00 00 01 00 00 - 00 64 DELAY: Tap Time 00 - 64 : 0% - 100% 00 00 0A 05 00 00 OA 07 00 00 0A 06 00 00 00 01 00 00 00 - 00 64 00 01 - 0D 31 00 - 00 09 DELAY:High Cut DELAY:Feedback 0 - 100 00 00 00 02 DELAY:D1: Time ØD 25 - ØD 31 : * Refer to Table 'BPM NOTE' 00 00 0A 00 00 0A 09 00 00 OA 00 00 00 01 00 00 0A 0A 0B 00 00 00 00 - 00 09 00 00 - 00 64 DELAY:D1:HiCut DELAY:D1:Fbk 0 - 100 01 00 00 00 01 - 0D 31 00 00 - 00 78 DELAY:D1:Level * Refer to Table 'HIGH FREQ' 00 DELAY:D2:Time D 25 - ØD 31 : * Refer to Table 'BPM NOTE 0 01 - ØD 24 : 1ms - 1700m 00 00 00 0A 00 00 00 01 00 00 10 00 00 00 00 01 00 00 - 00 64 00 00 - 00 00 - 00 09 DELAY:D2:HiCut DELAY: D2:Fbk 0 - 100 01 00 00 - 00 01 00 DELAY:D2:Level Ø - 120 * Refer to Table 'HIGH FREQ' 78 UELAT.naro SN 01 : On 00 : Off 00 00 00 00 12 00 00 00 01 00 00 00 00 00 00 - 00 64 00 00 00 01 00 00 - 00 00 - 00 64 DELAY:Rise Time DELAY:F.B.Depth Ø - 100 0 - 100 88 8888 888888 gagggggg 88 00 00 00 01 01 00 00 - 00 00 00 - 00 64 64 DELAY:Mod.Rate DELAY: Level Dep 0 - 100 DELAY:Mod.Depth 0 - 100 00 00 01 00 00 - 00 78 DELAY:EffectLev 0 - 100 0 - 120 00 00 00 01 00 00 - 00 01 CHORUS:Sw DELAY:DirectLev 00 : Off",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_018",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 18,
+      "pageEnd": 18,
+      "language": "en",
+      "body": "18 01 : On 00 00 0A 21 00 00 00 01 00 00 - 00 02 CHORUS:Mode 0 : Monc 82 : Stereoz 00 00 0A 22 00 00 00 01 00 00 - 00 71 CHORUS:Rate 60 - 71: * Refer to Table \"BPM NOTEZ' 00 00 0A 24 00 00 0A 23 00 00 00 01 00 00 00 01 00 00 - 00 50 00 00 - 00 64 CHORUS :Depth CHORUS:Pre Delay 00 : 0.0ms 0 - 100 01 : 0.5ms 50 : 40.0ms 00 00 0A 25 00 00 00 01 00 00 00 00 00 00 01 00 00 - 00 0A 00 00 00 - 00 00 - 00 09 CHORUS: Low Cut * Refer to Table 'HIGH FREQ' * Refer to Table 'LOW FREQ' 00 00 0A 30 00 00 00 01 01 00 00 - 00 01 64 CHORUS :EffectLev CHORUS:High Cut REVERB:Sw 0 - 100 01: On 00 : Off 00 00 0A 31 00 00 00 01 00 00 - 00 06 REVERB: Type 00 : Ambience 8Ell 2 04 : Plate 05 : Spring 06 : Modulate 00 00 0A 32 00 00 00 01 00 00 - 00 63 REVERB :Rev Time 00 - 63 : 0.15 - 10.05 00 00 0А ЗА 00 00 00 02 00 00 - 03 74 REVERB:Pre Delay 00 00 - 03 74 : 0ms - 500ms 00 00 0A 34 00 00 00 00 0A 00 00 00 00 00 01 00 00 0A 37 0A 00 00 01 00 01 00 00 - 00 09 00 00 - 00 0A REVERB:Low Cut 00 00 00 - 00 64 00 - 00 0A REVERB:High Cut * Refer to Table 'LON FREO\" REVERB:Density Refer to Table 'HIGH FREQ' 00 00 0A 38 00 00 00 00 00 01 00 01 00 00 - 00 64 REVERB:EffectLev REVERB :DirectLev :: 100 00 00 ØA 40 00 00 00 01 00 00 - 00 01 PDL : Sw REVERB :Sprg.Sens 0 - 100 00 : Off 00 00 0A 45 00 00 00 01 00 00 - 00 05 PDL:EXP1 Func 01 : Foot Volume 00 00 0A 46 00 00 0A 48 30 00 0A 47 00 00 00 01 00 00 00 01 00 00 - 00 22 00 00 - 00 24 0 00 - 00 24 PDL : EXPSwFunc PDL:CTL1 Func : Refer to Table POL EX TYPE 00 00 00 01 00 00 - 00 06 PDL:CTL2 Func * Refer to Table 'PDL FX TYPE' FX TYPE' 00 00 ØA 49 00 00 00 01 PDL:WAH:Type AH 00 00 0A 4A 00 00 00 00 00 01 00 00 0A 00 00 DA 48 00 00 01 00 00 - 00 64 00 00 - 00 64 PDL:WAH:Pdl Pos. 00 00 0A 00 00 00 01 00 00 - 00 64 PDL:WAH:Pedal Min 00 00 0A 00 00 00 01 00 00 - 00 64 00 00 - 00 64 PDL:WAH:PedalMax 00 00 0A 4F 00 00 00 01 PDL:WAH:EffectLev 00 01 00 00 - 00 04 PDL:WAH:DirectLev PDL :WAH CUSTOM TYPE SETTING:Type AH 00 00 OA 50 00 00 00 01 0000 - 00 OA PDL:WAH CUSTOM TYPE SETTING:Q 1: -40 30: -50 00 00 ØA 51 00 00 00 01 00 00 - 00 OA PDL:WAH CUSTOM TYPE SETTING:Range Low 00 00 0A 52 00 00 00 01 00 00 - 00 0A 00 00 ØA 53 00 00 00 01 00 00 - 00 0A PDL:WAH CUSTOM TYPE SETTING:Presence 01 00 00 - 00 30 PDL:PEDAL BEND:Pitch Min 8888888 01 00 00 00 - 00 54 PDL:PEDAL BEND:Pdl Pos. PDL :PEDAL BEND:Pitch Max 88888888 888888888 888888888 888888888 01 01 8888 8888 64 PDL:PEDAL BEND:EffectLev PDL:PEDAL BEND:DirectLev 01 888888 64 PDL:FOOT VOLUME:Level PDL : FOOT VOLUME:Vol. Min 00 88 01 88 88 03 PDL:FOOT VOLUME:Vol.Curve PDL:FOOT VOLUME:Vol. Max 00 00 0A 60 00 00 00 01 00 00 - 00 64 MASTER:Patch Level 88 00 00 00 01 00 00 00 - 00 18 00 00 - 00 05 00 00 18 MASTER:Master Mid G MASTER:Master Low 88 88 00 01 MASTER:Master Mid Q 8888888 8888888 00 01 00 00 - 00 1B 00 28 - 01 7A 00 - 00 18 MASTER:Master Mid f ..99. 'MID 'MTD MASTER:Master High +12dB FREQ' 00 00 00 01 00 00 00 02 00 00 - 00 0B MASTER:Master Key MASTER:Master BPM SộGSS88",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_019",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 19,
+      "pageEnd": 19,
+      "language": "en",
+      "body": "19 00 00 00 01 00 00 - 00 01 AMP CONTROL:Amp Control 00 00 00 01 00 00 - 00 01 NOISE SUPPRESSOR1:S 1:0 00 00 00 01 00 00 00 01 00 00 00 01 00 00 - 00 64 00 00 - 00 02 00 00 - 00 64 NOISE SUPPRESSOR 1: Threshold NOISE SUPPRESSOR 1:Detect NOISE SUPPRESSOR 1:Release Ø - 100 00 : Input 0 - 100 02 : FV Out 01 : NS Input 00 00 00 01 00 00 - 00 01 NOISE SUPPRESSOR 2:Sw 01 : Or 00 : Off 00 00 00 01 00 00 - 00 64 00 00 - 00 64 NOISE SUPPRESSOR 2: Threshold TLIBIMII 00 00 00 01 00 00 - 00 02 NOISE SUPPRESSOR 2:Detect NOISE SUPPRESSOR 2:Release 0 - 100 0 - 100 01 : NS Input 00 : Input 02 : FV Out 00 00 00 01 00 00 - 00 01 SEND/RETURN:Sw 88 : oFf 00 00 00 01 00 00 - 00 02 SEND/RETURN:Mode 00 00 00 01 00 00 - 00 64 SEND/RETURN:Send Lev 01: 3 64 : 200 00 00 00 01 00 00 - 00 64 SEND/RETURN:ReturnLev 00 : 0 01:2 64 : 200 888 888 00 CHAIN:POSITION1 CHAIN:POSITIONZ *Refer to Table * Refer to Table 'CHAIN' CHAIN:POSITION3 * Refer to Table 'CHAIN' 'CHAIN' 20 00 CHAIN:POSITIONS CHAIN:POSITION4 * Refer * Refer to to Table 'CHAIN' • Table 'CHAIN' 00 30 00 00 CHAIN:POSITIONZ CHAIN:POSITION6 * Refer Refer to Table Table 'CHAIN' 'CHAIN' 00 00 8888888888 CHAIN:POSITION9 кетеr co 00 00 888898998898989999 Refer to Table 'CHAIN' 00 CHAIN:POSITION13 CHAIN:POSITION12 CHAIN:POSITION11 keтeо * Refer to Table Table 'CHAIN' 'CHAIN' 00 00 00 CHAIN:POSITION15 CHAIN:POSITION14 * Refer to * keter to , Table * Refer Table 'CHAIN' 'CHAIN' e0 00 01 00 00 00 00 10# 00 00 01 CHANSASNa CHAIN:POSITION16 Refer to Table 'CHAIN' to Table 'CHAIN' 20 11# 01 00 ASSIGN #1:Sw CHAIN:POSITION18 * Refer to Table 'CHAIN' * Refer to Table 'CHAIN' 00 01 : On 00 00 88 00 00 00 02 00 02 00 00 00 - 04 6A 388 00 01 02 00 00 - 7F 00 - 7F 7F ASSIGN #1:Min ASSIGN #1:Target * Refer to Table 'ASSIGN TARGET 88888 00 00 00 48 ASSIGN ASSIGN #1:Max The range of the Data value depends on the value selected for Targe 00 00 00 00 ASSIGN #1:Src Mode #1:Source •Refer to Table 'ASSIGN SOURCE The range of the Data value depends on the value selected for Targe 00 01 : Toggle 00 : Moment 01 88 88 ASSIGN #1:ActRngLo 881 88 88888 ASSIGN #1: Int Trig ASSIGN #1:ActRngHi 0 - 126 8888 8888 88888 FAGSE 8888 88888 8888 01 00 00 00 00 01 01 00 00 02 ASSIGN #1:IntCurve ASSIGN #1:Int Time * Refer to Table 'ASSIGN INT PDL TRIG' 0 - 100 00 : Linear 01 : Slow Rise 02 : Fast Rise 00 00 - 00 71 ASSIGN #1:WaveRate 60 - 71 : * Refer to Table \"BPM NOTEZ' 01 00 00 - 00 02 ASSIGN #1:Waveform 30 : SAW 02 : SINE 1 : TRIANGLE 00 00 - 00 01 ASSIGN #2:Sw : 0 00 00 ØB 00 ØB 33 31 00 00 00 02 00 00 00 02 00 02 00 00 - 04 6A 00 00 - 7E 70 ASSIGN #2:Min ASSIGN #2:Target 00 00 08 00 0B 00 00 0B 38 00 00 00 01 00 00 00 01 00 00 - 7F 7F 00 00 - 00 48 ASSIGN #2: Source ASSIGN #2:Max 00 00 - 00 01 ASSIGN #2:Src Mode 00 00 ØВ 39 00 00 00 01 00 00 - 00 7E ASSIGN #2:ActRngLo 00 00 - 00 48 ASSIGN #2:ActRngHi 0 - 126 00 00 0B 3B 00 00 00 01 ASSIGN #2: Int Trig * Refer to Table 'ASSIGN INT PDL TRIG) 1 - 127 00 00 ØВ 3D 00 00 00 01 00 00 - 00 02 ASSIGN #2:Int Time ASSIGN #2: IntCurve 0 - 100 OL : SLOW KISE 00 : Linear 02 : Fast Rise 00 00 ØВ ЗЕ 00 00 00 01 00 00 - 00 71 ASSIGN #2:WaveRate 60 - 64 : ° Refer Refer to Table 'BPM NOTE2' 00 00 ØB 3F 00 00 00 01 00 00 - 00 02 ASSIGN #2:Waveform 00 : SAW 1 : TRIANGLE 32 : SINE 00 00 ØВ 40 00 00 00 01 00 00 - 00 01 ASSIGN #3:Sw 00 00 00 ØВ 41 00 00 00 00 00 00 00 02 00 88 00 00 02 00 00 00 - 04 6A 00 00 - 7F 7F 00 - 7F ASSIGN #3:Min ASSIGN #3:Target 00 00 47 00 00 02 00 00 - 00 01 00 00 - 00 48 ASSIGN #3:Max 48 00 00 00 01 ASSIGN #3:Source ASSIGN #3:Src Mode 00 : Moment 01 : Toggle",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_020",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 20,
+      "pageEnd": 20,
+      "language": "en",
+      "body": "20 01 8888 88888 97979 88888 88888 88888 01 00 00 00 - 00 7E 01 - 00 7F ASSIGN #3:ActRngLo ASSIGN #3:ActRngHi 1 - 127 0 - 126 01 00 00 00 - 00 07 00 - 00 64 ASSLUN #S.INL IrLC ASSIGN #3:Int Time 0 - 100 * Refer to Table 'ASSIGN INT PDL TRIG' ASSLGN #3.Intlurve 2 : Fast Rise 1 : Slow Rise 00 00 ØВ 4E 00 00 00 01 00 00 - 00 71 ASSIGN #3:WaveRate 60 - 71: * Refer to Table \"BPM NOTE2' 00 00 ØB 4F 00 00 00 01 00 00 - 00 02 ASSIGN #3:Waveform 0TRANGLE 02 : SINE 00 00 ØВ 50 00 00 00 01 00 00 - 00 01 ASSIGN #4:Sw : 0 00 00 00 00 02 88881 88888 88888 02 00 00 00 - 04 0A 00 - 7F 7F ASSIGN #4:Target ASSIGN #4:Min e range of the Data value depends on the value selected for Tar • range of the Data value depends on the value selected for Tar 88 00 00 01 00 00 - 00 48 ASSIGN #4: Source * Refer to Table 'ASSIGN SOURCE' 00 00 - 00 01 ASSIGN #4:3rC Mode 01 : Toggle 00 : Moment 00 00 0B 00 00 00 01 00 00 00 00 0B 00 00 00 01 00 00 00 - 00 7E 00 00 01 - 00 ASSIGN #4:ActRngLo ASSIGN #4:ActRngHi 0 - 126 0B 00 00 ØВ SD 5C 00 00 00 00 01 00 00 - 00 * Refer to Table 'ASSIGN INT PDL TRIG' 1 - 127 01 00 00 - 00 64 ASSIGN #4: Int Time ASSIGN #4: Int Trig 0 - 100 00 - 00 02 ASSIGN #4:IntCurve 01 : Slow Rise 00 : Linear 02 : Fast Rise 00 00 ØB SE 00 00 00 01 00 00 - 00 71 ASSIGN #4:WaveRate 00 - 64 : ° Refer to Table \"BPM NOTEZ' 00 00 ØB 5F 00 00 00 01 00 00 - 00 02 ASSIGN #4:Waveform 01 : TRIANGLE 00 : SAW 02 : SINE 00 00 ØВ 60 00 00 00 01 00 00 - 00 01 ASSIGN #5:Sw 00 00 00 ØE 0B 61 63 00 00 00 00 02 00 00 00 00 00 - 00 - 04 6A 7F ASSIGN #5:Min ASSIGN #5:Target 88 00 ØB 67 00 00 00 888 00 - 7F 00 - 00 - 00 ASSIGN #5:Source ASSIGN #5:Max : mer reng o en bar aue apena t eilue reltected en trget. 68 00 00 00 00 ASSIGN #5:Src Mode * Refer to Table 'ASSIGN SOURCE' 1 : Toggle 88 00 00 88 88 01 00 00 00 01 - 00 00 7E ASSIGN #5:ActRngLo 88 00 88 888 88 01 00 00 00 - 00 00 48 ASSIGN #5: Int Time ASSIGN #5: Int Trig ASSIGN#5:ActRngHi 00 00 - 00 * Refer to Table 'ASSIGN INT PDL TRIG' 00 ØB 00 00 ASSIGN #5:IntCurve OL • SLOW KISE 00 : Linear 02 : Fast Rise 00 00 ØB 6E 00 00 00 01 00 00 - 00 71 ASSIGN #5:WaveRate 60 - 61 : ° Refer to Table \"BPM NOTE2' 00 00 ØB 6F 00 00 00 01 00 00 - 00 02 ASSIGN #5:Waveform 01 : TRIANGLE 00 : SAW 02 : SINE 00 00 ØВ 70 00 00 00 01 00 00 - 00 01 ASSIGN#6:Sw 00 00 ØB 00 00 00 02 00 00 - 04 6A ASSIGN #6:Target ASSIGN #6:Max ASSIGN #6:MLn Refer to Table 'ASSIGN TARGET 00 00 0B 00 00 00 02 00 00 7F 7F The range of the Data value depends on the value selected for Target he range of the Data value depends on the value selected for Targe 00 00 0B 88 88 00 00 01 00 01 ASSIGN #6:Src Mode ASSGNan urce 00 : Moment * Refer to Tahle 'ASSTGN SOURCF 01 : Toggle 00 00 ØB 00 00 00 88 88 00 01 00 00 00 - 00 01 - 00 - 00 ASSIGN #6:ActRngLo 0 - 126 8888 88 01 00 48 ASSIGN ASSIGN #6:ActRngHi ASSLGN #o:Int Izme #6:Int Trig * Refer to Table 'ASSIGN INT PDL TRIG) 88 88 00 00 01 00 1 - 00 02 ASSIGN #6:IntCurve 00 : Linear 0 - 100 01 : Slow Rise 02 : Fast Rise 00 00 ØB 7E 00 00 00 01 00 00 - 00 71 ASSIGN #6:WaveRate 60 - 51: * -fer to Table \"BPM NOTEZ' 00 00 ØB 7F 00 00 00 01 00 00 - 00 02 ASSIGN #6:Waveform 30 : SAR 02 : SINE 1: TRIANGLE 00 00 0C 00 00 00 00 01 00 00 - 00 01 00 00 01 00 00 02 00 00 00 - 04 6- 00 - 00 - 7- 7F 7F ASSIGN #7:Target 8888 8888 88 88888 ASSIGN #7:Min 88 8888 00 00 00 - 00 01 00 - 00 4: ASSIGN #7: Source ASSIGN #7:Max : Ret ren o er ASTar Soul cenends on the vilue selected for Trget ASSIGN #7:Src Mode 00 : Moment 01 : Toggle 88 88 88 88 88 01 00 01 00 - 00 00 7E 00 00 - 00 49 7F ASSIGN #7:ActRngLo ASSIGN #7: Int Trig ASSIGN #7:ActRngHi 0 - 126 00 00 00 00 00 # Refer to Table 'ASSIGN INT POL TRIG\" - 127 00 00 01 00 00 00 - 00 02 00 - 00 64 ASSIGN #7: Int Time ASSIGN #7:IntCurve Voeer Ø - 100 02 : Fast Rise 01 : Slow Rise 00 00 ОC ØE 00 00 00 01 00 00 - 00 71 ASSIGN #7:WaveRate 60 - 71: * Refer to Table \"BPM NOTEZ' 00 00 ØC ØF 00 00 00 01 00 00 - 00 02 ASSIGN #7:Waveform 00 : SAW 01 : TRIANGLE 02 : SINE 00 00 0C 10 00 00 00 01 00 00 - 00 01 ASSIGN #8:Sw 88 00 02 8888 8888 02 00 00 00 - 04 6A 00 -7F 7F ASSIGN #8:Target ASSIGN #8:Min * Refer to Table 'ASSIGN TARGET' ASSIGN #8: Source ASNXX : The range of the Data value depends on the value selected for Taret The range of 00 88 00 01 00 00 - 00 48 * Refer to Table 'ASSIGN SOURCE'",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_021",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 21,
+      "pageEnd": 21,
+      "language": "en",
+      "body": "21 00 00 0C 18 00 00 00 01 00 00 - 00 01 ASSIGN #8:Src Mode 01 : Toggle 30 : Moment 00 00 19 888 888 88888 1A 00 00 00 00 00 01 00 00 00 00 - 00 7E 01 - 00 78 ASSIGN #8:ActRngLo 88 88 88 01 88 00 ASSIGN #8:ActRngHi 1D 00 00 00 01 00 00 - 00 - 00 00 64 ASSIGN #8:Int Trig 01 02 ASSIGN #8:IntCurve ASSIGN #8:Int Time 1 : Slow Rise 0 : Linea 02 : Fast Rise 00 00 ØC 1E 00 00 00 01 00 00 - 00 71 ASSIGN #8:WaveRate 00 = 51: ° Refer to Table \"BPM NOTEZ' 00 00 ØC 1F 00 00 00 01 00 00 - 00 02 ASSIGN #8:Waveform 81 : SANANGLE 02 : SINE 00 00 0C 20 00 00 0C 21 00 00 00 00 00 01 00 01 00 00 - 00 01 00 00 - 00 64 CTL1 LED 80:00 00 00 0C 22 00 00 00 01 00 00 - 00 01 CTL2 LED 88 00 00 40 00 40 01# 00 88 00 01 88 20 - 20 - 00 7D 7D COMPRESSOR : QUICK SETTING NAME #2 00 7D COMPRESSOR:QUICK SETTING NAME 88 00 03# 88 88 88 01 00 7D COMPRESSOR:QUICK SETTING NAME COMPRESSOR:QUICK SETTING NAME #4 88 00 88 05# 88 88 88 01 COMPRESSOR:QUICK SETTING NAME COMPRESSOR:QUICK COMPRESSOR:QUICK SETTING NAME : SETTING NAME 888 88 08# 07# 888 88888 888 01 01 COMPRESSOR:QUICK SETTING NAME 88 01 COMPRESSOR:QUICK SETTING NAME #10 COMPRESSOR:QUICK SETTING NAME 88 88 đđ 09# 888 888 88đ 00 COMPRESSOR:QUI COMPRESSOR: QUI AME LAME 88 88 OD/DS: QUICK OD/DS:QUICK SETTING SE NAME 88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888 !!!!!!!!•..!•.•!•!•!•!!!•!!!!!!!!!!!!!!!!!!!!! 111110102110102210201000201010201/0122/0102/11/010/01/0120111/12021//00110/1010001010001008 888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888 88888 Såå888 ,888g ******** 8888 888888 8888 8888",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_022",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 22,
+      "pageEnd": 22,
+      "language": "en",
+      "body": "88881 8888 8888888 888888ł MOLO: 8888888888888888888888888888888888888888888 8888888888888888888888888888 888888 88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888 88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888 BeRe&&&888{{88888888888888888888R88888R8RR8888RR8888888R88888888888AR8888888R88888RR8888888R88888R8888ARR88888R8888RR{$ 98888888898889998888888888888888888888888888888888888888888888888888888898889998888998888998888999998889998889998889999998 gÊCÈÙÙCGECGCCCCCCGECCCGGGCCCCCCCGCECCCGGCCCCCCCGCECCGGCGGCCCCCCCYCCCECCCCCCCCCCCCCCỀYCCCCCCCC 88888 8888 8888 8888 ETT #######ỡ######ỡ#ỡ##Ø####ỡ##ỡ######ỡỡ#ỡ#######ỡ#########ỡ#######ỡ########### SETTI 88888888888888888888888888888888888888888888888888888888 NAME NAME 888888 8888 888 ANI",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_023",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 23,
+      "pageEnd": 23,
+      "language": "en",
+      "body": "FX-1/2:HUMANIZER: 8888888 88888 8888 88888 H-NMANTKI /2:HUMANIZER: :HUMANIZER: :8888888888888888888 889888888888988888888889888888888888889 88888888888888888888 8888888888 888888 88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888 889999998999999899888988988989999898888988988989889898888888888988889889888888888888889888888888888888888888888888888888 88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888 BeRe&&&888{{88888888888888888888R88888R8RR8888RR8888888R88888888888AR8888888R88888RR8888888R88888R8888ARR88888R8888RR{$ пиии...................................................... \"!!!!!!!!!!.........!!! ¿¿ů?f•?f￾?f￾?₴￾?₴￾₴₴®₴₴®₴₴®₴₴®₴₴®₴₴®₴₴®₴₴®₴₴®₴₴®?₴®?₴®?₴®?₴®?₴®?É®?É®?É®?É®?É®?É®?É®?É®?É®₴É®₴É®₴É®₴É®₴É®₴É®₴É®₴É®₴Éº₴ÉŒ₴₴l П11110011121111211112011001000111121101111011101111111ЛЛ111Л111Л112111211111111111012 8888 8888 8888 88 888888888888888 BeBeeeE@e@eBeBeeeeBeBeeE 8888888888 888888 8888 888 8888",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_024",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 24,
+      "pageEnd": 24,
+      "language": "en",
+      "body": "8888888 88888 888888 8888888 88 : {§888888888888888888 0E# 888888 ййййййшйі BEERE 888 88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888 889999998999999899888988988989999898888988988989889898888888888988889889888888888888889888888888888888888888888888888888 88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888 BeRe&&&888{{88888888888888888888R88888R8RR8888RR8888888R88888888888AR8888888R88888RR8888888R88888R8888ARR88888R8888RR{$ §8&&&&&š§&§ пиии................................................ mirxmcx0nnnnnncncecnennnnnecernaanarormmmnann П11110011121111211112011001000111121101111011101111111ЛЛ111Л111Л112111211111111111012 8888 888 88888 8888888888 §ßfÎÎfÎùûûûûûûûûûûûüûûüûûüûüüüüüüüüüüüüüüüüüüüüüüüû 88888888888888888888888888888888888888888 888888888888 8888888888 8888 8888",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_025",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 25,
+      "pageEnd": 25,
+      "language": "en",
+      "body": "'' 888888 8888888 88888888881 88888888 888888888888888888888888888888888888888 888888888888888888888888888888888888888888888 $ $$77#77## ### 7 77 #y7 777777y 7777777777777] ПТРРТОУУУУУНННКУУОУУУУУУУООРОНИУУУЕЕ 888888 888888888 8888888 3 888 88888888888888888888888888888888888888888888888888888888888888888888888888888 8888888888888888888888888888888888888889 88888888888888888888888888888888888888888888888888888888888888888888888888888 gg f f f f f f f f f f f f f 9999999999999999999999999999999999999999999999999999999999999999999999999999 .................... 1ЛЛ00УУУУУ У0УУ00 00009001010/203 030 /30/230 3/03 10/ //3/3/ 0 /1 3 / 03 033 /30/ 0303200 /1039 0079 5999999999999999999399399399399399399399399399399399399399399399399399399395 вниииипиииишииншшши 888888 * * * * * * * * 888 8888 8888 8888 272 00 Table 'SYSTEM' 00 00 00 10 00 00 00 00 00 00 00 01 00 00 - 00 00 - 00 OF PLAY OPTION:Preamp Mode LCD:Contrast IB\" 00 00 00 11 00 00 00 01 00 00 - 00 01 PLAY OPTION:Patch ChgMode 82 : Sasoth 00 00 00 12 00 00 00 01 00 00 - 00 01 PLAY OPTION:Bank Chg Mode o:haned 00 00 00 13 00 00 00 02 00 00 - 00 63 PLAY OPTION:BankExtentMin 00 00 00 15 00 00 00 02 00 00 - 00 63 PLAY OPTION:BankExtentMax 32 - 33: P91 - U50 00000017 00 00 00 01 00 00 - 00 01 PLAY OPTION:EXP Pdl Hold 8:off 00 00 00 18 00 00 00 01 00 00 - 00 01 PLAY OPTION:Pdl Indicate 00 00 00 20 00 00 00 01 00 00 - 00 01 USB:Driver Mode 00 00 00 21 00 00 00 01 00 00 - 00 01 USB:Monitor Cmd 00 00 00 22 00 00 00 01 00 00 - 00 64 INPUT/OUTPUT:USB/DGT Out Lev 64: 208% 00 00 00 23 00 00 00 01 00 00 - 00 64 INPUT/OUTPUT:USB Mix Level 64 : 200%",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_026",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 26,
+      "pageEnd": 26,
+      "language": "en",
+      "body": "26 00 00 00 30 00 00 00 31 00 00 00 01 00 00 00 01 00 00 - 00 01 00 00 - 00 0A TUNER:PITCH TUNER:OUTPUT 00 - OA : 435Hz - 445Hz 01 : Bypass 00 : Mute 00 00 00 40 00 00 00 01 00 88 88 881 00 00 01 00 00 - 00 28 00 00 - 00 00 - 00 28 INPUT/OUTPUT:Guitar 1:INPUT LEVEL INPUT/OUTPUT:Guitar 1: INPUT PRES. 00 - 28 : -20dB - +20dB 88 88 88 00 00 00 - 00 28 INPUT/OUTPUT:Guitar 2:INPUT PRES. INPUT/OUTPUT:Guitar 2:INPUT LEVEL 30 - 28:-20dB - +20dE 00 00 00 28 28 30 - 28 :-20dB - +20dE INPUT/OUTPUT:Guitar 3:INPUT LEVEL 30 - 28:-20dB - +20dE INPUT/OUTPUT:USB In:INPUT LEVEL INPUT/OUTPUT:Guitar 3:INPUT PRES. 00-40:-L00B-+40d 10 - L0 . -LOUD - +600 00 88888888888888 00 00 01 00 00 28 00 - 28 :-20dB - +20dB 00 00 00 01 00 00 00 888888 18 INPUI/OUIPUI:USB In:INPUl PRES. INPUT/OUTPUT:GLOBAL EQ:Low Gain 00 - 28 : -Loab - +<0db 00 - 18 : -12dB - +12dB 88 8888 00 881 88 01 INPUT/OUTPUT:GLOBAL EQ:Mid Q INPUI/UUIPUI:GLUBAL CU.MLa GaLn 88 88 INPUT/OUTPUT:GLOBAL INPUT/OUTPUT:GLOBAL EQ:Mid Frea * Refer to Table 'MID Q' * Refer to Table 'MID FREQ' 88 88 88 88 88 01 88 80 - 00 03 INPUT/OUTPUT: INPUT SELECT\" EQ:High Gain 03 : USB In 00 00 00 4E 00 00 00 01 00 00 - 00 01 OUTPUT SELECT:Mode 01 : System 00 : Patch 00 00 00 4F 00 00 00 01 00 00 - 00 07 OUTPUT SELECT:Select 1 : SMALL AMF 30 : JC-120 02 : COMBO AMP 03 : STACK AMP 95 : COMBO Return 34 : JC-120 Returr 07 : LINE/PHONES 06 : STACK Return 00 00 00 56 00 00 00 5: 00 00 00 01 00 00 00 01 00 00 - 00 64 00 00 - 00 28 INPUT/OUTPUT:Rev Level INPUT/OUTPUT:NS Threshold 00 : 0% 00 - 28 : -20dB - +20dB 01 : 2% 64: 200% 00 00 00 52 00 00 00 01 00 00 - 00 01 INPUT/OUTPUT:Main Out Level 01: 1888 00 00 00 01 00 00 - 00 01 PHRASE LOOP:Mode oi : Parcorence 00 00 00 61 00 00 00 01 00 00 - 00 01 PHRASE LOOP:Rec Mode 82 : Stereo 00 00 00 62 00 00 00 01 00 00 - 00 01 PHRASE LOOP:Pdl Mode 0i : omf 00 00 00 64 00 00 00 65 00 00 00 01 00 00 00 01 00 00 - 00 01 00 00 - 00/8 PHRASE LOOP:Play Lev PHRASE LOOP:Clear Pdl So : Nicer lar 00 00 00 70 00 00 00 01 00 00 - 00 05 PLAY OPTION:Num Pdl Sw 0 : Off 2 : Ch. A/ 1 : Tuner 03 : OD Sol 5 : AB So 4 : Sol 00 00 00 71 00 00 00 01 00 00 - 00 01 PLAY OPTION:Dial Func 81 : Patava 00 00 00 72 00 00 00 02 00 00 1 - 00 40 88 02 00 00 00 00 - 00 00 40 2228 00 00 7A 00 00 00 01 00 00 00 01 CONTROLLER:EXP1 PEDAL SETTING:Prefernc CONTROLLER:SYS KNOB SETTING:Knob P4 Refer to Table 'KNOB SETTING' oi : System 00 00 00 01 00 00 - 00 01 CONTROLLER:EXP PEDAL SW SETTING:Prefernc 01:Ssch 00 00 - 00 01 CONTROLLER:CTL1 PEDAL SETTING:Prefernc 80: Psch CONTROLLER:CTL2 PEDAL SETTING:Prefernc 81 : 3str CONTROLLER:EXP2 PEDAL SETTING:Prefernc 61: Ssth CONTROLLER:CTL3 PEDAL SETTING:Prefernc 81 : Soste 01 CONTROLLER:CTL4 PEDAL SETTING:Prefernc 80 : Sestn 01 CONTROLLER:EXP1 PEDAL SETTING:Sw CONTROLLER:EXP1 PEDAL SETTING:Function ) : Of 02 : Pedal Bend . : Foot Volu 04 : PB/FV 03 : WAH 05 : WAH/FV 06 : Patch Level 00 00 01 13 00 00 01 17 00 00 01 15 00 00 00 00 02 00 00 00 01 00 00 02 00 00 - 7F 7F 00 00 - 7F 7F CONTROLLER:EXP1 PEDAL SETTING:Min 00 00 - 00 01 CONTROLLER:EXP1 PEDAL CONTROLLER:EXP1 PEDAL SETTING:Src Mode ETTING:Ma> : The range of the Dota value depends on the value selected for function 00 : Moment 01 : Toggle 00 00 01 20 00 01 18 00 00 01 20 19 00 00 00 01 00 00 00 00 00 01 01 0000 - 00 7F 00 00 - 00 78 CONTROLLER:EXP1 PEDAL CONTROLLER:EXP1 PEDAL SETTING:ActRngLo CONTROLLER:EXP PEDAL SW SETTING:Sw SETTING:ActRngH 8 -127 00 00 - 00 01 8i :onf 00 00 01 00 00 01 23 21 00 00 00 00 02 00 00 02 00 00 - 00 22 00 00 - 00 01 NTROLLER:EXP PEDAL SW SETTING:Mir NTROLLER:EXP PEDAL SW SETTING:Functir • onrto Toble •POL FX TYPE- 00 00 01 25 00 00 00 02 00 00 - 00 01 CONTROLLER:EXP PEDAL SW SETTING:Max i: orf 00 00 01 27 00 00 00 01 00 00 - 00 01 CONTROLLER:EXP PEDAL SW SETTING:Src Mode",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_027",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 27,
+      "pageEnd": 27,
+      "language": "en",
+      "body": "27 00 00 00 01 28 00 01 29 00 00 01 00 00 00 - 00 7F 00 00 - 00 01 00 - 00 7F CONTROLLER:EXP PEDAL SW SETTING:ActRngLo CONTROLLER:CTL1 PEDAL SETTING:Sw CONTROLLER:EXP PEDAL SW SETTING:ActRngHi 0 - 127 0 - 127 1 : 0 0 : Of 00 00 01 33 00 00 01 31 00 02 00 00 - 00 01 00 - 00 22 ONTROLLER:CTL1 PEDAL SETTING:Functio ONTROLLER:CTL1 PEDAL SETTING:Mil *Pefor to Table \"POL FX TYPE' 01 : On 00 00 01 35 00 00 - 00 01 CONTROLLER:CTL1 PEDAL SETTING:Max 00 00 01 37 00 00 - 00 01 CONTROLLER:CTL1 PEDAL SETTING:Src Mode : Mom :Toa 00 00 00 01 38 00 00 01 40 00 01 39 00 01 00 00 - 00 7F 00 00 01 00 00 - 00 01 00 00 - CONTROLLER:CTL1 PEDAL SETTING:ActRngHi CONTROLLER:CTL1 PEDAL SETTING:ActRngLo CONTROLLER:CTL2 PEDAL SETTING:Sw 01 : On 00 00 01 43 00 00 02 00 00 - 00 22 00 - 00 01 CONTROLLER:CTL2 PEDAL SETTING:Min CONTROLLER:CTL2 PEDAL SETTING:Function * Refer to Table 'PDL FX TYPE' 01 : On 00 : Off 00 00 01 45 00 00 - 00 01 CONTROLLER:CTL2 PEDAL SETTING: 80:OFF 00 00 01 47 00 01 00 00 - 00 01 CONTROLLER:CTL2 PEDAL SETTING:Src Mode 82 : Mogent 00 00 01 00 01 00 00 - 00 7F CONTROLLER:CTL2 PEDAL SETTING:ActRngHi CONTROLLER:CTL2 PEDAL SETTING:ActRngLo 0 - 127 0 - 127 00 00 01 50 00 00 01 00 00 - 00 01 CONTROLLER:EXP2 PEDAL SETTING:Sw 0 : Off 1 : Or 00 00 01 51 =е1=еВ1=В81=#11 00 00 - 00 02 CONTROLLER: EXP2 PEDAL SETTING:Function 00 00 01 53 00 02 I - 7F 7R CONTROLLER:EXP2 PEDAL SETTING:Min CONTROLLER:EXP2 PEDAL SETTING:Src Mode SETTING:Max The range of the Data value depends on the value selected for Funct 00 00 01 57 00 00 01 The range of the Data value depends on the value selected for Funct 00 : Moment 01 : Toggle 00 00 00 01 01 58 00 01 60 59 00 00 00 01 00 00 - 00 00 00 - 00 - CONTROLLER:EXP2 PEDAL SETTING:ActRngHi CONTROLLER:EXP2 PEDAL SETTING:ActRngLo 1 - 12' - 12 00 01 CONTROLLER:CTL3 PEDAL SETTING:Sw 1 : Or 0 : Off 00 00 00 01 01 61 63 00 00 00 02 00 02 00 00 00 00 01 ONTROLLER:CTL3 PEDAL SETTING:Functio ONTROLLER:CTL3 PEDAL SETTING:Mir *R:for to Table \"POL EX TYPE\" 01 : On 00 00 01 65 00 00 - 00 01 CONTROLLER:CTL3 PEDAL SETTING:Max 80 : OnF 00 00 01 67 00 00- 00 01 CONTROLLER:CTL3 PEDAL SETTING:Src Mode 3 Monee 00 00 01 68 00 00 01 00 00 00 7F CONTROLLER:CTL3 PEDAL SETTING:ActRngHi CONTROLLER:CTL3 PEDAL SETTING:ActRngLo - 12 - 12 00 00 01 00 00 01 00 01 CONTROLLER:CTL4 PEDAL SETTING:Sw 01 : On 00 : Off 00 00 00 00 01 71 73 00 00 00 02 02 00 00 00 - 00 00 00 22 CONTROLLER:CTL4 PEDAL SETTING:Function CONTROLLER:CTL4 PEDAL SETTING:Min S on to Toble POL X TPeE\" 00 00 01 75 00 00 - 00 01 CONTROLLER:CTL4 PEDAL SETTING:Max 0i : onf 00 00 - CONTROLLER:CTL4 PEDAL SETTING:Src Mode 81: Moggte 00 00 88 00 88 00 00 01 88 00 - 00 00 00 CONTROLLER:CTL4 PEDAL SETTING:ActRngLc CONTROLLER:CTL4 PEDAL SETTING:ActRngH :- 127 88 01# 00 88 88 01 88 7D 7D CATEGORY NAME : USER CATECORY 112 CATEGORY NAME :USER CATEGORY 888888888 03# 88 88 888888888 01 CATEGORY NAME:USER NAME :USER CATEGORY 13 NAM-•USTR CATEGORY to Table NAME\" 88888 IE: 888888 •• IE: 8888888888888888888 IAANNNNNNNNMAM 88888888888888888888888888888888888888888888 ereeReeReeReeeeeeeeeeeeeeeeeeeeeeeReeReeReeR tittititiiiitiiiiitttiititt 899899899998988989999899899998988988999999 1079931039910399371331993771337 8888888888888888 888 8888",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_028",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 28,
+      "pageEnd": 28,
+      "language": "en",
+      "body": "ORY NAME: CATEGORY CATEGORY 8888888 8888888 888888 8888888 CATSCNDY !!!!!!!!!! ğğ§ğ§§§§ğ§§ 0ONAAAAAN0000000000088888888 88888888888888888888888888888888888888888 888888888888888888888888888888888888888 888888888888888888888888888888888888 fffffdfdffdfd rd r º999888888888888888898888888889888888888 88888 8888888 МШНН 8888888888 8888888888 888888888 • PEDAL 00 00 01 00 00 00 - 00 02 00 00 21 MANUAL MANUAL OD/DS VARIATION FOR BOOSTER SETTING:BANK DOWN 00 00 - 00 02 OD/DS VARIATION FOR BLUES 00 00 - 00 03 OD/DS VARIATION FOR OD 00 00 - 00 02 OD/DS VARIATION FOR DIST 00 00 - 00 02 OD/DS VARIATION FOR CLASSIC 00 00 - 00 02 OD/DS VARIATION FOR MODERN 00 00 - 00 02 OD/DS VARIATION FOR METAL 00 00 - 00 02 OD/DS VARIATION FOR FUZZ 00 00 - 00 00 OD/DS VARIATION FOR CUSTOM 00 00 - 00 03 PREAMP VARIATION FOR JC CLEAN 00 00 - 00 03 PREAMP VARIATION FOR TW CLEAN 00 00 - 00 03 PREAMP VARIATION FOR CRUNCH 00 00 - 00 02 PREAMP VARIATION FOR VO COMBO 00 00 - 00 02 PREAMP VARIATION FOR MATCH COMBO 00 00 - 00 02 PREAMP VARIATION FOR BG LEAD 00 00 - 00 01 PREAMP VARIATION FOR MS CLASSIC 00 00 - 00 01 PREAMP VARIATION FOR MS MODERN 00 00 - 00 02 PREAMP VARIATION FOR R FIER 00 00 - 00 02 PREAMP VARIATION FOR T AMP 00 00 - 00 03 PREAMP VARIATION FOR HI GAIN 0SDrive 85: Heao Steck",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_029",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 29,
+      "pageEnd": 29,
+      "language": "en",
+      "body": "29 00 00 02 7B 00 00 00 01 00 00 - 00 03 PREAMP VARIATION FOR METAL 123 00 00 02 7C 00 00 00 01 00 00 - 00 00 PREAMP VARIATION FOR CUSTOM 00 : Custom 00 00 02 7D 00 00 00 01 00 00 - 00 00 PREAMP VARIATION FOR THROUGH 00 : Through 00 00 00 01 00 00 - 00 01 PREAMP #1:Sw 81 : 0Ff 00 01 00 01 00 00 00 01 00 00 - 00 03 PREAMP COMMON SETTING #1:Ch.Mode • : Single 2 : Dual L/I 1 : Dual Mon 00 01 00 02 00 00 00 01 00 00 - 00 01 PREAMP COMMON SETTING #1:Ch.Select 02: Ch.B 00 01 00 00 04 00 01 00 10 00 00 00 00 00 00 00 00 00 - 00 64 01 00 00 - 00 28 00 - 00 64 EAMP COMMON SETTING #1:Dyna.Se EAMP COMMON SETTING #1:Ch.DlyT 0° - 164 : ems - 108ms 00 00 - 78 PREAMP A #1:Type * Refer to Table 'AMP TYPE' 00 00 00 00 00 00 00 01 00 00 00 00 00 00 - 00 00 00 - 00 64 00 PREAMP A #1:Gain PREAMP A #1:Bass 0 - 120 00 00 13 14 00 00 01 00 00 - 00 00 00 00 64 PREAMP A #1:Treble PREAMP A #1:Middle 0 - 100 0 - 100 00 00 - 00 01 00 64 PREAMP A #1:Presence 0 - 100 00 00 01 01 00 00 00 00 00 00 17 00 00 01 01 PREAMP A #1:Bright PREAMP A #1:Level 0 - 100 0 - 100 00 01 00 18 00 00 00 01 00 00 - 00 02 PREAMP A #1:Gain Sw O9 : Mddle 02 : High 00 01 00 19 00 00 00 01 00 00 - 00 01 PREAMP A #1:Solo Sw 0i : onf 00 01 00 1B 00 01 00 1A 00 00 00 01 00 00 00 01 00 00 - 00 09 00 00 - 00 64 PREAMP A #1:SoloLevel 00 00 - 00 01 00 00 - 00 04 SPEAKER A #1:Mic Type SPEAKER A #1:SP Type * Refer to Table 'SP TYPE 00 01 00 10 00 01 00 1C 00 00 00 00 01 00 00 01 SPEAKER A #1:Mic Dis. * Refer to Table 'MIC TYPE' :On N 00 Ø1 00 1E 00 00 00 01 00 00 - 00 0A SPEAKER A #1:Mic Pos. o2 - Cent : 1 - 10 00 01 00 20 00 01 00 1F 00 00 00 01 00 00 00 01 00 00 - 00 64 00 00 - 00 64 SPEAKER A #1:Mic Level SPEAKER A #1:DirectLev - 10 - 10 00 01 00 21 00 00 00 01 00 00 - 00 06 PREAMP CUSTOM AMP SETTING A #1:Type 00 : JC Clean 03 : VO Drive 2 : Crunch 05: BSHidain 06 : Modern Stk 00 01 00 22 00 00 00 01 0000 - 00 OA PREAMP CUSTOM AMP SETTING A #1 :Bottom 00 : -50 01 :-40 OA: +50 00 01 00 23 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING A #1:Edge 00 : -50 01 : -40 DÀ: +50 00 01 00 24 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING A #1:Bass Freq OÀ : +50 00 01 00 25 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING A #1:Tre Frea 1: -40 0 : -50 DÀ: +50 00 01 00 26 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING A #1:PreampLow 00 01 00 27 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING A #1:Preamp Hi 00 01 00 28 00 00 00 01 00 00 - 00 0A SPEAKER CUSTOM SPEAKER SETTING A #1:SP Size OA: 15\" 00 01 00 29 00 01 00 2A 00 00 - 00 14 00 01 00 2B 50 5 5 01 00 00 - 00 14 00 00 - 00 03 SFEAKER CUSTON SPANER SETTEN A ELSP Mirbe 0 12 10 - 130 SPEAKER CUSTOM SPEAKER SETTING A #1:ColorHigh SPEAKER CUSTOM SPEAKER SETTING A #1:SP Number 02 : x4 x2 03 : x8 00 01 00 2C 00 00 00 01 00 00 - 00 01 SPEAKER CUSTOM SPEAKER SETTING A #1:Cabinet 00 01 00 00 01 0031 00 00 00 01 00 00 - 00 78 00 00 - 00 28 PREAMP B #1:Gain PREAMP B #1:Type * Refer to Table 'AMP TYPE' 00 01 00 32 00 01 00 33 00 00 00 01 0 01 00 3 00 00 00 01 00 00 - 00 64 00 00 - 00 64 PREAMP B #1:Bass 0 00 - 00 6. PREAMP B #1:Middle - 10 00 00 00 01 00 0 01 00 3: 00 00 00 0: 00 01 0 00 - 00 6- PREAMP B #1:Treble 0 - 100 00 00 - 00 64 00 - 00 64 PREAMP B #1:Presence 0 - 100 00 01 00 36 00 00 00 01 01 PREAMP B #1:Bright PREAMP B #1:Level 0 - 100 0 - 100 00 : Off *gStr_ONOFF 01 : On",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_030",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 30,
+      "pageEnd": 30,
+      "language": "en",
+      "body": "30 00 01 00 38 00 00 00 01 00 00 - 00 02 PREAMP B #1:Gain Sw 3 Mere 00 01 00 39 00 00 00 01 00 00 - 00 01 PREAMPB #1:Solo Sw i: orf 00 01 00 ЗА 00 01 00 01 00 3В 00 00 00 01 00 00 - 00 64 00 00 - 00a0 PREAMP B #1:SoloLevel SPEAKER B #1:Mic Type SPEAKER B #1:SP Type • Refer to Table \"SP TYPE\" 00 01 00 30 00 3C 00 00 00 00 01 00 00 01 00 00 - 00 00 - 00 01 00 04 SPEAKER B #1:Mic Dis. * Refer to Table 'MIC TYPE' 1 : On Mic 30 : Off Mic 00 01 00 3Е 00 00 00 01 00 00 - 00 0A SPEAKER B #1:Mic Pos. 01 - OA : 1 - 10 00: Center 00 01 00 3F 00 01 00 00 01 00 41 40 00 00 00 01 00 00 - 00 64 00 00 - 00 64 SPEAKER B #1:Mic Level SPEAKER B #1:DirectLev - 10 1 - 10 00 00 00 01 00 00 - 00 06 PREAMP CUSTOM AMP SETTING B #1:Type 00 : JC Clean 01 : TW Clean 02 : Crunch 00 01 00 42 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING B #1:Bottom DÀ : +50 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING B #1:Edge 60 : 50 00 01 00 44 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTINGB #1:Bass Frea 00 01 00 45 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING B #1:Tre Frea 01 :-40 00 : -50 00 01 00 46 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING B #1:PreampLow DÀ : +50 00 01 00 47 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING B#1:Preamp Hi 00 : -50 01 : -40 0A : +50 00 01 00 48 00 00 00 01 00 00 - 00 0A SPEAKER CUSTOM SPEAKER SETTING B #1:SP Size 00 :5\" 82:6. 03 04 333AR OA : 15\" 00 01 00 49 00 00 00 01 00 00 00 01 00 00 - 00 14 00 01 00 4B 00 01 00 4A 00 00 00 01 00 00 - 00 14 00 00 - 00 03 SPEAKER CUSTOM SPEAKER SETTING B #1:SP Number 00 : x1 SPEAKER CUSTOM SPEAKER SETTING B #1:ColorHigh 00 - 14 :-10 - +10 01: x2 03: x 02 : x4 00 01 00 4C 00 00 00 01 00 00 - 00 01 SPEAKER CUSTOM SPEAKER SETTING B #1:Cabinet 00 01 01 00 00 00 00 01 00 00 - 00 01 PREAMP #2: Sw 00 01 01 01 00 00 00 01 00 00 - 00 03 PREAMP COMMON SETTING #2: Ch.Mode Si Bui Vn 03 : Dynamic 00 01 01 02 00 00 00 01 00 00 - 00 01 PREAMP COMMONSETTING #2:Ch.Select ) : Ch 1:Ch 00 00 01 00 00 64 PREAMP COMMON SETTING #2:Dyna.Sens PREAMP COMMON SETTING #2:Ch.DlyTim 00 - 64 : 0ms - 100ms 00 01 01 10 00 00 00 01 00 00 00 - 00 00 28 PREAMP A #2:Gain PREAMP A #2:Type 0- 100 00 00 00 0 - 120 * Refer to Table 'AMP TYPE\" 00 00 01 01 00 01 01 00 88 00 01 00 - 64 PREAMP A #2:Middle PREAMP A #2:Bass 0 - 100 00 01 14 01 15 00 00 00 00 00 00 00 - 00 00 PREAMP A #2:Presence PREAMP A #2:Treble 0 - 100 0 - 100 64 PREAMP A #2:Bright PKEAMP A #L:LeveL 0 - 100 0 - 100 00 01 01 17 00 00 00 01 00 00 00 01 00 : Off 01 : On 00 01 01 18 00 00 00 01 00 00 - 00 02 PREAMP A #2:Gain Sw 00 : Low 02 : Highle 00 01 01 19 00 00 00 01 00 00 - 00 01 PREAMP A #2:Solo Sw 00: onf 00 00 01 01 01 01 00 00 00 00 00 01 00 01 00 00 00 - 00 64 00 00 09 PREAMP A #2:SoloLevel SPEAKER A #2:SP Type • Refer to Table \"SP TYPE\" 00 01 01 00 00 00 00 - SPEAKER A #2:Mic Type * Refer to Table \"MIC TYPE' 00 01 SPEAKER A #2:Mic Dis. 0 : Off Mic 1 : On Mic 00 01 01 1E 00 00 00 01 00 00 - 00 0A SPEAKER A #2:Mic Pos. 0: Center 1 - OA : 1 - 1 0 - 100 0 - 100 00 00 - 00 06 00 : JC Clean 01 : TW Clean",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_031",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 31,
+      "pageEnd": 31,
+      "language": "en",
+      "body": "31 00 01 01 22 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING A #2:Bottom 00 : -50 01 : -40 00 01 01 23 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING A #2:Edge 30:-50 DÀ : +50 00 01 01 24 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING A #2:Bass Freq DA : +50 00 01 01 25 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING A #2:Tre Freq 00 : -50 01 :-40 BÀ : +50 00 01 01 26 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING A #2:PreampLow 00 OA : +50 00 01 01 27 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTINGA#2:PreampHi 1: -4 OA: +50 00 01 01 28 00 00 00 01 00 00 - 00 OA SPEAKER CUSTOM SPEAKER SETTING A #2:SP Size ... 10\" 898 00 01 01 29 00 00 00 01 00 01 01 2B 00 01 01 <A 00 00 00 01 00 01 00 00 - 00 14 SPEAKER CUSTOM SPEAKER SETTING A #2:Color Low 00 - 14 : -10 - +10 00 00 - 00 03 00 00 - 00 14 SPEAKER CUSTOM SPEAKER SETTING A #2:SP Number SPEAKER CUSTOM SPEAKER SETTING A #2:ColorHigh 00 - 14 : -10 - +10 00 : x 01 : x2 03 . Xö 02 : x4 00 01 01 2C 00 00 00 01 00 00 - 00 01 SPEAKER CUSTOM SPEAKER SETTING A #2:Cabinet 82:CoSe 00 00 01 01 01 01 30 00 01 01 31 00 00 88 00 01 00 01 01 32 01 00 00 00 - 00 28 00 - 00 64 00 00 78 PREAMP B #2:Gain PREAMP B #2:Type * Refer to Table 'AMP TYPE' PREAMP B #2:Middle PREAMP B #2:Bass 0 - 120 33 00 00 00 01 00 00 00 - 00 64 00 64 PREAMP B #2:Treble 0 - 100 00 00 01 01 00 01 01 00 00 00 00 01 01 37 00 00 00 00 00 00 - 00 64 00 00 - 00 - 00 00 64 PREAMP B #2:Level PREAMP B #2:Presence Ø - 100 00 01 01 PREAMP B#2:Bright 00 : Off 01 : On 00 01 01 38 00 00 00 01 00 00 - 00 02 PREAMP B #2:Gain Sw 01 : Middle 00 : Low 02 : High 00 01 01 39 00 00 00 01 00 00 - 00 01 PREAMP B #2:Solo Sw 00 : Off 01 : Or 00 01 01 3А 00 01 01 00 01 01 00 00 00 01 00 00 00 00 - 00 64 00 00 - 00 09 PREAMP B #2:SoloLevel 00 01 SPEAKER B #2:Mic Type SPEAKER B #2:SP Type 0 - 100 00 Ø1 01 30 00 00 01 01 00 - 00 04 * Refer to Table 'SP TYPE\" SPEAKER B #2:Mic Dis. * Refer to Table 'MIC TYPE' 00 00 - 00 01 01 : On Mic 00 : Off Mic 00 01 01 3E 00 00 00 01 00 00 - 00 0A SPEAKER B #2:Mic Pos. 00 01 01 3F 0 01 01 4. 00 01 01 40 00 00 00 01 00 00 - 00 64 SPEAKER B #2:Mic Level 0 00 00 0: 0 00 00 0: 00 00 - 00 00 0 00 - 00 6- PREAMP CUSTOM AMP SETTING B #2: Type SPEAKER B #2:DirectLev 00 01 01 42 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING B #2:Bottom 00 01 01 43 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING B #2:Edge 00 : -50 01 : -40 00 01 01 44 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING B #2:Bass Frea 1: -40 DÀ: +50 00 01 01 45 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING B #2:Tre Freq 30 : -5 31 : -40 OÀ : +50 00 01 01 46 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING B#2:PreampLow 01 : -40 00 : -50 DÀ : +50 00 01 01 47 00 00 00 01 00 00 - 00 OAPREAMP CUSTOM AMPSETTINGB#2:Preamp Hi",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_032",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 32,
+      "pageEnd": 32,
+      "language": "en",
+      "body": "32 ØA : +50 00 01 01 48 00 00 00 01 00 00 - 00 0A SPEAKER CUSTOM SPEAKER SETTING B #2:SP Size 05 :10 07 : 12 6 : 11 09 : 14 08:13\" 0A : 15\" 00 01 01 49 00 01 01 4A 10 00 00 0: 10 00 00 01 00 00 - 00 14 0 00 - 00 14 00 01 01 4B 00 00 00 01 00 00 - 00 03 SPEAKER CUSTOM SPEAKER SETTING B #2:SP Number 82 : x2 02 : x4 03 : x8 00 01 01 4C 00 00 00 01 00 00 - 00 01 SPEAKER CUSTOM SPEAKER SETTING B #2:Cabinet o1 : Ciose 00 01 02 00 00 00 00 01 00 00 - 00 01 PREAMP #3:Sw 80:OFF 00 01 02 01 00 00 00 01 00 00 - 00 03 PREAMP COMMON SETTING #3: Ch.Mode 00 01 02 02 00 00 00 01 00 00 - 00 01 PREAMP COMMON SETTING #3:Ch.Select 80 : Ch.B 00 01 02 03 00 00 00 01 00 00 - 00 64 00 00 - 00 64 PREAMP COMMON SETTING #3:Ch.DLyTim 00 00 - 00 28 PREAMP COMMON SETTING #3:Dyna.Sens 0 - 100 30 - 64 : 0ms - 100ms 0 01 02 0 00 PREAMP A #3: Type 00 00 64 PREAMP A #3:Bass PREAMP A #3:Gain * Refer to Table 'AMP TYPE' 12 00 88 00 01 0- 120 0 - 100 00 00 01 00 88 00 01 00 01 00 00 00 64 PREAMP A #3:Treble PREAMP A #3:Midale 0 - 100 0 - 100 00 00 00 00 00 PREAMP A #3:Level PREAMP A #3:Presence 0 - 100 00 01 02 01 02 00 00 00 00 00 00 01 00 00 - 00 01 PREAMP A #3:Bright 0 - 100 00 01 02 18 00 00 00 01 00 00 - 00 02 PREAMP A #3:Gain Sw 01 : Midale 02 : High 00 01 02 19 00 00 00 01 00 00 - 00 01 PREAMP A #3:Solo Sw 1 : d 0 : Of 00 00 01 02 1A 01 02 1B 00 00 00 00 01 00 01 02 1D 1C 00 00 00 01 00 00 00 - 00 64 00 - 00 09 PREAMP A #3:SoloLevel SPEAKER A #3:SP Type 00 00 00 01 0000 - 00 01 SPEAKER A #3:Mic Type SPEAKER A #3:Mic Dis. 01 : On Mic 00 01 02 1E 00 00 00 01 00 00 - 00 0A SPEAKER A #3:Mic Pos. 00: Center 01 - OA : 1 - 10 00 01 02 1F 00 01 02 00 01 02 20 00 00 00 01 21 00 00 00 01 00 00 00 - 00 64 00 - 00 SPEAKER A #3:Mic Level SPEAKER A #3:DirectLev 0 - 100 ø - 100 01 PREAMP CUSTOM AMP SETTING A #3:Type : JC C 02 : Crunch : TW C1 03 : VO Drive S i otrn Stx 00 01 02 22 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING A #3:Bottom 01 :-40 00 : -50 OA : +50 00 01 02 23 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING A #3:Edge 00 : -50 01 :-40 00 01 02 24 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING A #3:Bass Frea 00 01 02 25 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING A #3:Tre Freq 00 01 02 26 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING A #3:PreampLow 00 01 02 27 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING A #3:Preamp Hi 00 01 02 28 00 00 00 01 00 00 - 00 0A SPEAKER CUSTOM SPEAKER SETTING A #3:SP Size 00 : 5' BЗEREEBRR 00 01 02 29 00 00 00 01 00 01 02 2B 00 01 02 2A 00 00 00 01 00 00 00 01 00 00 - 00 14 01 : x2 02 : x4 AN 03 : x8",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_033",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 33,
+      "pageEnd": 33,
+      "language": "en",
+      "body": "33 00 01 02 2C 00 00 00 01 SPEAKER CUSTOM SPEAKER SETTING A #3:Cabinet 00 : Open 1 : Close 00 Ø1 02 30 00 00 00 00 01 00 00 00 - 00 28 00 - 00 PREAMP B #3:Type PREAMP B #3:Gain 0 - 120 * Refer to Table 'AMP TYPE' 88 00 88 00 88 00 00 01 00 00 00 - 00 00 - 00 00 00 00 01 00 00 00 64 PREAMP B #3:Middle PREAMP B #3:Bass 0 - 100 00 64 PREAMP B #3:Presence PREAMP B #3:Treble 0 - 100 0 - 100 00 00 00 00 01 00 00 00 00 00 01 PREAMP B #3:Bright PKEAMP B #3:LeveL 0- 100 0 - 100 00 01 37 01 : On 00 : Off 00 01 02 38 00 00 - 00 02 PREAMP B #3:Gain Sw 00 : Low 1 : Middle 2 : High 00 01 02 39 00 00 00 01 00 00 - 00 01 PREAMP B #3:Solo Sw 01 : On 00 : Off 00 01 02 3В 00 88 00 01 00 00 - 00 64 00 - 00 09 PREAMP B #3:SoloLevel SPEAKER B #3:SP Type • Refer to Table 'SP TYPE 00 01 02 3D 00 00 00 01 00 00 - 1 00 01 SPEAKER B #3:Mic Type * Refer to Table 'MIC TYPE SPEAKER B #3:Mic Dis. 00: Off Mic 01 : On Mic 00 01 02 3E 00 00 00 01 00 00 - 00 0A SPEAKER B #3:Mic Pos. 1 - 0A : 1 - 1 0: Cente 00 00 Ø1 02 41 01 02 40 00 00 00 00 00 00 01 01 SPEAKER B #3:Mic Level 00 00 - 00 06 PREAMP CUSTOM AMP SETTING B #3:Type SPEAKER B #3:DirectLev -10 88 01 : TW Clean 00 : JC Clean 03 : VODrive 02 : Crunch 00 01 02 42 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING B #3:Bottom 00 01 02 43 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING B #3:Edge 00 01 02 44 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING B #3:Bass Freq DÀ : +50 00 01 02 45 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING B #3:Tre Freq 00 : -50 01 : -40 00 01 02 46 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING B #3:PreampLow 00 : -5 91: -40 00 01 02 47 00 00 00 01 00 00 - 00 0A PREAMP CUSTOM AMP SETTING B #3:Preamp Hi 01 :-40 00 : -50 00 01 02 48 00 00 00 01 00 00 - 00 0A SPEAKER CUSTOM SPEAKER SETTING B #3:SP Size 00 01 02 4A 00 01 02 49 00 00 00 01 00 00 00 01 00 00 - 00 14 00 00 - 00 14 00 01 02 4B 00 00 00 01 00 00 - 00 03 00 01 02 4C 00 00 00 01 00 00 - 00 01 SPEAKER CUSTOM SPEAKER SETTING B #3:Cabinet 82 : Ciose Table 'MIDI' Address(H) Size(H) Data(H) Parameter Description 00 00 00 00 00 00 00 01 00 00 - 00 01 MIDI SETTING:Omni Mode :Omni :Omni 00 00 00 01 00 00 00 01 00 01 - 00 10 00 00 - 00 10 MIDI SETTING:Rx Channel 00 00 00 02 00 00 00 01 MIDI SETTING:Tx Channel 1 - 16 L0 : Rx 30 - ØF : 1 - 16 00 00 00 04 00 00 00 01 00 00 - 00 01 MIDI SETTING:Sync Clock 81:Anternal 00 00 00 05 00 00 00 01 0000 - 00 01 MIDI SETTING:PC Out 20 : orf 00 00 00 06 00 00 00 01 00 00 - 00 3F MIDI SETTING:EXP1 Out 00 00 00 07 00 00 00 01 00 00 - 00 3F MIDI SETTING:EXP Sw Out 00 00 00 08 00 00 00 01 00 00 - 00 3F MIDI SETTING:CTL1 Out e0 : off 20- 3F: (CF6 - ((235 00 00 00 09 00 00 00 01 00 00 - 00 3F MIDI SETTING:CTL2 Out 00 : Off",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_034",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 34,
+      "pageEnd": 34,
+      "language": "en",
+      "body": "34 20 - 3F : (C2 - ((835 00 00 00 0A 00 00 00 01 00 00 - 00 3F MIDI SETTING:EXP2 Out 00 : Off 20 -3F: (CH64 - CC#35 00 00 00 08 00 00 00 01 00 00 - 00 3F MIDI SETTING:CTL3 Out 00 00 00 0C 00 00 00 01 00 00 - 00 3F MIDI SETTING:CTL4 Out 00 : Off 22 - 3F : CC+64 - CC·3 00 00 00 0D 00 00 00 01 00 00 - 00 01 MIDI SETTING:Map Select Ø1 : Prog 00 : Fix 00 00 01 01 00 02 00 02 00 00 - 03 OF 02 00 00 00 00 03 OF MIDI PROGRAM MAP:Bank 0:PC# 00 00 01 06 00 00 00 02 88 00 PRKRANI MAP•Kank 00 00 00 01 00 00 00 888 00 MIDI PROGRAM MAP:Bank MAP•Kank PC# 88 MIDI PROGRAM MAP:Bank PROGRAM 0:PC# vOnAWNH 00 00 00 00 00 00 00 MIDI PROGRAM MAP:Bank 0:PC# :PC# 00 00 01 00 00 01 01 14 12 00 00 00 88 MIDI MIDI PROGRAM ( MAP:Bank B:PCH 00 00 00 02 02 00 00 00 00 - MIDI PROGRAM MAP:Bank MAP:Bank MIDI PROGRAM 0:PC# 10 00 00 00 00 00 00 00 00 999999999 MIDI PROGRAM MAP:Bank MAP:Bank 0:PC# 11 00 00 02 MIDI PRKRANI PROGRAM MAP•Kank MAP:Bank 0:PC# 13 00 00 00 00 00 00 00 00 00 00 00 00 - 00 MIDI MIDI PROGRAM MAP:Bank 0:PC# 00 00 MIDI PROGRAM MAP :Bank PROGRAM MAP:Bank 0:PC# 00 00 00 00 00 88 MAP:Bank 0:PC# 00 00 888 88 88888 P:Bank 388888 99099 8888888888889989 8888888888 пииши шиишиШИ П.................!...................... ...................•.•.•••!••••!••!!!!!!!!!!!!!!!!!!!!!!!! 9 1999999999999999999999999999999 8888888888888888888888888888888 999999999999999999999999999999999999999999999999999999999999999999999999999999999999 пілйнинни нлнииннннй KA 888888 @RRRRRg 888888888 8888888888888888888888888888888888888888888888888888 888888888888 8888888888888 88888888888888 8888 8888",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_035",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 35,
+      "pageEnd": 35,
+      "language": "en",
+      "body": "8888888 888888 88888888 PC#1 8888888888888888888888888 8888888888888888888888888888888888888888 :8888888888888888888888888888888888888888 8888888888888888888888888888888888888888888 88888888888 88888 1 99494494444448889488888888888888888888888888888888888888888888888889998889998898889998889998899998888889988889998898989998 пиии................................................. н..•.••••••••••••••••• 888888888888888888888888888888888888888888888888888 88888888 888888 88888 888888 888888888888888888888888888888888888888888888888 88 :888888888 88888888888888888888888888888888888888888888888888 888888888 8888888888888 888888888} 888888888888888 88888888888888g 8888888 8888 8888",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_036",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 36,
+      "pageEnd": 36,
+      "language": "en",
+      "body": "8888888 8888888888 888888888 80088888₫9889999 888888888888888888888888888888888888888 8888888888888888888888888888888888888888 88888888888888888888888888888888888888888 8888888888888888888888888888888888888888 888888881 888888888 8888888 тлнншн и нинниинилини 8881 99494494444448889488888888888888888888888888888888888888888888888889998889998898889998889998899998888889988889998898989998 пиии...................................................... н..•.••••••••••••••••• ,KA RAM 8888888888888888888888888888888888888888888888888888881 :88888888888888888888888888888888888888888888888888888888 нини нл шииннин нинииншй 888888 888888 8888 88888 888888888888888888888888888888888 88888 88 888888888888888 888888888888 8888888888888 888888888888888 888888888888888 888888 8888 8888",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_037",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 37,
+      "pageEnd": 37,
+      "language": "en",
+      "body": "8888888 888888 88888888 :Bank 888888888888888888888888888888888888888 888888888888888888888888888888888888888 999888888888888888888888888888888888888 Bank 8888888888888888888888888888888888888888 :8888888888888888888888888888888888888888 P:Bank :Bank :Bank 88888881 88888889 8888888 wwww 99494494444448889488888888888888888888888888888888888888888888888889998889998898889998889998899998888889988889998898989998 пиии................................................ н..•.••••••••••••••••• 888888 88888 ,8888 888888888888888888888888888888888888888888 888888888888888888888888888888888888888888888888: GRAI *0******ш______ 88888 88888888888888888888888888888888888888888 888888888 8888888888888 888888888888888 88888888888888g 8888888 8888 8888",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_038",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 38,
+      "pageEnd": 38,
+      "language": "en",
+      "body": "8888888 3888888888 88888888 80088888₫9889999 8888888888888888888888888888888888888888 88888888888888 88888888888888888888888888888888888888 ПЛПНННННПНИТННИЙ 888888888888888888888888888888888888888888 999999999999999999999999999999999999999999 «!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 88888888881 888888888 88888888 :88 PRKARAN MAP:Bank 88 88 00 02 88 MEDI PROGRAM PROGRAM MAP:Bank MAP:Bank Table 'BPM NOTE TABLES Data(H) Description Triplet 16th note LoTTpanrre of 8th note 8th note Dotted 8th note of quarter note ulerter Triplet MoTe of half note BBB33 Dotted Quarter Half note Dotted halt note Triplet of whole note Whole note Table 'BPM NOTE2' Data(H) Description Dotted half note Whole note Holt Triplet of whole note Dotted Quarter note •xvouAw Trinlet of half note Quarter 8th Triplet of quarter note Dotted 8th note 333ВВ3В ₺t‡ Dotted 16th note 16th note Triplet of 8th note Table 'ASSIGN TARGET' Data(H) Description COMP: On/Off Sustain Attack Threshold one Release Level tom Sw ectLev Level 88888 PKCAMPUN/UTT ectLev PREAMP:Ch. PKCAMP unsetect Mode PREAMP:Dyna.Sens PREAMP:ChDlyTime PREAMP:A:Type VKRAMPKS PREAMP:A: Gain YKRACAA PREAMP:A:Middle PREAMP:A:Presence PREAMP :A:Bright PKCAMPA Level PREAMP:A:Gain Sw PREAMP:A:Solo Sw PREAMP:A:Solo Lev PREAMP:A:SP Type PREAMP:A:Mic Type",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_039",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 39,
+      "pageEnd": 39,
+      "language": "en",
+      "body": "39 : Туре :B:Bass .D.IeoLE :B:Presence :B:Level Max Min 88888888888888888888989889888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888 ЖШИШИА ............ Kpase :PEQ: Level V:TVDE :TM:High 4: Low : TM: Level 4: Resonance .LOW dy Time : EffectLev •Kesonance :DF:Directlev :Cutoff :Wave :Resonance :Flt.Decay Sens :Synth Lev :Flt.Depth sens :DirectLev :Chromatic kate Shift Depth",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_040",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 40,
+      "pageEnd": 40,
+      "language": "en",
+      "body": "40 Deptl lecay ocity Lev зòòЭбòЭбòЭĚňñĚňňĞ8ºº*ëë¢аëëüë#·*#·*#·*9***009990999ceëëë∞ë*E®#E$aadăaaăa₴₴EE₴EE₴eee©e2@2233Зą &žžžĚžžŽŽŽŽŽŽŽŽŽĚŽŽŽŽŽŽŽŽŽŽŽĚŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽžŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽŽ : Sepa :Directler :EffectLev :Rate :WaveShape :SpeedSel. :Depth Rate Fast :Depth : Level уре :WaveShape :PAN:Depth ALarautern :Trig.Sens :Rate :Trigger :Depth KMMOOH :Rise Time . км. сттессLеv :Frequency",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_041",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 41,
+      "pageEnd": 41,
+      "language": "en",
+      "body": "41 olariti зßß8§88§88§8ŻẺŻ2ŻЕĞầằẳằ4·Ÿ·ỶŸ\\LLLLLĘŒŒПË?ğë§ëëŘẵẵẵãẵẵãĞЭЭËl SG: Sens Rise Time :DF:Sens :DF:Depth FX2:DF:EffectLev :DF:Resonance :DF:DirectLev : WSY:Cutoff Y:lave rxcnaikesononce rcrvecav : WSY:Flt.Sens FX2:WSY:Synth Lev FX2:WSY:Flt.Depth :WSY:DirectLev GSY: Sens :GSY: Wave racstiUct.snty GSY:Chromatic rac.ust:Pwm vepcr GSY: PWM Rate Gkesononce GSY: Cutoff FX2:GSY:Flt.Decay : GSY:Flt.Sens : GSY: Attack :GSY:Flt.Depth FXZ: GSY:Velocity FX2: GSY:Release rcbuurecaLev GSY:Synth Lev FX2:STR: Sens : STR: Tone FX2: STR: Resonance X2: STR:Depth FX2:STR: EffectLev :STR:Buzz",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_042",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 42,
+      "pageEnd": 42,
+      "language": "en",
+      "body": "42 ICE Cut th :PAN:Depth : SL:Pattern :Trig.Sens :Mode Time : RM: Frequency rectlev pth Cut",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_043",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 43,
+      "pageEnd": 43,
+      "language": "en",
+      "body": "43 Time Cut :WarpRiseT . Depth Rate Dep Cut Cut TAP:Delay Tap PATCH:Num. 20 PAMBank PATCH:Bank ved Inc. Table 'MANUAL PEDAL Data(H) Description 00 : Off Ch.A/B UU Solo Comp A&B Sol Preamp OD/DS Chorus Delay Kevert S/R FX Amp Tuner Ctl PL PL R/P",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_044",
+      "documentId": "midi_implementation",
+      "title": "Parameter Address Map",
+      "section": "Parameter Address Map",
+      "pageStart": 44,
+      "pageEnd": 44,
+      "language": "en",
+      "body": "44 •.•• PL Clr PL M/P Bpy Tar MIDI Dly 1 Lev+10 MMC Ply Lev+20 Lev-20 Lev-10 Dec Inc Inc Bnk Dec Table 'HIGH FREQ' Data(H) Description 00 : 100Hz 01: 740Kня 1.00kHz 2.00kHz :6.00kHz 4.00kHz :11.0kHz :8.00kHz 09 : Flat Table 'LOW FREQ' Data(H) Description 110Hz 165Hz 280Hz SWOnz 400Hz 800Hz 630Hz Table 'MID FREQ' Data(H) Description 00 : 25.0Hz 20.0Hz 40.0Hz 31.5Hz 50.0Hz 88.0нZ 125Hz 200Hz 400Hz 315Hz 500Hz 630Hz 1.00kHz 1.60kHz :3.15kHz 2.50kHz :: 5.00kHz :4.00kHz :6.30kHz 8.00kHz Table 'MID Q' Data(H) Description 00 : 0.5 05 16 Table 'FX TYPE' Data(H) Descriotior 00 : T.WAH AUTO WAH ADV. COMP SUB WAH LIMITER GRAPHIC EQ TONE MODIFY PARA EQ SLOW GEAR GUITAR SIM. DEFRETTER NAVE SYNTH SITAR SIM. PITCH SHIFTER AUTO RIFF MAKOUNI SOUND HOLD AC. PROCESSOR ANT-PH-UKALKI FEEDBACKER PHASER",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_045",
+      "documentId": "midi_implementation",
+      "title": "Supplementary Tables",
+      "section": "Supplementary Tables",
+      "pageStart": 45,
+      "pageEnd": 45,
+      "language": "en",
+      "body": "45 KUAKY TREMOLO UNI-V : VIBRATO SLICER :HUMANIZER RING MOD. 20 : SUB DELAY 2X2 CHORUS \"PATCH NUM' Description 00 00 03 U01-1 U02-1 48 - 01 4B : P01-1 - P01-4 U50-4 : P02-1 - P02-4 03 0F P50-1 P50-4 'AMP TYPE Description 01 00 : BOSS Clean 02 :Jazz Combo IC-120 •CLean TWIN Full Range Pro Crunch Tweed DELUX Crnch SS Crunch Blues Id Crunch Drive Clean Lead TCH Drive Lead Drive I+II in Cln Clean Crnch SL Lead Stack .DN Heavy Lead 5150 Metal letal Lead Drive Custom Edge Lead Through Table 'ASSIGN INT PDL TRIG' Data(H) Description : Patch Change 29 : CC#64 - CC#95 CC# 1 - CC#31 Data(H) Description 00 : EXP1 PEDAL CTL1 CTL2 PEDAL PEDAL PEDAL PEDAL PEDAL MAVEPCJAL INTERNAL PDL DA - INPUT LEVEL 29 48 : CC#64 - CC#95 Table 'PDL FX TYPE' Data(H) Description 00 : Off OD Solo A/B Solo A&B Solo CO/DS Preamp",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_046",
+      "documentId": "midi_implementation",
+      "title": "Supplementary Tables",
+      "section": "Supplementary Tables",
+      "pageStart": 46,
+      "pageEnd": 46,
+      "language": "en",
+      "body": "46 FX-2 Chorus Delay Reverb Pedal FX Send/Return Tuner Amp Ctl Manual PL Rec/Play BPM Tap PL Mute/Ply DEbi Stap Play Start +10 +20 LED Moment Bank LED Toggle Table '2x2 CHORUS XOVER FREQ' Data(H) Description 100Hz 125H2 ........ 59988888898888888 500Hz 800Hz 630Hz 1.00kHz 25kHz 50kHz 00kHz 4.UKH Table 'HARMONY' Data(H) Description -2oct abebüşsiüm Unison +14th 10 User +2oci oheMi-kRA Data(H) Description 00 1.2:1 1.4:1 1.8:1 1.6:1 ..... 2:1 2.3:1 2.6:1 ...... 3.5:1 5:1 ........ 8:1 12:1 :1 20:1 00.- Table 'MIC TYPE' Data(H) Description 01 : DYN421 00 : DYN57 02 : CND451 03 : CND87",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_047",
+      "documentId": "midi_implementation",
+      "title": "Supplementary Tables",
+      "section": "Supplementary Tables",
+      "pageStart": 47,
+      "pageEnd": 47,
+      "language": "en",
+      "body": "47 04 : FLAT Table 'OD/DS TYPE' Data(H) Description 00 : Mid Boost : Clean Boost : Treble Bst Crunch Blues OD Natural OD T-Scream Distortion Warm OD Mild DS/ Mid DS DST+ GUV DS Modern DS Stack Solid Ds Metal Zone LUUU Oct FUZZ '60s FUZZ 19 : MUFF FUZZ Custom Table 'SP TYPE' Data(H) Description 00 : Off ozOriginal 02 1x10' : 2x12' 1x12\" 4x10\" 8x12\" 4x12\" Custom Table 'CHAIN' Data(H) Description 01 : 00 : COMPRESSOR 02 OVERDRIVE/DISTORTION PREAMP A EQUALIZER PREAMPB FX-2 08 KrVTKK CHORUS OA : FOOT VOLUME PEDAL NOISE SUPPRESSOR1 NOISE SUPPRESSORZ OF : DIGITAL : SEND/KEIUKN SFPARALUK OUT To assign an effect for channel B, place a value of 40H greater than the Data value between the SEPARATOR and MIXER. 11 : MIXER Table \"KNOB SETTING Data(H) Description 00: CUMP:SUSIN",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    },
+    {
+      "id": "midi_page_048",
+      "documentId": "midi_implementation",
+      "title": "Supplementary Tables",
+      "section": "Supplementary Tables",
+      "pageStart": 48,
+      "pageEnd": 48,
+      "language": "en",
+      "body": "48 2A : DELAY : D2LEY :: CHORS:RATE 20: CHORS:P DLY 2E : CHORS:E LEV CHORS:P DLY : REVRB:H CUT REVRB: TIME REVRB:E LEV 33 MST:LOW : MST:HIGH 36 35 : PAlCHiLEVEl PEDAL: WAH E 39 :SR:R LEV SR:S LEV NS1: THRES 3C NS2: THRES NS1:RELE NS2:RELE 40 : GBEQ:HIGH GBEQ:MID Table \"NAME' Data(H) Description Data(H) Data(H) iption 21 : 20 : (space) 40 : 60 ..•. * ** <∞UOWLVIHAX|IZ020Kn>>**>N41M< DUDLOEANXECORGLNND>IXINW-M",
+      "answerEn": "",
+      "answerPtBr": "",
+      "aliases": [
+        "midi implementation",
+        "midi protocol"
+      ],
+      "relatedTopics": [
+        "midi"
+      ],
+      "relatedBlocks": [],
+      "sourceKind": "OfficialDocumentation",
+      "claims": {}
+    }
+  ]
+}

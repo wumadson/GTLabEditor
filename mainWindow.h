@@ -40,7 +40,7 @@ class QSplitter;
 namespace Ai {
 class AssistantPanel;
 class AssistantSession;
-class MockAIProvider;
+class LocalGT10Provider;
 }
 
 //class mainWindow : public QWidget
@@ -144,7 +144,7 @@ private:
         QSplitter *assistantSplitter;
         Ai::AssistantPanel *assistantPanel;
         Ai::AssistantSession *assistantSession;
-        Ai::MockAIProvider *assistantProvider;
+        Ai::LocalGT10Provider *assistantProvider;
         int assistantPanelWidth = 340;
 };
 

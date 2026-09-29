@@ -221,6 +221,23 @@ Midi MidiTable::getMidiMap(QString root, QString hex1, QString hex2, QString hex
 	return level5; 
 };
 
+bool MidiTable::lookup(QString rootName, const QStringList &path,
+                       Midi *result) const
+{
+	if (!result || !midiMap.id.contains(rootName))
+		return false;
+	Midi current = midiMap.level.at(midiMap.id.indexOf(rootName));
+	for (const QString &part : path)
+	{
+		const int index = current.id.indexOf(part);
+		if (index < 0 || index >= current.level.size())
+			return false;
+		current = current.level.at(index);
+	}
+	*result = current;
+	return true;
+};
+
 int MidiTable::getRange(QString root, QString hex1, QString hex2, QString hex3)
 {
 	Midi range;

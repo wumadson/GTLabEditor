@@ -39,7 +39,7 @@ AssistantPanel::AssistantPanel(AssistantSession *session, QWidget *parent)
     titleColumn->setSpacing(2);
     auto *title = new QLabel(tr("GT LAB ASSISTANT"), header);
     title->setObjectName(QStringLiteral("AssistantTitle"));
-    providerNameLabel = new QLabel(tr("Local Test · Offline · No account required"),
+    providerNameLabel = new QLabel(tr("Local GT-10 · Offline · No account required"),
                                    header);
     providerNameLabel->setObjectName(QStringLiteral("AssistantProvider"));
     providerNameLabel->setWordWrap(true);

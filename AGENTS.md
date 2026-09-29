@@ -367,6 +367,27 @@ no fabricated GT-10 data. Their backend bindings are deferred until separately
 validated. Existing effect controls remain connected through `modernFloorBoard`
 to the proven `SysxIO` and `MidiTable` paths.
 
+The GT Lab Assistant now has a read-only local GT-10 knowledge foundation:
+
+- `GT10CapabilityService` adapts `MidiTable`/`midi.xml` and the existing patch
+  catalogs instead of maintaining a second protocol database;
+- `LocalKnowledgeEngine` provides deterministic pt-BR/English capability,
+  Assign, controller, expression, routing and current-patch answers;
+- `LocalGT10Provider` connects that engine to `AssistantSession` without
+  network, authentication, patch mutation, MIDI/SysEx or hardware reads;
+- unknown information is reported as unknown rather than inferred as fact;
+- `LocalDocumentationIndex` provides deterministic offline indexing,
+  bilingual lookup, source traceability and explicit conflict handling;
+- the approved BOSS GT-10 Owner's Manual, Preset Patch List and MIDI
+  Implementation are stored under `docs/official/boss_gt10/`, with verified
+  hashes in `manifest.json`;
+- runtime loads versioned page-aware JSON indexes from Qt resources and never
+  reparses PDFs or consults source-tree paths. The Patch List remains an
+  `OfficialPatchReference`, and pt-BR summaries derived from the English
+  documents remain explicitly `DerivedFromOfficialDocumentation`;
+- the GT Lab backend/MidiTable remains authoritative over structural facts and
+  address behavior if documentation conflicts with implemented truth.
+
 The connection label must reflect `SysxIO::isConnected()`. Do not hardcode a fake connected state.
 
 ## Current backend integration strategy

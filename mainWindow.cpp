@@ -105,7 +105,7 @@ struct WindowsEraseFunctions
 #include "ai/AIContextBuilder.h"
 #include "ai/AssistantPanel.h"
 #include "ai/AssistantSession.h"
-#include "ai/MockAIProvider.h"
+#include "ai/LocalGT10Provider.h"
 
 #ifdef Q_OS_WIN
 namespace {
@@ -560,7 +560,7 @@ void mainWindow::createStatusBar()
 
 void mainWindow::createAssistantWorkspace()
 {
-    assistantProvider = new Ai::MockAIProvider(this);
+    assistantProvider = new Ai::LocalGT10Provider(this);
     assistantSession = new Ai::AssistantSession(this);
     const QString editorLanguage = Preferences::Instance()->getPreferences(
         "Language", "Locale", "select");

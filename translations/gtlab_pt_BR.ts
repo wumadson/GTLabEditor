@@ -11,8 +11,8 @@
     </message>
     <message>
         <location filename="../ai/AssistantPanel.cpp" line="41"/>
-        <source>Local Test · Offline · No account required</source>
-        <translation>Local Test · Offline · Nenhuma conta necessária</translation>
+        <source>Local GT-10 · Offline · No account required</source>
+        <translation>Local GT-10 · Offline · Nenhuma conta necessária</translation>
     </message>
     <message>
         <location filename="../ai/AssistantPanel.cpp" line="49"/>
@@ -80,6 +80,19 @@
         <location filename="../ai/AssistantPanel.cpp" line="243"/>
         <source>STATUS</source>
         <translation>STATUS</translation>
+    </message>
+</context>
+<context>
+    <name>Ai::LocalGT10Provider</name>
+    <message>
+        <location filename="../ai/LocalGT10Provider.cpp" line="20"/>
+        <source>Local GT-10</source>
+        <translation>Local GT-10</translation>
+    </message>
+    <message>
+        <location filename="../ai/LocalGT10Provider.cpp" line="36"/>
+        <source>Local GT-10 is already handling a request.</source>
+        <translation>O Local GT-10 já está processando uma solicitação.</translation>
     </message>
 </context>
 <context>
