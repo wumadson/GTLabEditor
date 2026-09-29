@@ -2,6 +2,7 @@
 #define AI_LOCALGT10PROVIDER_H
 
 #include "ai/AIProvider.h"
+#include "ai/AssistantFeatureRegistry.h"
 #include "ai/knowledge/LocalKnowledgeEngine.h"
 #include "ai/knowledge/QuestionIntentRouter.h"
 #include "ai/tone/ToneConversationReasoner.h"
@@ -31,6 +32,7 @@ private slots:
 
 private:
     Knowledge::LocalKnowledgeEngine engine;
+    AssistantFeatureRegistry featureRegistry;
     Knowledge::QuestionIntentRouter questionRouter;
     Tone::ToneConversationReasoner toneConversationReasoner;
     Tone::ContextualParameterAssessment parameterAssessment;

@@ -580,6 +580,25 @@ QuestionRoutingResult QuestionIntentRouter::route(
         result.confidence = QString::fromLatin1(confidence);
     };
 
+    const bool assistantDiscovery = !any(text, {"gt 10", "gt10"})
+        && any(text, {
+            "o que voce pode fazer", "o que voce sabe fazer",
+            "como voce pode me ajudar", "que tipo de pergunta posso fazer",
+            "quais perguntas posso fazer", "o que eu posso perguntar",
+            "quais coisas voce consegue responder",
+            "me explique o que voce faz",
+            "me ajuda a entender o que posso perguntar",
+            "what can you do", "how can you help me", "what can i ask",
+            "what kinds of questions can i ask",
+            "what do you know how to do", "what can you help with"
+        });
+    if (assistantDiscovery) {
+        set(QuestionIntent::CapabilityDiscovery,
+            QuestionDestination::Knowledge,
+            "assistant_capability_discovery");
+        return result;
+    }
+
     const bool assessmentCue = any(text, {
         "faz sentido", "esta bom", "esta legal", "e muito", "e pouco",
         "esta alto", "esta baixo", "esta exagerado", "esta fraco",
@@ -747,6 +766,7 @@ QuestionRoutingResult QuestionIntentRouter::route(
         return result;
     }
     if (any(text, {"possui", "tem ", "does it have", "does the gt 10",
+                   "o que a gt 10 pode fazer", "what can the gt 10 do",
                    "quais efeitos", "quais reverbs", "what effects",
                    "what reverbs", "quantos assigns"})) {
         set(QuestionIntent::Capability, QuestionDestination::Knowledge,
@@ -769,6 +789,7 @@ QString QuestionIntentRouter::intentName(QuestionIntent intent)
     case QuestionIntent::ExplainParameter: return "EXPLAIN_PARAMETER";
     case QuestionIntent::ListEffectTypes: return "LIST_EFFECT_TYPES";
     case QuestionIntent::HowTo: return "HOW_TO";
+    case QuestionIntent::CapabilityDiscovery: return "CAPABILITY_DISCOVERY";
     case QuestionIntent::Capability: return "CAPABILITY";
     case QuestionIntent::ExplainTone: return "EXPLAIN_TONE";
     case QuestionIntent::AdjustTone: return "ADJUST_TONE";

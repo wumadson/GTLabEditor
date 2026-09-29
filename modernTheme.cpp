@@ -688,6 +688,7 @@ QString ModernTheme::applicationStyleSheet()
         QLabel#AssistantProvider,
         QLabel#AssistantContextCaption,
         QLabel#AssistantActivity,
+        QLabel#AssistantDiscoveryHint,
         QLabel#AssistantMessageRole {
             color: @SECONDARY_TEXT@;
             font-size: 9px;
@@ -695,6 +696,12 @@ QString ModernTheme::applicationStyleSheet()
         }
         QLabel#AssistantContextCaption,
         QLabel#AssistantMessageRole { letter-spacing: 0.7px; }
+        QLabel#AssistantDiscoveryHint {
+            color: #747A82;
+            font-size: 9px;
+            font-weight: 500;
+            padding: 0 2px;
+        }
         QLabel#AssistantContextValue {
             color: #666B72;
             font-size: 11px;

@@ -37,6 +37,11 @@
         <translation>Pergunte sobre seu timbre, patch ou configurações da GT-10...</translation>
     </message>
     <message>
+        <location filename="../ai/AssistantPanel.cpp" line="102"/>
+        <source>Or, if you prefer, ask: “What can you do?”</source>
+        <translation>Ou, se preferir, pergunte: “O que você pode fazer?”</translation>
+    </message>
+    <message>
         <location filename="../ai/AssistantPanel.cpp" line="101"/>
         <source>NEW CONVERSATION</source>
         <translation>NOVA CONVERSA</translation>

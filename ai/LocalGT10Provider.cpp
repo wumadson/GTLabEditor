@@ -154,6 +154,25 @@ void LocalGT10Provider::finishRequest()
         }
     }
 
+    if (routing.intent == Knowledge::QuestionIntent::CapabilityDiscovery) {
+        const bool hasPatchContext = !request.context.root
+            .value(QStringLiteral("patch")).toObject().isEmpty();
+        response.text = featureRegistry.capabilityDiscoveryResponse(
+            request.language, hasPatchContext);
+        response.metadata.insert("answered", true);
+        response.metadata.insert("topicId",
+                                 QStringLiteral("assistant_capabilities"));
+        response.metadata.insert("route",
+                                 QStringLiteral("capability_discovery"));
+        response.metadata.insert("enabledFeatureCount",
+                                 featureRegistry.enabledFeatures().size());
+        response.metadata.insert("limitationCount",
+                                 featureRegistry.limitations(request.language)
+                                     .size());
+        emit responseReady(requestId, response);
+        return;
+    }
+
     if (routing.intent == Knowledge::QuestionIntent::Clarify) {
         const bool parameterAmbiguity = routing.source
             == QLatin1String("assessment_parameter_ambiguity");

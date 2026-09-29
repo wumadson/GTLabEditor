@@ -45,6 +45,9 @@ void verifyEnglish()
     session.setResponseLanguage(QStringLiteral("en"));
     session.setProvider(&provider);
     AssistantPanel panel(&session);
+    panel.resize(280, 600);
+    panel.show();
+    QApplication::processEvents();
     const QStringList buttons = buttonTexts(panel);
     QPlainTextEdit *prompt = panel.findChild<QPlainTextEdit *>(
         QStringLiteral("AssistantPrompt"));
@@ -54,6 +57,12 @@ void verifyEnglish()
     expect(prompt && prompt->placeholderText()
            == "Ask about your tone, patch, GT-10 settings...",
            "2 English placeholder");
+    QLabel *hint = panel.findChild<QLabel *>(
+        QStringLiteral("AssistantDiscoveryHint"));
+    expect(hint && hint->text() == "Or, if you prefer, ask: “What can you do?”"
+           && hint->wordWrap(), "2b English discovery hint wraps");
+    expect(hint && hint->height() >= hint->heightForWidth(hint->width()),
+           "2c English discovery hint is not clipped at minimum width");
     expect(labelText(panel, QStringLiteral("AssistantProvider"))
            == "Local Test · Offline · No account required",
            "3 English provider status");
@@ -71,6 +80,9 @@ void verifyPortuguese()
     session.setResponseLanguage(QStringLiteral("pt-BR"));
     session.setProvider(&provider);
     AssistantPanel panel(&session);
+    panel.resize(280, 600);
+    panel.show();
+    QApplication::processEvents();
     const QStringList buttons = buttonTexts(panel);
     QPlainTextEdit *prompt = panel.findChild<QPlainTextEdit *>(
         QStringLiteral("AssistantPrompt"));
@@ -83,6 +95,13 @@ void verifyPortuguese()
            == QString::fromUtf8(
                "Pergunte sobre seu timbre, patch ou configurações da GT-10..."),
            "6 pt-BR placeholder");
+    QLabel *hint = panel.findChild<QLabel *>(
+        QStringLiteral("AssistantDiscoveryHint"));
+    expect(hint && hint->text() == QString::fromUtf8(
+               "Ou, se preferir, pergunte: “O que você pode fazer?”")
+           && hint->wordWrap(), "6b pt-BR discovery hint wraps");
+    expect(hint && hint->height() >= hint->heightForWidth(hint->width()),
+           "6c pt-BR discovery hint is not clipped at minimum width");
     expect(labelText(panel, QStringLiteral("AssistantProvider"))
            == QString::fromUtf8(
                "Local Test · Offline · Nenhuma conta necessária"),

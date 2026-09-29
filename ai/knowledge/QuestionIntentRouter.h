@@ -19,6 +19,7 @@ enum class QuestionIntent {
     ExplainParameter,
     ListEffectTypes,
     HowTo,
+    CapabilityDiscovery,
     Capability,
     ExplainTone,
     AdjustTone,

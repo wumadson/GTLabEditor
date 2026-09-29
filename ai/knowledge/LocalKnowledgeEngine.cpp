@@ -225,7 +225,7 @@ LocalKnowledgeEngine::Intent LocalKnowledgeEngine::classify(
         return Intent::HowToAssign;
     if (any(text, {"ctl1", "ctl2", "foot 1", "foot 2", "foot 3", "foot 4", "bank up", "bank down", "controlador", "controller"}))
         return Intent::HowToController;
-    if (any(text, {"quantos assigns", "how many assigns", "possui", "tem ", "does it have", "does the gt 10", "quais efeitos", "what effects", "quais reverbs", "what reverbs"}))
+    if (any(text, {"quantos assigns", "how many assigns", "possui", "tem ", "does it have", "does the gt 10", "o que a gt 10 pode fazer", "what can the gt 10 do", "quais efeitos", "what effects", "quais reverbs", "what reverbs"}))
         return Intent::Capability;
     if (any(text, {"reverb", "delay", "preamp", "fx1", "fx2", "harmonist", "tremolo", "compressor", "chorus"}))
         return Intent::EffectInfo;

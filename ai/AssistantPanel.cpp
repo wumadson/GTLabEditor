@@ -97,6 +97,14 @@ AssistantPanel::AssistantPanel(AssistantSession *session, QWidget *parent)
     promptInput->installEventFilter(this);
     root->addWidget(promptInput);
 
+    auto *discoveryHint = new QLabel(
+        tr("Or, if you prefer, ask: “What can you do?”"), this);
+    discoveryHint->setObjectName(QStringLiteral("AssistantDiscoveryHint"));
+    discoveryHint->setWordWrap(true);
+    discoveryHint->setSizePolicy(QSizePolicy::Preferred,
+                                 QSizePolicy::MinimumExpanding);
+    root->addWidget(discoveryHint);
+
     auto *actions = new QHBoxLayout;
     actions->setContentsMargins(0, 0, 0, 0);
     actions->setSpacing(8);

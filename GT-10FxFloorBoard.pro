@@ -123,6 +123,7 @@ SOURCES += ai/PatchCapture.cpp ai/PatchParameterCatalog.cpp \
            ai/PatchJsonSerializer.cpp ai/AIContextBuilder.cpp \
            ai/PatchSnapshotPreviewDialog.cpp ai/MockAIProvider.cpp \
            ai/LocalGT10Provider.cpp ai/AssistantSession.cpp ai/AssistantPanel.cpp \
+           ai/AssistantFeatureRegistry.cpp \
            ai/knowledge/GT10CapabilityService.cpp \
            ai/knowledge/DocumentationKnowledgeSource.cpp \
            ai/knowledge/KnowledgeGuides.cpp \
@@ -153,6 +154,7 @@ HEADERS += ai/PatchCapture.h ai/PatchParameterCatalog.h \
            ai/PatchSnapshotPreviewDialog.h ai/AssistantMessage.h \
            ai/AIProvider.h ai/MockAIProvider.h ai/AssistantSession.h \
            ai/LocalGT10Provider.h ai/AssistantPanel.h \
+           ai/AssistantFeatureRegistry.h \
            ai/knowledge/KnowledgeModel.h \
            ai/knowledge/DocumentationKnowledgeSource.h \
            ai/knowledge/GT10CapabilityService.h \
@@ -344,5 +346,14 @@ contains(CONFIG, capabilitylist_tests) {
     SOURCES -= ./main.cpp
     SOURCES += tests/capabilityListQueryTests.cpp
     TARGET = capabilityListQueryTests
+    DESTDIR = $$OUT_PWD
+}
+
+# Assistant capability-discovery registry, routing, and bilingual response.
+# Deterministic and offline; no network, MIDI/SysEx, or patch mutation.
+contains(CONFIG, capabilitydiscovery_tests) {
+    SOURCES -= ./main.cpp
+    SOURCES += tests/capabilityDiscoveryTests.cpp
+    TARGET = capabilityDiscoveryTests
     DESTDIR = $$OUT_PWD
 }
