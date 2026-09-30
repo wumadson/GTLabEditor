@@ -1,0 +1,13 @@
+{
+  "model": "phi-4-mini-instruct-q3-k-m",
+  "responseCount": 170,
+  "groundedCount": 85,
+  "ungroundedCount": 85,
+  "automaticallyFlagged": 3,
+  "hardFailCount": null,
+  "humanReviewedMinimumHardFails": 3,
+  "groundedAutomatedFlags": 0,
+  "ungroundedAutomatedFlags": 3,
+  "humanReviewRequired": true,
+  "winnerDeclared": false
+}

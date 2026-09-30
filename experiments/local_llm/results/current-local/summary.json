@@ -1,0 +1,8 @@
+{
+  "implementation": "LocalKnowledgeEngine / LocalGT10Provider",
+  "sampleResponseCount": 4,
+  "scope": "representative current deterministic baseline",
+  "regressionResult": "Local Knowledge Engine tests: assertions=40 failures=0",
+  "fullCorpusExported": false,
+  "reason": "The lab did not alter the production qmake target or provider to add an exporter."
+}

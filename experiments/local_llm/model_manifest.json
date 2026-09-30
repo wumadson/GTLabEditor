@@ -1,0 +1,40 @@
+{
+  "runtime": {
+    "name": "llama.cpp",
+    "license": "MIT",
+    "source": "https://github.com/ggml-org/llama.cpp",
+    "localPath": "runtime/llama.cpp"
+  },
+  "models": [
+    {
+      "id": "phi-4-mini-instruct-q3-k-m",
+      "publisher": "Microsoft",
+      "upstream": "microsoft/Phi-4-mini-instruct",
+      "conversion": "tensorblock/Phi-4-mini-instruct-GGUF",
+      "revision": "b2f29fe",
+      "file": "Phi-4-mini-instruct-Q3_K_M.gguf",
+      "quantization": "Q3_K_M",
+      "estimatedBytes": 2120000000,
+      "actualBytes": 2117532992,
+      "sha256": "06e0aae476fc464b8635c08fe50f355e3f096b98328fe520073800c4b211bdbc",
+      "license": "MIT",
+      "modelCard": "https://huggingface.co/microsoft/Phi-4-mini-instruct",
+      "download": "https://huggingface.co/tensorblock/Phi-4-mini-instruct-GGUF/resolve/main/Phi-4-mini-instruct-Q3_K_M.gguf"
+    },
+    {
+      "id": "gemma-3-4b-it-q4-k-m",
+      "publisher": "Google DeepMind",
+      "upstream": "google/gemma-3-4b-it",
+      "conversion": "ggml-org/gemma-3-4b-it-GGUF",
+      "file": "gemma-3-4b-it-Q4_K_M.gguf",
+      "quantization": "Q4_K_M",
+      "estimatedBytes": 2490000000,
+      "actualBytes": 2489757856,
+      "sha256": "882e8d2db44dc554fb0ea5077cb7e4bc49e7342a1f0da57901c0802ea21a0863",
+      "license": "Gemma Terms of Use",
+      "modelCard": "https://huggingface.co/google/gemma-3-4b-it",
+      "terms": "https://ai.google.dev/gemma/terms",
+      "download": "https://huggingface.co/ggml-org/gemma-3-4b-it-GGUF/resolve/main/gemma-3-4b-it-Q4_K_M.gguf"
+    }
+  ]
+}

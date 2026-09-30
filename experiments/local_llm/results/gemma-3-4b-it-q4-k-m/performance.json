@@ -1,0 +1,12 @@
+{
+  "model": "gemma-3-4b-it-q4-k-m",
+  "modelFileBytes": 2489757856,
+  "loadSeconds": 3.106,
+  "meanFirstTokenSeconds": 0.755,
+  "meanTokensPerSecond": 34.92,
+  "peakServerRssBytes": 5467897856,
+  "temperature": 0.2,
+  "contextWindow": 4096,
+  "meanGroundedContextCharacters": 1980.0,
+  "meanGroundedContextApproximateTokens": 495.0
+}

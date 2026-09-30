@@ -1,0 +1,12 @@
+{
+  "model": "phi-4-mini-instruct-q3-k-m",
+  "modelFileBytes": 2117532992,
+  "loadSeconds": 1.046,
+  "meanFirstTokenSeconds": 0.335,
+  "meanTokensPerSecond": 32.97,
+  "peakServerRssBytes": 4743020544,
+  "temperature": 0.2,
+  "contextWindow": 4096,
+  "meanGroundedContextCharacters": 1990.4,
+  "meanGroundedContextApproximateTokens": 497.6
+}

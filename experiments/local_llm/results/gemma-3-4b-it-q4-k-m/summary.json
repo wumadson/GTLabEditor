@@ -1,0 +1,13 @@
+{
+  "model": "gemma-3-4b-it-q4-k-m",
+  "responseCount": 170,
+  "groundedCount": 85,
+  "ungroundedCount": 85,
+  "automaticallyFlagged": 4,
+  "hardFailCount": null,
+  "humanReviewedMinimumHardFails": 7,
+  "groundedAutomatedFlags": 0,
+  "ungroundedAutomatedFlags": 4,
+  "humanReviewRequired": true,
+  "winnerDeclared": false
+}
