@@ -46,7 +46,7 @@ struct ToneCatalogEntry {
 
 enum class FieldValidationType {
     PhysicalFunctionalValidation, PhysicalToneValidation,
-    CuratedMusicalGuidance, OfficialDocumentation
+    CuratedMusicalGuidance, OfficialDocumentation, ObservedPresetPattern
 };
 struct FieldKnowledgeEntry {
     QString id;
@@ -57,6 +57,7 @@ struct FieldKnowledgeEntry {
     FieldValidationType validationType = FieldValidationType::CuratedMusicalGuidance;
     QString confidence;
     QString notes;
+    QJsonObject sourceTrace = {};
 };
 
 class ToneStyleRecipes {
@@ -65,6 +66,7 @@ public:
     QList<ToneCatalogEntry> catalog() const;
     QList<FieldKnowledgeEntry> fieldKnowledge() const;
     ToneConversationReply respond(const AIRequest &request) const;
+    ToneConversationReply eqDatasetGuidance(const AIRequest &request) const;
 
 private:
     Knowledge::GT10CapabilityService capabilities;

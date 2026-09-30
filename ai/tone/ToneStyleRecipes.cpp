@@ -405,8 +405,57 @@ QList<FieldKnowledgeEntry> ToneStyleRecipes::fieldKnowledge() const
     return {
         {"worship_clean_character", "Clean Worship pode ter leve saturação, corpo e ambiência mais presente que Forró/Neo Soul.", "Worship clean may use light saturation, body, and more present ambience than Forró/Neo Soul.", "tone_character", "clean/worship", FieldValidationType::CuratedMusicalGuidance, "Guidance", notes},
         {"worship_clean_amps", "VO CLEAN, CLEAN TWIN, TWEED, MATCH e DELUX CRUNCH com pouco Gain são pontos de partida, não um amp obrigatório.", "VO CLEAN, CLEAN TWIN, TWEED, MATCH, and low-Gain DELUX CRUNCH are starting points, not a mandatory amp.", "preamp_direction", "clean/worship", FieldValidationType::CuratedMusicalGuidance, "Guidance", notes},
-        {"worship_eq_references", "Perto de 100 Hz e 8 kHz são referências iniciais ajustáveis, não regras ou valores exatos em todo equipamento.", "Near 100 Hz and 8 kHz are adjustable starting references, not rules or exact values on every device.", "eq_reference", "worship", FieldValidationType::CuratedMusicalGuidance, "Guidance", notes}
+        {"worship_eq_references", "Perto de 100 Hz e 8 kHz são referências iniciais ajustáveis, não regras ou valores exatos em todo equipamento.", "Near 100 Hz and 8 kHz are adjustable starting references, not rules or exact values on every device.", "eq_reference", "worship", FieldValidationType::CuratedMusicalGuidance, "Guidance", notes},
+        {"dataset_eq_low_cut_110", "Low Cut de 110 Hz aparece de forma fortemente recorrente nos presets analisados com EQ ativo.", "A 110 Hz Low Cut is strongly recurring in the analyzed EQ-active presets.", "EQ", "general_tone_guidance", FieldValidationType::ObservedPresetPattern, "StrongWithinDataset",
+            "Dataset-derived starting reference; not universal; requires guitar, pickup and monitoring context. No physical tone validation.",
+            {{"sourceKind", "PresetReferenceDataset"}, {"candidateId", "KC-15"}, {"evidenceCount", 42}, {"denominator", 53}, {"percentage", 79.25}, {"creatorCount", 4}, {"confidence", "StrongWithinDataset"}, {"dataset", "preset_reference_analysis_2026-09-30"}, {"promotionStatus", "PromotedByMaintainer"}}},
+        {"dataset_eq_high_cut_8k", "High Cut de 8 kHz aparece de forma recorrente em parte relevante dos presets analisados com EQ ativo.", "An 8 kHz High Cut recurs in a relevant portion of the analyzed EQ-active presets.", "EQ", "contextual_tone_guidance", FieldValidationType::ObservedPresetPattern, "ModerateWithinDataset",
+            "Dataset-derived contextual starting reference; not universal; distribution differs by creator. No physical tone validation.",
+            {{"sourceKind", "PresetReferenceDataset"}, {"candidateId", "KC-18"}, {"evidenceCount", 29}, {"denominator", 53}, {"percentage", 54.72}, {"creatorCount", 5}, {"confidence", "ModerateWithinDataset"}, {"dataset", "preset_reference_analysis_2026-09-30"}, {"promotionStatus", "PromotedByMaintainer"}}}
     };
+}
+
+ToneConversationReply ToneStyleRecipes::eqDatasetGuidance(const AIRequest &request) const
+{
+    ToneConversationReply reply;
+    const QString q = ToneIntentParser::normalize(request.userMessage);
+    // Narrow guidance only: retain technical explanations, patch assessment,
+    // capability lists, style builds and effect-specific filters on their paths.
+    for (const char *term : {"meu patch", "patch atual", "my patch", "current", "o que", "what is", "explique", "explain", "diferenca", "compare", "range", "opcoes", "options", "tipos", "types", "assign", "target", "reverb", "chorus", "delay", "montar", "build", "criar", "write", "aplique", "altere", "mude"})
+        if (q.contains(QLatin1String(term))) return reply;
+    if (q.contains("como fazer") || q.contains("how to make") || q.contains("quero um") || q.contains("i want a")) return reply;
+    const bool mandatory = q.contains("obrigatorio") || q.contains("mandatory") || q.contains("regra") || q.contains("rule");
+    const bool low = q.contains("low cut") || q.contains("lowcut") || q.contains("low end") || q.contains("low-end") || q.contains("grave embolado") || q.contains("embaixo")
+        || ((mandatory || q.contains("fazem sentido")) && (q.contains("110") || q.contains("100")));
+    const bool high = q.contains("high cut") || q.contains("highcut") || q.contains("fizz") || q.contains("controlar agudos")
+        || ((mandatory || q.contains("fazem sentido")) && q.contains("8") && (q.contains("khz") || q.contains("k hz")));
+    const bool guidance = mandatory || q.contains("usar") || q.contains("use") || q.contains("qual") || q.contains("which") || q.contains("que frequencia") || q.contains("como") || q.contains("how") || q.contains("fazem sentido");
+    if ((!low && !high) || !guidance) return reply;
+    const bool pt = request.language.startsWith("pt", Qt::CaseInsensitive);
+    QStringList paragraphs;
+    if (mandatory) paragraphs.append(choose(pt, "Não é uma regra obrigatória; são referências ajustáveis, não valores universais.", "These are adjustable references, not mandatory rules or universal values."));
+    if (low) paragraphs.append(choose(pt,
+        "Para o EQ, experimente 110 Hz como ponto de partida: é uma referência fortemente recorrente nos presets analisados. Ajuste ouvindo conforme guitarra, captador e monitoração; se perder corpo, compare FLAT, 55 Hz ou outra opção disponível.",
+        "For EQ, try 110 Hz as a starting point: it is strongly recurring in the analyzed reference presets. Adjust by ear for your guitar, pickup and monitoring; if body is lost, compare FLAT, 55 Hz or another available option."));
+    if (high) paragraphs.append(choose(pt,
+        "No High Cut do EQ, 8 kHz é uma referência recorrente nos presets analisados, não um valor universal. 6 kHz também aparece com frequência nesse dataset, como alternativa de referência. Experimente e ajuste ouvindo o equilíbrio entre presença e fizz, conforme guitarra, captador e monitoração.",
+        "For EQ High Cut, 8 kHz is a recurring reference in the analyzed presets, not a universal value. 6 kHz also occurs frequently in that dataset as an alternative reference. Experiment and adjust by ear for the balance between presence and fizz, guitar, pickup and monitoring."));
+    QJsonArray trace;
+    for (const FieldKnowledgeEntry &entry : fieldKnowledge()) {
+        if ((low && entry.id == "dataset_eq_low_cut_110") || (high && entry.id == "dataset_eq_high_cut_8k")) {
+            QJsonObject source = entry.sourceTrace;
+            source.insert("id", entry.id); source.insert("category", entry.category);
+            source.insert("scope", entry.scope); source.insert("validationType", "ObservedPresetPattern");
+            source.insert("notes", entry.notes); trace.append(source);
+        }
+    }
+    reply.handled = reply.answered = true;
+    reply.mode = ToneResponseMode::Recommend;
+    reply.route = "eq_dataset_guidance"; reply.topicId = "eq_starting_references";
+    reply.text = paragraphs.join("\n\n");
+    reply.metadata = {{"fieldKnowledge", trace}, {"knowledgeSources", QJsonArray{"PresetReferenceDataset"}}, {"readOnly", true}};
+    if (high) reply.metadata.insert("referenceOnly", QJsonArray{QJsonObject{{"candidateId", "KC-17"}, {"value", "6 kHz"}, {"evidenceCount", 22}, {"denominator", 53}, {"creatorCount", 4}, {"promotionStatus", "NotPromoted"}}});
+    return reply;
 }
 
 QList<ToneCatalogEntry> ToneStyleRecipes::catalog() const
@@ -508,6 +557,7 @@ ToneConversationReply ToneStyleRecipes::respond(const AIRequest &request) const
     QJsonArray fieldTrace;
     if (style.profile == ToneProfile::Worship) {
         for (const FieldKnowledgeEntry &entry : fieldKnowledge()) {
+            if (entry.validationType != FieldValidationType::CuratedMusicalGuidance) continue;
             if (entry.scope == "clean/worship" && style.family != ToneFamily::Clean) continue;
             fieldTrace.append(QJsonObject{{"id", entry.id}, {"claim", pt ? entry.claimPtBr : entry.claimEn},
                 {"category", entry.category}, {"scope", entry.scope},

@@ -1,4 +1,5 @@
 #include "ai/LocalGT10Provider.h"
+#include "ai/tone/ToneStyleRecipes.h"
 
 #include <QJsonArray>
 
@@ -170,6 +171,20 @@ void LocalGT10Provider::finishRequest()
         response.metadata.insert("limitationCount",
                                  featureRegistry.limitations(request.language)
                                      .size());
+        emit responseReady(requestId, response);
+        return;
+    }
+
+    const Tone::ToneConversationReply eqGuidance = Tone::ToneStyleRecipes().eqDatasetGuidance(request);
+    if (eqGuidance.handled) {
+        lastResponseWasAssessment = false;
+        response.text = eqGuidance.text;
+        for (auto it = eqGuidance.metadata.constBegin(); it != eqGuidance.metadata.constEnd(); ++it)
+            response.metadata.insert(it.key(), it.value());
+        response.metadata.insert("answered", true);
+        response.metadata.insert("route", eqGuidance.route);
+        response.metadata.insert("topicId", eqGuidance.topicId);
+        response.metadata.insert("destination", "Tone");
         emit responseReady(requestId, response);
         return;
     }

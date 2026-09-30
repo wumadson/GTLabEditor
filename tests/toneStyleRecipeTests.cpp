@@ -143,6 +143,15 @@ int main(int argc, char **argv)
         const AIResponse response = ask(provider, question);
         const QJsonObject m = response.metadata;
         expect(m.value("detectedIntent") == c.value("intent"), "intent " + question);
+        if (question == "100 Hz e 8 kHz é obrigatório?") {
+            // This previously used the remembered Worship recipe. The explicit
+            // promotion now answers as dataset EQ guidance, not a style build.
+            expect(m.value("route") == "eq_dataset_guidance" && m.value("readOnly").toBool(), "approved general EQ route replaces style followup");
+            expect(response.text.contains("Não é uma regra") && response.text.contains("110 Hz") && response.text.contains("8 kHz"), "non-mandatory actual EQ references");
+            expect(m.value("fieldKnowledge").toArray().size() == 2, "both approved traces, no fabricated style metadata");
+            ++caseIndex;
+            continue;
+        }
         expect(m.value("toneFamily") == c.value("family"), "family " + question);
         expect(m.value("toneProfile") == c.value("profile"), "profile " + question);
         expect(m.value("toneModifiers") == c.value("modifiers"), "modifiers " + question);
@@ -373,6 +382,43 @@ int main(int argc, char **argv)
     AIContext changedPatch = context;
     changedPatch.root.insert("patch", QJsonObject{{"number", "U02-1"}, {"name", "Different patch"}});
     expect(!ask(provider, "Agora detalhe os parâmetros.", changedPatch).metadata.value("buildFollowup").toBool(), "patch identity change invalidates remembered build");
+    // Approved dataset guidance through the real provider, not only the store.
+    provider.resetConversation();
+    for (const QString &q : QStringList{"Qual Low Cut usar?", "110 Hz é obrigatório?", "Qual High Cut usar?", "8 kHz é obrigatório?", "Que frequência corto para tirar fizz?", "Como tirar grave embolado?", "100 Hz e 8 kHz é regra?"}) {
+        const auto r = ask(provider, q);
+        expect(r.metadata.value("route") == "eq_dataset_guidance" && r.metadata.value("readOnly").toBool(), "dataset EQ provider route " + q);
+        const QString text = r.text.toLower();
+        for (const QString &bad : QStringList{"sempre use 110 hz", "110 hz é o correto", "8 khz é obrigatório", "6 khz é errado", "todos os guitarristas usam"})
+            expect(!text.contains(bad), "no absolute prescription " + q);
+        expect(text.contains("referência") && text.contains("ajust"), "reference and context " + q);
+        const auto trace = r.metadata.value("fieldKnowledge").toArray();
+        expect(!trace.isEmpty(), "trace exists " + q);
+        for (const auto &v : trace) {
+            const auto t = v.toObject(); const bool low = t.value("candidateId") == "KC-15";
+            expect(t.value("sourceKind") == "PresetReferenceDataset" && t.value("denominator") == 53
+                && t.value("evidenceCount") == (low ? 42 : 29) && t.value("creatorCount") == (low ? 4 : 5)
+                && t.value("confidence") == (low ? "StrongWithinDataset" : "ModerateWithinDataset"), "approved trace " + q);
+            expect(!r.text.contains("KC-") && !r.text.contains("42/53") && !r.text.contains("29/53"), "trace not normal prose");
+        }
+        if (q.contains("High") || q.contains("8 kHz") || q.contains("fizz")) {
+            expect(r.text.contains("8 kHz") && r.text.contains("6 kHz"), "high cut alternatives");
+            expect(r.metadata.value("referenceOnly").toArray().first().toObject().value("promotionStatus") == "NotPromoted", "KC-17 remains reference only");
+        } else expect(r.text.contains("110 Hz") && r.text.contains("55 Hz") && r.text.contains("FLAT"), "low cut alternatives");
+    }
+    for (const QString &q : QStringList{"Qual Low Cut usar?", "Qual High Cut usar?", "Como tirar fizz?"}) {
+        const auto r = ask(provider, q, {}, "en");
+        expect(r.text.contains("reference") && !r.text.contains("referência"), "English dataset guidance");
+    }
+    for (const QString &q : QStringList{"O que é Low Cut?", "Quais opções de High Cut existem?", "Qual High Cut usar no Reverb?", "Como montar um clean Worship?"})
+        expect(ask(provider,q).metadata.value("route") != "eq_dataset_guidance", "preserve non-general-EQ path " + q);
+    const auto entries = ToneStyleRecipes().fieldKnowledge();
+    expect(entries.size() == 5, "three curated entries plus exactly two promotions");
+    int promoted = 0;
+    for (const auto &entry : entries) if (entry.validationType == FieldValidationType::ObservedPresetPattern) {
+        ++promoted;
+        expect(entry.id == "dataset_eq_low_cut_110" || entry.id == "dataset_eq_high_cut_8k", "only approved entries");
+    }
+    expect(promoted == 2, "exactly two dataset entries");
     QTextStream(stdout) << "Tone Taxonomy + Style Recipe tests: assertions=" << assertions << " failures=" << failures << '\n';
     return failures ? 1 : 0;
 }
