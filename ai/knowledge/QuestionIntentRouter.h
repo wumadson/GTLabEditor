@@ -23,6 +23,7 @@ enum class QuestionIntent {
     Capability,
     ExplainTone,
     AdjustTone,
+    BuildTone,
     Justify,
     Refine,
     CompareRecommendation,

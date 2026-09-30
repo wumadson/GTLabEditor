@@ -356,7 +356,9 @@ bool justifyCue(const QString &text)
 bool detailCue(const QString &text)
 {
     return any(text, {"explique melhor", "detalhe", "me explique mais",
-                      "quero entender melhor", "explain further", "more detail"});
+                      "quero entender melhor", "explain further", "more detail",
+                      "me passe valores", "me passe os valores", "valores de partida",
+                      "configuracao resumida", "keep it brief", "passo a passo", "step by step"});
 }
 
 bool feedbackCue(const QString &text)
@@ -580,6 +582,12 @@ QuestionRoutingResult QuestionIntentRouter::route(
         result.confidence = QString::fromLatin1(confidence);
     };
 
+    if (Tone::ToneIntentParser().parse(question).kind == Tone::ToneRequestKind::BuildTone) {
+        set(QuestionIntent::BuildTone, QuestionDestination::Tone,
+            "tone_taxonomy+style_recipe");
+        return result;
+    }
+
     const bool assistantDiscovery = !any(text, {"gt 10", "gt10"})
         && any(text, {
             "o que voce pode fazer", "o que voce sabe fazer",
@@ -793,6 +801,7 @@ QString QuestionIntentRouter::intentName(QuestionIntent intent)
     case QuestionIntent::Capability: return "CAPABILITY";
     case QuestionIntent::ExplainTone: return "EXPLAIN_TONE";
     case QuestionIntent::AdjustTone: return "ADJUST_TONE";
+    case QuestionIntent::BuildTone: return "BUILD_TONE";
     case QuestionIntent::Justify: return "JUSTIFY";
     case QuestionIntent::Refine: return "REFINE";
     case QuestionIntent::CompareRecommendation: return "COMPARE_RECOMMENDATION";

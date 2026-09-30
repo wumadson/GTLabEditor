@@ -134,7 +134,8 @@ SOURCES += ai/PatchCapture.cpp ai/PatchParameterCatalog.cpp \
     ai/tone/ToneAdjustmentAdvisor.cpp \
     ai/tone/ToneResponseComposer.cpp \
     ai/tone/ToneConversationReasoner.cpp \
-    ai/tone/ContextualParameterAssessment.cpp
+    ai/tone/ContextualParameterAssessment.cpp \
+    ai/tone/ToneTaxonomy.cpp ai/tone/ToneStyleRecipes.cpp
 HEADERS += modernFloorBoard.h modernTheme.h modernWidgets.h modernSignalChainModel.h \
            modernSignalChainMutationController.h modernSignalChainSerializer.h \
            signalChainHardwareValidation.h \
@@ -166,7 +167,8 @@ HEADERS += ai/PatchCapture.h ai/PatchParameterCatalog.h \
            ai/tone/ToneIntentParser.h ai/tone/ToneAdjustmentAdvisor.h \
            ai/tone/ToneResponseComposer.h \
            ai/tone/ToneConversationReasoner.h \
-           ai/tone/ContextualParameterAssessment.h
+           ai/tone/ContextualParameterAssessment.h \
+           ai/tone/ToneTaxonomy.h ai/tone/ToneStyleRecipes.h
 
 # Explicit local harness. It replaces the application entry point only when
 # qmake is invoked with CONFIG+=signalchain_domain_tests.
@@ -356,4 +358,12 @@ contains(CONFIG, capabilitydiscovery_tests) {
     SOURCES += tests/capabilityDiscoveryTests.cpp
     TARGET = capabilityDiscoveryTests
     DESTDIR = $$OUT_PWD
+}
+
+contains(CONFIG, tonestyle_tests) {
+    SOURCES -= ./main.cpp
+    SOURCES += tests/toneStyleRecipeTests.cpp
+    TARGET = toneStyleRecipeTests
+    DESTDIR = $$OUT_PWD
+    DEFINES += TONE_BUILD_CORPUS=\"$$PWD/tests/assistant_corpus/tone_building_real_questions.json\"
 }

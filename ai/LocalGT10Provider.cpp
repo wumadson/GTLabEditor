@@ -40,6 +40,7 @@ QString responseModeName(Ai::Tone::ToneResponseMode mode)
     case ToneResponseMode::HypotheticalCompare:
         return QStringLiteral("HYPOTHETICAL_COMPARE");
     case ToneResponseMode::Clarify: return QStringLiteral("CLARIFY");
+    case ToneResponseMode::Build: return QStringLiteral("BUILD_TONE");
     case ToneResponseMode::Unknown: return QStringLiteral("UNKNOWN");
     }
     return QStringLiteral("UNKNOWN");
@@ -206,6 +207,8 @@ void LocalGT10Provider::finishRequest()
         lastResponseWasAssessment = false;
     }
     if (toneReply.handled) {
+        for (auto it = toneReply.metadata.constBegin(); it != toneReply.metadata.constEnd(); ++it)
+            response.metadata.insert(it.key(), it.value());
         response.text = toneReply.text;
         response.metadata.insert("answered", toneReply.answered);
         response.metadata.insert("topicId", toneReply.topicId);

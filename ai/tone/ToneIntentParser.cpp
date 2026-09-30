@@ -1,4 +1,5 @@
 #include "ai/tone/ToneIntentParser.h"
+#include "ai/tone/ToneTaxonomy.h"
 
 #include <QRegularExpression>
 
@@ -38,7 +39,7 @@ ToneRequest ToneIntentParser::parse(const QString &text) const
     if (normalized.isEmpty())
         return request;
 
-    if (containsAny(normalized, {"mateus asato", "sound like an artist",
+    if (containsAny(normalized, {"mateus asato", "andy timmons", "sound like an artist",
                                  "clone artist", "clonar artista"})) {
         request.kind = ToneRequestKind::ArtistProfileUnavailable;
         return request;
@@ -47,6 +48,11 @@ ToneRequest ToneIntentParser::parse(const QString &text) const
     if (containsAny(normalized, {"shimmer", "cloud reverb",
                                  "neural capture"})) {
         request.kind = ToneRequestKind::UnsupportedCapability;
+        return request;
+    }
+
+    if (ToneTaxonomy::parse(text).recognized) {
+        request.kind = ToneRequestKind::BuildTone;
         return request;
     }
 

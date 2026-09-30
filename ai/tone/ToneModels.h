@@ -86,7 +86,8 @@ enum class ToneResponseMode {
     Compare,
     Assess,
     HypotheticalCompare,
-    Clarify
+    Clarify,
+    Build
 };
 
 struct ParameterAssessment
@@ -160,6 +161,7 @@ struct ToneConversationState
 
 struct ToneConversationReply
 {
+    QJsonObject metadata;
     bool handled = false;
     bool answered = false;
     ToneResponseMode mode = ToneResponseMode::Unknown;
@@ -173,6 +175,7 @@ struct ToneConversationReply
 
 enum class ToneRequestKind {
     None,
+    BuildTone,
     ExplainTone,
     AdjustTone,
     ArtistProfileUnavailable,

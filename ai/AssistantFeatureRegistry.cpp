@@ -37,6 +37,12 @@ AssistantFeatureRegistry::AssistantFeatureRegistry()
             "sugerir pequenos ajustes de timbre no contexto do patch",
             {QStringLiteral("I want more crunch without losing definition.")},
             {QString::fromUtf8("Quero deixar esse timbre mais crunch sem perder definição.")});
+    enabled(AssistantFeatureId::ToneBuilding, "tone_building",
+            "Tone", "Timbre",
+            "build tone guidance by family and musical style",
+            "orientar a construção de timbres por família e estilo musical",
+            {QStringLiteral("How can I build a clean tone for forró?")},
+            {QString::fromUtf8("Como montar um clean para forró?")});
     enabled(AssistantFeatureId::GT10Knowledge, "gt10_knowledge",
             "GT-10", "GT-10",
             "explain GT-10 effects, parameters, and technical features",

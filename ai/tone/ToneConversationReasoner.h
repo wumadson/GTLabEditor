@@ -34,6 +34,7 @@ private:
         const ToneAdjustmentIntent &intent, ToneResponseMode mode);
 
     ToneConversationState conversationState;
+    QString lastBuildQuestion;
     ToneAnalyzer analyzer;
     ToneIntentParser parser;
     ToneAdjustmentAdvisor advisor;

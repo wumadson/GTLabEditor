@@ -1,6 +1,7 @@
 #include "ai/tone/ToneConversationReasoner.h"
 
 #include "ai/tone/ToneRules.h"
+#include "ai/tone/ToneStyleRecipes.h"
 
 #include <QJsonObject>
 
@@ -25,6 +26,7 @@ QString modeRoute(ToneResponseMode mode)
     case ToneResponseMode::HypotheticalCompare:
         return QStringLiteral("tone_hypothetical_compare");
     case ToneResponseMode::Clarify: return QStringLiteral("tone_clarify");
+    case ToneResponseMode::Build: return QStringLiteral("tone_build");
     case ToneResponseMode::Unknown: break;
     }
     return QStringLiteral("knowledge");
@@ -231,6 +233,7 @@ ToneConversationReply ToneConversationReasoner::respond(
     const bool patchChanged = !conversationState.currentPatchIdentity.isEmpty()
         && conversationState.currentPatchIdentity != identity;
     if (patchChanged) {
+        lastBuildQuestion.clear();
         conversationState.lastToneAnalysis = ToneAnalysis();
         conversationState.lastToneIntent = ToneAdjustmentIntent();
         conversationState.lastRecommendation = ToneRecommendationRecord();
@@ -262,6 +265,36 @@ ToneConversationReply ToneConversationReasoner::respond(
         reply.text = portuguese(request.language)
             ? QStringLiteral("Esse recurso não faz parte das capacidades conhecidas da GT-10. Não vou inventar um parâmetro ou algoritmo; posso orientar o patch usando os recursos reais disponíveis.")
             : QStringLiteral("That feature is not part of the known GT-10 capabilities. I will not invent a parameter or algorithm, but I can guide the patch using its real available features.");
+        return reply;
+    }
+    const bool buildDetail = isDetail(normalized) || normalized.contains("valores") || normalized.contains("values")
+        || normalized.contains("passo a passo") || normalized.contains("step by step");
+    const bool buildCompact = normalized.contains("configuracao resumida") || normalized == "keep it brief";
+    const bool buildFollowup = parsed.kind == ToneRequestKind::None
+        && conversationState.lastMode == ToneResponseMode::Build && !lastBuildQuestion.isEmpty()
+        && (buildDetail || buildCompact);
+    if (parsed.kind == ToneRequestKind::BuildTone || buildFollowup) {
+        AIRequest buildRequest = request;
+        if (buildFollowup) {
+            QString goal = ToneIntentParser::normalize(lastBuildQuestion);
+            if (buildDetail) {
+                for (const QString &cue : {QString("configuracao resumida"), QString("resumido"), QString("resumida"), QString("keep it brief")})
+                    goal.replace(cue, QString());
+            }
+            buildRequest.userMessage = goal + (buildCompact ? " configuracao resumida" : " parameters")
+                + ((normalized.contains("valores") || normalized.contains("values")) ? " values" : "");
+        }
+        else lastBuildQuestion = request.userMessage;
+        reply = ToneStyleRecipes().respond(buildRequest);
+        reply.metadata.insert("buildFollowup", buildFollowup);
+        // A new style proposal must not leave an old adjustment available
+        // for a subsequent justification or feedback turn.
+        conversationState.lastRecommendation = ToneRecommendationRecord();
+        conversationState.lastToneIntent = ToneAdjustmentIntent();
+        conversationState.activeConstraints.clear();
+        conversationState.lastToneAnalysis = reply.analysis;
+        conversationState.lastResponse = reply.text;
+        conversationState.lastMode = reply.mode;
         return reply;
     }
     if (isJustify(normalized) || isDetail(normalized)) {
@@ -382,6 +415,7 @@ ToneConversationReply ToneConversationReasoner::respond(
 
 void ToneConversationReasoner::reset()
 {
+    lastBuildQuestion.clear();
     conversationState = ToneConversationState();
 }
 

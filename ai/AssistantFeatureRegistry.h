@@ -10,6 +10,7 @@ namespace Ai {
 enum class AssistantFeatureId {
     PatchExplanation,
     ToneGuidance,
+    ToneBuilding,
     GT10Knowledge,
     EffectComparison,
     ParameterAssessment,
