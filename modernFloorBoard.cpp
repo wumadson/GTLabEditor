@@ -23,12 +23,6 @@
 #include "signalChainHardwareValidation.h"
 #include "quickSettingService.h"
 #include "modernQuickSettingDialog.h"
-#include "ai/PatchParameterCatalog.h"
-#include "ai/PatchCapture.h"
-#include "ai/PatchJsonSerializer.h"
-#include "ai/PatchSnapshotBuilder.h"
-#include "ai/PatchSnapshotPreviewDialog.h"
-#include "ai/AIContextBuilder.h"
 
 #include <QComboBox>
 #include <QButtonGroup>
@@ -931,8 +925,15 @@ qreal frequencyPresentationValue(const QString &text, bool *ok = nullptr)
 
 bool preampBrightAvailable(int type, int customType)
 {
-    return Ai::PatchParameterCatalog::preampBrightAvailable(
-        type, customType);
+    static const QSet<int> brightTypes = {
+        0x00, 0x01, 0x02, 0x04, 0x05, 0x06,
+        0x08, 0x09, 0x0B, 0x12, 0x13, 0x14
+    };
+    static const QSet<int> brightCustomTypes = {
+        0x00, 0x01, 0x02, 0x04
+    };
+    return brightTypes.contains(type)
+        || (type == 0x27 && brightCustomTypes.contains(customType));
 }
 
 QString preampDisplayText(const QString &value, int offset)
@@ -1177,9 +1178,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     : QWidget(parent)
 {
     setObjectName("ModernFloorBoard");
-    // Keep a useful responsive floor while allowing the Assistant workspace
-    // to share ordinary laptop-sized windows without competing geometries.
-    setMinimumWidth(960); // Vertical minimum comes from the visible layout.
+    setMinimumWidth(1280); // Vertical minimum comes from the visible layout.
 
     setStyleSheet(ModernTheme::applicationStyleSheet());
     quickSettingDialog = new ModernQuickSettingDialog(this);
@@ -4695,114 +4694,6 @@ void modernFloorBoard::readCurrentPatch()
     resetPatchBaselineOnRefresh = true;
     refreshReadButtonState();
     emit readCurrentPatchRequested();
-}
-
-void modernFloorBoard::showAiPatchSnapshot()
-{
-    SysxIO *sysxIO = SysxIO::Instance();
-    if (!backendHasPatchData) {
-        ModernMessageDialog unavailable(
-            ModernDialogIcon::Error, tr("AI PATCH SNAPSHOT"), QString(),
-            tr("A complete patch must be loaded before a snapshot can be created."),
-            QString(), this);
-        unavailable.addOkButton();
-        return;
-    }
-
-    const SysxData capturedSource = sysxIO->getFileSource();
-    QString snapshotError;
-    const PatchChangeGuard::Snapshot comparable =
-        PatchTransferCodec::comparableBlocks00To0C(capturedSource,
-                                                    &snapshotError);
-    const bool comparableValid = snapshotError.isEmpty()
-        && comparable.size() == 13;
-    const bool fromDevice = sysxIO->isDevice();
-    const bool connected = backendIsConnected && sysxIO->isConnected();
-    const bool dirty = !fromDevice
-        || (comparableValid && patchChangeGuard.isDirty(comparable));
-
-    const Ai::PatchCapture capture(
-        capturedSource, sysxIO->getCurrentPatchName().trimmed(),
-        sysxIO->getLoadedBank(), sysxIO->getLoadedPatch(),
-        fromDevice ? Ai::PatchProvenance::DeviceTemporaryBuffer
-                   : Ai::PatchProvenance::ImportedTemporaryBuffer,
-        connected, dirty, connected && fromDevice);
-    const Ai::PatchSnapshotBuildResult result =
-        Ai::PatchSnapshotBuilder().build(capture);
-    if (!result.ok) {
-        ModernMessageDialog unavailable(
-            ModernDialogIcon::Error, tr("AI PATCH SNAPSHOT"), QString(),
-            tr("The current patch could not be captured safely."),
-            result.error, this);
-        unavailable.addOkButton();
-        return;
-    }
-
-    const QByteArray json = Ai::PatchJsonSerializer::serialize(
-        result.snapshot, true);
-    const Ai::AIContextBuilder contextBuilder;
-    const QByteArray compactContext = Ai::AIContextBuilder::serialize(
-        contextBuilder.build(result.snapshot, Ai::AIContextDetail::Compact));
-    const QByteArray detailedContext = Ai::AIContextBuilder::serialize(
-        contextBuilder.build(result.snapshot, Ai::AIContextDetail::Detailed));
-    Ai::PatchSnapshotPreviewDialog preview(
-        json, compactContext, detailedContext,
-        result.snapshot.patch.displayNumber,
-        result.snapshot.patch.name, this);
-    preview.exec();
-}
-
-bool modernFloorBoard::captureCurrentAiContext(Ai::AIContext *context,
-                                               QString *patchLabel,
-                                               QString *error) const
-{
-    if (context)
-        *context = Ai::AIContext();
-    if (patchLabel)
-        patchLabel->clear();
-    if (error)
-        error->clear();
-    if (!backendHasPatchData) {
-        if (error)
-            *error = tr("A complete patch has not been loaded.");
-        return false;
-    }
-
-    SysxIO *sysxIO = SysxIO::Instance();
-    const SysxData capturedSource = sysxIO->getFileSource();
-    QString snapshotError;
-    const PatchChangeGuard::Snapshot comparable =
-        PatchTransferCodec::comparableBlocks00To0C(capturedSource,
-                                                    &snapshotError);
-    const bool comparableValid = snapshotError.isEmpty()
-        && comparable.size() == 13;
-    const bool fromDevice = sysxIO->isDevice();
-    const bool connected = backendIsConnected && sysxIO->isConnected();
-    const bool dirty = !fromDevice
-        || (comparableValid && patchChangeGuard.isDirty(comparable));
-    const Ai::PatchCapture capture(
-        capturedSource, sysxIO->getCurrentPatchName().trimmed(),
-        sysxIO->getLoadedBank(), sysxIO->getLoadedPatch(),
-        fromDevice ? Ai::PatchProvenance::DeviceTemporaryBuffer
-                   : Ai::PatchProvenance::ImportedTemporaryBuffer,
-        connected, dirty, connected && fromDevice);
-    const Ai::PatchSnapshotBuildResult result =
-        Ai::PatchSnapshotBuilder().build(capture);
-    if (!result.ok) {
-        if (error)
-            *error = result.error;
-        return false;
-    }
-
-    if (context) {
-        *context = Ai::AIContextBuilder().build(
-            result.snapshot, Ai::AIContextDetail::Compact);
-    }
-    if (patchLabel) {
-        *patchLabel = result.snapshot.patch.displayNumber
-            + QStringLiteral(" — ") + result.snapshot.patch.name;
-    }
-    return true;
 }
 
 PatchChangeGuard::Snapshot modernFloorBoard::currentPatchSnapshot(

@@ -367,56 +367,8 @@ no fabricated GT-10 data. Their backend bindings are deferred until separately
 validated. Existing effect controls remain connected through `modernFloorBoard`
 to the proven `SysxIO` and `MidiTable` paths.
 
-The GT Lab Assistant now has a read-only local GT-10 knowledge foundation:
-
-- `GT10CapabilityService` adapts `MidiTable`/`midi.xml` and the existing patch
-  catalogs instead of maintaining a second protocol database;
-- `LocalKnowledgeEngine` provides deterministic pt-BR/English capability,
-  Assign, controller, expression, routing and current-patch answers;
-- `LocalGT10Provider` connects that engine to `AssistantSession` without
-  network, authentication, patch mutation, MIDI/SysEx or hardware reads;
-- unknown information is reported as unknown rather than inferred as fact;
-- `LocalDocumentationIndex` provides deterministic offline indexing,
-  bilingual lookup, source traceability and explicit conflict handling;
-- the approved BOSS GT-10 Owner's Manual, Preset Patch List and MIDI
-  Implementation are stored under `docs/official/boss_gt10/`, with verified
-  hashes in `manifest.json`;
-- runtime loads versioned page-aware JSON indexes from Qt resources and never
-  reparses PDFs or consults source-tree paths. The Patch List remains an
-  `OfficialPatchReference`, and pt-BR summaries derived from the English
-  documents remain explicitly `DerivedFromOfficialDocumentation`;
-- the GT Lab backend/MidiTable remains authoritative over structural facts and
-  address behavior if documentation conflicts with implemented truth.
-
-The Assistant's Phase 6 style-guidance layer is also read-only:
-
-- `ToneTaxonomy` separates six tonal families, seven musical profiles and
-  sixteen modifiers, with a closed synonym/typo vocabulary;
-- `ToneStyleRecipes` composes directional recipes through the existing
-  conversation/provider path, validates model names with `GT10CapabilityService`,
-  and reuses `ToneAnalyzer`/`ToneAdjustmentAdvisor` for immutable patch context;
-- musical tendencies are explicitly Guidance, not protocol facts or ideal
-  settings. Official documentation references retain document/section/page traces;
-- no patch apply, hardware READ, MIDI/SysEx, network or artist profile is added.
-  Musical acceptance remains a maintainer GO/NO-GO decision after UI review.
-- Phase 6.1 adds lightweight FieldKnowledge metadata for maintainer-curated
-  musical directions, explicitly separate from official facts and physical tests.
-  Worship EQ references near 100 Hz/8 kHz are not rules: the existing EQ enum
-  offers 110Hz and 8.00kHz. Big (including mono) and stereo L/R are distinct goals.
-- Phase 6.2 preserves compound family/spatial/instrument/usage qualifiers.
-  Conceptual builds do not inspect or describe the available patch by default;
-  explicit patch references opt into immutable context. Internal traces remain
-  metadata, while compact answers focus on the requested musical goal.
-- Phase 6.3 composes usage role (solo canonicalizes to lead) and a closed
-  tone-problem vocabulary into existing recipe block guidance before rendering.
-  Neutral high gain does not assume rhythm; Worship separates dynamics, EQ,
-  and space. Problem-only requests do not invent a clean family or inspect the
-  current patch unless explicitly requested. All guidance remains read-only.
-- Phase 6.4 budgets compact style-build presentation into tone, amp/gain,
-  proportional EQ, and space. Full recipe evidence stays in metadata; requested
-  detail retains expanded guidance. The existing conversation reasoner remembers
-  only the last build question for summary/detail/value follow-ups and clears it
-  on reset or patch identity change. No patch or hardware operation is added.
+GT Lab Assistant development was discontinued.
+Do not reintroduce Assistant runtime/UI without explicit maintainer request.
 
 The connection label must reflect `SysxIO::isConnected()`. Do not hardcode a fake connected state.
 

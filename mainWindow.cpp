@@ -24,7 +24,6 @@
 #include <QtGui>
 #include <QMenuBar>
 #include <QShowEvent>
-#include <QSplitter>
 #include <QStyle>
 #ifdef Q_OS_WIN
 #include <windows.h>
@@ -102,10 +101,6 @@ struct WindowsEraseFunctions
 #include "summaryDialogPatchList.h"
 #include "summaryDialogSystem.h"
 #include "globalVariables.h"
-#include "ai/AIContextBuilder.h"
-#include "ai/AssistantPanel.h"
-#include "ai/AssistantSession.h"
-#include "ai/LocalGT10Provider.h"
 
 #ifdef Q_OS_WIN
 namespace {
@@ -261,11 +256,7 @@ mainWindow::mainWindow()
         //mainLayout->setMargin(0);
         //mainLayout->setSpacing(0);
         //setLayout(mainLayout);
-        createAssistantWorkspace();
-        QObject::connect(legacyFloorBoard, SIGNAL(updateSignal()),
-                         this, SLOT(refreshAssistantContextStatus()));
-        QObject::connect(this, SIGNAL(updateSignal()),
-                         this, SLOT(refreshAssistantContextStatus()));
+        setCentralWidget(modernFloorBoardWidget);
         statusBar()->setWhatsThis(
             tr("StatusBar<br>midi activity is displayed here<br>and some status messages are displayed."));
  
@@ -439,19 +430,6 @@ void mainWindow::createActions()
         summaryPatchListAct->setWhatsThis(tr("Display the GT-10 patch listing names<br>in a readable text format, which<br>can be printed or saved to file."));
         connect(summaryPatchListAct, SIGNAL(triggered()), this, SLOT(summaryPatchList()));
 
-        aiPatchSnapshotAct = new QAction(tr("AI Patch Snapshot..."), this);
-        aiPatchSnapshotAct->setWhatsThis(
-            tr("Preview a read-only JSON snapshot of the current patch."));
-        connect(aiPatchSnapshotAct, SIGNAL(triggered()),
-                this, SLOT(showAiPatchSnapshot()));
-
-        assistantAct = new QAction(tr("GT Lab Assistant"), this);
-        assistantAct->setCheckable(true);
-        assistantAct->setWhatsThis(
-            tr("Open the offline GT Lab Assistant development panel."));
-        connect(assistantAct, SIGNAL(toggled(bool)),
-                this, SLOT(showAssistant(bool)));
-
         helpAct = new QAction(QIcon(":/assets/menu/help.png"), tr("GT Lab Editor &Help"), this);
         helpAct->setShortcut(tr("Ctrl+F1"));
         helpAct->setWhatsThis(tr("Help page to assist with FxFloorBoard functions."));
@@ -514,9 +492,6 @@ void mainWindow::createMenus()
         toolsMenu->addAction(summaryAct);
         toolsMenu->addAction(summarySystemAct);
         toolsMenu->addAction(summaryPatchListAct);
-        toolsMenu->addSeparator();
-        toolsMenu->addAction(aiPatchSnapshotAct);
-        toolsMenu->addAction(assistantAct);
         //menuBar->addMenu(toolsMenu);
 
 
@@ -557,41 +532,6 @@ void mainWindow::createStatusBar()
         statusBar()->setSizeGripEnabled(false);
         statusBar()->setStyleSheet(ModernTheme::applicationStyleSheet());
 };
-
-void mainWindow::createAssistantWorkspace()
-{
-    assistantProvider = new Ai::LocalGT10Provider(this);
-    assistantSession = new Ai::AssistantSession(this);
-    const QString editorLanguage = Preferences::Instance()->getPreferences(
-        "Language", "Locale", "select");
-    assistantSession->setResponseLanguage(
-        editorLanguage == QLatin1String("pt_BR")
-            ? QStringLiteral("pt-BR") : QStringLiteral("en"));
-    assistantSession->setProvider(assistantProvider);
-    assistantSplitter = new QSplitter(Qt::Horizontal, this);
-    assistantSplitter->setObjectName(QStringLiteral("AssistantWorkspace"));
-    assistantSplitter->setChildrenCollapsible(false);
-    assistantSplitter->setHandleWidth(5);
-    assistantPanel = new Ai::AssistantPanel(assistantSession,
-                                             assistantSplitter);
-    assistantSplitter->addWidget(modernFloorBoardWidget);
-    assistantSplitter->addWidget(assistantPanel);
-    assistantSplitter->setStretchFactor(0, 1);
-    assistantSplitter->setStretchFactor(1, 0);
-    assistantSplitter->setStyleSheet(ModernTheme::applicationStyleSheet());
-    assistantPanel->hide();
-    setCentralWidget(assistantSplitter);
-
-    connect(assistantPanel, &Ai::AssistantPanel::promptSubmitted,
-            this, &mainWindow::sendAssistantPrompt);
-    connect(assistantPanel, &Ai::AssistantPanel::closeRequested,
-            this, [this]() { showAssistant(false); });
-    connect(assistantSplitter, &QSplitter::splitterMoved,
-            this, [this](int, int) {
-        if (assistantPanel->isVisible())
-            assistantPanelWidth = assistantPanel->width();
-    });
-}
 
 /* FILE MENU */
 void mainWindow::open()
@@ -1086,69 +1026,6 @@ void mainWindow::summaryPatchList()
    summaryPatchList->setMinimumHeight(650);
    summaryPatchList->show();
 };   
-
-void mainWindow::showAiPatchSnapshot()
-{
-    if (modernFloorBoardWidget)
-        modernFloorBoardWidget->showAiPatchSnapshot();
-}
-
-void mainWindow::showAssistant(bool visible)
-{
-    if (!assistantSplitter || !assistantPanel)
-        return;
-    if (!visible && assistantPanel->isVisible())
-        assistantPanelWidth = assistantPanel->width();
-    assistantPanel->setVisible(visible);
-    assistantAct->blockSignals(true);
-    assistantAct->setChecked(visible);
-    assistantAct->blockSignals(false);
-    if (visible) {
-        refreshAssistantContextStatus();
-        QTimer::singleShot(0, this, [this]() {
-            const int available = assistantSplitter->width()
-                - assistantSplitter->handleWidth();
-            const int assistantWidth = qMin(
-                assistantPanelWidth,
-                qMax(assistantPanel->minimumWidth(),
-                     available - modernFloorBoardWidget->minimumWidth()));
-            assistantSplitter->setSizes({
-                qMax(modernFloorBoardWidget->minimumWidth(),
-                     available - assistantWidth),
-                assistantWidth
-            });
-        });
-    }
-}
-
-void mainWindow::sendAssistantPrompt(QString text)
-{
-    if (!assistantSession || !modernFloorBoardWidget)
-        return;
-    Ai::AIContext context;
-    QString patchLabel;
-    QString error;
-    const bool available = modernFloorBoardWidget->captureCurrentAiContext(
-        &context, &patchLabel, &error);
-    Q_UNUSED(error)
-    assistantSession->sendMessage(
-        text, context,
-        available ? patchLabel : tr("Patch context unavailable"));
-}
-
-void mainWindow::refreshAssistantContextStatus()
-{
-    if (!assistantPanel || !modernFloorBoardWidget)
-        return;
-    Ai::AIContext context;
-    QString patchLabel;
-    QString error;
-    const bool available = modernFloorBoardWidget->captureCurrentAiContext(
-        &context, &patchLabel, &error);
-    Q_UNUSED(context)
-    Q_UNUSED(error)
-    assistantPanel->setContextStatus(patchLabel, available);
-}
 
 void mainWindow::homepage()
 {

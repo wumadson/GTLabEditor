@@ -36,12 +36,6 @@ class statusBarWidget;
 class BackupCoordinator;
 class QuickSettingService;
 class QShowEvent;
-class QSplitter;
-namespace Ai {
-class AssistantPanel;
-class AssistantSession;
-class LocalGT10Provider;
-}
 
 //class mainWindow : public QWidget
 class mainWindow : public QMainWindow
@@ -83,10 +77,6 @@ public slots:
         void summaryPage();       
         void summarySystemPage();
         void summaryPatchList();
-        void showAiPatchSnapshot();
-        void showAssistant(bool visible = true);
-        void sendAssistantPrompt(QString text);
-        void refreshAssistantContextStatus();
         void help();
         void homepage();
         void donate();
@@ -100,7 +90,6 @@ private:
         void createActions();
         void createMenus();
         void createStatusBar();
-        void createAssistantWorkspace();
         //QMenuBar *menuBar;
         //QStatusBar *statusBar;
         QMenu *fileMenu;
@@ -124,8 +113,6 @@ private:
         QAction *summaryAct;       
         QAction *summarySystemAct;
         QAction *summaryPatchListAct;
-        QAction *aiPatchSnapshotAct;
-        QAction *assistantAct;
         QAction *helpAct;
         QAction *homepageAct;
         QAction *donationAct;
@@ -141,11 +128,6 @@ private:
         statusBarWidget *statusInfo;
         BackupCoordinator *backupCoordinator;
         QuickSettingService *quickSettingService;
-        QSplitter *assistantSplitter;
-        Ai::AssistantPanel *assistantPanel;
-        Ai::AssistantSession *assistantSession;
-        Ai::LocalGT10Provider *assistantProvider;
-        int assistantPanelWidth = 340;
 };
 
 #endif // MAINWINDOW_H
