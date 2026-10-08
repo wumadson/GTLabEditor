@@ -669,13 +669,14 @@ BottomControlStrip::BottomControlStrip(QWidget *parent)
     QVBoxLayout *controlLayout = new QVBoxLayout(controlRegion);
     controlLayout->setContentsMargins(14, 9, 14, 9);
     controlLayout->setSpacing(4);
+    controlLayout->setAlignment(Qt::AlignTop);
 
     QWidget *controlHeader = new QWidget;
     controlHeader->setFixedHeight(19);
     QHBoxLayout *controlHeaderLayout = new QHBoxLayout(controlHeader);
     controlHeaderLayout->setContentsMargins(0, 0, 0, 0);
     controlHeaderLayout->setSpacing(6);
-    QLabel *controlTitle = new QLabel(QObject::tr("CONTROL & EXPRESSION"));
+    QLabel *controlTitle = new QLabel(QObject::tr("CONTROL/EXPRESSION"));
     controlTitle->setObjectName("BottomRegionTitle");
     controlHeaderLayout->addWidget(controlTitle);
     controlHeaderLayout->addStretch(1);
@@ -790,8 +791,9 @@ BottomControlStrip::BottomControlStrip(QWidget *parent)
     pedalRegion->setObjectName("BottomRegion");
     pedalRegion->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
     QVBoxLayout *pedalLayout = new QVBoxLayout(pedalRegion);
-    pedalLayout->setContentsMargins(14, 11, 14, 11);
-    pedalLayout->setSpacing(8);
+    pedalLayout->setContentsMargins(14, 9, 14, 9);
+    pedalLayout->setSpacing(4);
+    pedalLayout->setAlignment(Qt::AlignTop);
     QWidget *pedalHeader = new QWidget;
     pedalHeader->setFixedHeight(19);
     QHBoxLayout *pedalHeaderLayout = new QHBoxLayout(pedalHeader);
@@ -814,7 +816,7 @@ BottomControlStrip::BottomControlStrip(QWidget *parent)
     footsLayout->setContentsMargins(0, 0, 0, 0);
     footsLayout->setHorizontalSpacing(4);
     footsLayout->setVerticalSpacing(0);
-    footsLayout->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+    footsLayout->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
     const QStringList footLabels = {
         "1", "2", "3", "4", "CTL1", "CTL2", "DN", "UP", "EXP"
     };
@@ -845,8 +847,10 @@ BottomControlStrip::BottomControlStrip(QWidget *parent)
     QVBoxLayout *tunerRegionLayout = new QVBoxLayout(tunerRegion);
     tunerRegionLayout->setContentsMargins(12, 9, 12, 9);
     tunerRegionLayout->setSpacing(4);
+    tunerRegionLayout->setAlignment(Qt::AlignTop);
     QLabel *tunerTitle = new QLabel(QObject::tr("TUNER"));
     tunerTitle->setObjectName("BottomRegionTitle");
+    tunerTitle->setFixedHeight(19);
     tunerRegionLayout->addWidget(tunerTitle);
     QFrame *tunerCard = new QFrame;
     tunerCard->setObjectName("BottomTunerCard");

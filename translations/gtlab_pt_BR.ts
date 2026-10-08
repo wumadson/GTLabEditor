@@ -1957,7 +1957,7 @@ NÃO INTEGRADO</translation>
     </message>
     <message>
         <location filename="../modernWidgets.cpp" line="678"/>
-        <source>CONTROL &amp; EXPRESSION</source>
+        <source>CONTROL/EXPRESSION</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
