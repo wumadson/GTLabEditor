@@ -4,7 +4,7 @@
 
 GT Lab Editor is an independent open-source editor and librarian for the
 BOSS GT-10. It is a cross-platform project maintained by Wumadson Cardoso /
-GT LAB. The source version is **1.1.0**, in release preparation; the current
+GT LAB. The source version is **1.2.0**, in release preparation; the current
 public release remains v1.0.0 until final artifacts are validated and published.
 
 Project repository: <https://github.com/wumadson/GTLabEditor>
@@ -46,7 +46,7 @@ HVCI/Memory Integrity enabled. It uses the Microsoft inbox WinUSB driver and
 does not require disabling Windows security features.
 
 The backend already exists and has been physically validated. The universal
-installer prepared for v1.1.0 preserves the v1.0.0 model and offers the WinUSB
+installer previously prepared for v1.1.0 preserves the v1.0.0 model and offers the WinUSB
 component only after explicit user confirmation. It reuses the validated local
 packaging inputs, including the disclosed self-signed laboratory certificate;
 this does not represent new public driver signing approval. Activating

@@ -191,8 +191,8 @@ Previously verified patches remain overwritten.</source>
     </message>
     <message>
         <location filename="../modernAboutDialog.cpp" line="126"/>
-        <source>Version 1.1.0</source>
-        <translation>Versão 1.1.0</translation>
+        <source>Version 1.2.0</source>
+        <translation>Versão 1.2.0</translation>
     </message>
     <message>
         <location filename="../modernAboutDialog.cpp" line="133"/>

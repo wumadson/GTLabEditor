@@ -73,22 +73,22 @@ Generated files are deliberately ignored by Git:
 
 - `build/windows-release/packager/GTLabEditor.exe`
 - `dist/staging/windows/GTLabEditor/`
-- `dist/windows/GTLabEditor-1.1.0-Windows-x64-Portable.zip`
-- `dist/windows/GTLabEditor-1.1.0-Windows-x64-Setup.exe`
+- `dist/windows/GTLabEditor-1.2.0-Windows-x64-Portable.zip`
+- `dist/windows/GTLabEditor-1.2.0-Windows-x64-Setup.exe`
 - `dist/windows/SHA256SUMS.txt`
 - `dist/windows/build-manifest.txt`
 
 The manifest records the commit, branch/ref, UTC build timestamp, tool
 versions, and the SHA-256 and size of each staged file.
 
-## Official v1.1.0 universal installer
+## v1.2.0 universal installer preparation
 
-The public v1.1.0 installer is built manually with
+The v1.2.0 installer candidate is built manually with
 `installer/windows/GTLabEditor-Windows.iss`, preserving the universal Windows
 10/11 installation model used for v1.0.0. The scripts above and CI still select
 `GTLabEditor.iss` (app-only); they are not a substitute for building and validating
 the universal installer. The app-only installer and portable ZIP are not public
-v1.1.0 release assets.
+v1.2.0 release assets.
 
 Both installer definitions currently produce the same Setup filename. Keep their
 outputs separate and record the exact `.iss`, source commit and final SHA-256 in
@@ -117,7 +117,7 @@ Verify the recovered inputs before packaging:
 
 Retest explicit WinUSB consent, the audio/ASIO warning, and app-only/full
 uninstallation on Windows 11. Windows 10 must retain the Roland/WinMM path.
-This preparation does not claim final v1.1.0 artifact validation or public
+This preparation does not claim final v1.2.0 artifact validation or public
 driver signing approval.
 
 ## GitHub Actions
