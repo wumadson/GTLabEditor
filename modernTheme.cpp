@@ -184,7 +184,9 @@ QString ModernTheme::segmentedButtonStyle(const QString &accent)
 
 QString ModernTheme::applicationStyleSheet()
 {
-    const QString style = QStringLiteral(R"(
+    QString style;
+    style.reserve(18086);
+    style += QStringLiteral(R"QSS(
         QWidget#ModernFloorBoard {
             background: #030405;
             color: #ECEFF2;
@@ -274,7 +276,8 @@ QString ModernTheme::applicationStyleSheet()
             border-bottom: 1px solid %1;
         }
         QSpinBox#TempoSpinBox:disabled,
-        QSpinBox#PatchLevelSpinBox:disabled { color: #56606A; }
+        QSpinBox#PatchLevelSpinBox:disabled { color: #56606A; })QSS");
+    style += QStringLiteral(R"QSS(
         QPushButton#HeaderReadButton,
         QPushButton#HeaderSystemButton {
             color: #D7DCE1;
@@ -381,7 +384,8 @@ QString ModernTheme::applicationStyleSheet()
             border-left: 3px solid transparent;
             border-radius: 2px;
         }
-        PatchListItem:hover { background: %2; }
+        PatchListItem:hover { background: %2; })QSS");
+    style += QStringLiteral(R"QSS(
         PatchListItem[current="true"] {
             background: %4;
             border: 1px solid #18536A;
@@ -463,7 +467,8 @@ QString ModernTheme::applicationStyleSheet()
             background: @CHAIN_SURFACE@;
             border: 1px solid @CHAIN_BORDER@;
             border-radius: 4px;
-        }
+        })QSS");
+    style += QStringLiteral(R"QSS(
         QFrame#EffectEditorPanel {
             background: #08090B;
             border: 1px solid #24272C;
@@ -574,7 +579,8 @@ QString ModernTheme::applicationStyleSheet()
         QFrame#EditorColumnDivider {
             background: #171A1E;
             border: none;
-        }
+        })QSS");
+    style += QStringLiteral(R"QSS(
         QWidget#EffectParameterArea,
         QWidget#EffectArtworkArea,
         QWidget#ResponsiveSectionArea,
@@ -663,7 +669,8 @@ QString ModernTheme::applicationStyleSheet()
         QFrame#EffectEditorPanel QComboBox QAbstractItemView::item {
             min-height: 26px;
             padding: 2px 7px;
-        }
+        })QSS");
+    style += QStringLiteral(R"QSS(
         QStatusBar {
             min-height: 24px;
             max-height: 24px;
@@ -683,7 +690,7 @@ QString ModernTheme::applicationStyleSheet()
         QLabel#ConnectionLabel[state="connected"] { color: #8D99A5; }
         QProgressBar#StatusProgress { background: #050607; border: none; border-radius: 2px; }
         QProgressBar#StatusProgress::chunk { background: #258DB5; border-radius: 2px; }
-    )");
+    )QSS");
     return style.arg(color(BorderSelected), color(HoverSurface),
                      color(PressedSurface), color(SelectedBackground),
                      color(PendingBackground), color(BankDivider),
