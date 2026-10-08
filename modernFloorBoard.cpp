@@ -1599,8 +1599,14 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     QLabel *filterTitle = new QLabel(tr("FILTER"));
     filterTitle->setObjectName("ParameterSectionTitle");
     parameterLayout->addWidget(filterTitle);
-    parameterLayout->addWidget(createReverbCombo("Low Cut", "34"));
-    parameterLayout->addWidget(createReverbCombo("High Cut", "35"));
+    QWidget *reverbFilterControls = new QWidget;
+    QHBoxLayout *reverbFilterLayout = new QHBoxLayout(reverbFilterControls);
+    reverbFilterLayout->setContentsMargins(0, 0, 0, 0);
+    reverbFilterLayout->setSpacing(10);
+    reverbFilterLayout->addWidget(createReverbCombo("Low Cut", "34"));
+    reverbFilterLayout->addWidget(createReverbCombo("High Cut", "35"));
+    reverbFilterLayout->addStretch(1);
+    parameterLayout->addWidget(reverbFilterControls);
 
     QLabel *mixTitle = new QLabel(tr("MIX"));
     mixTitle->setObjectName("ParameterSectionTitle");
@@ -1965,6 +1971,7 @@ modernFloorBoard::modernFloorBoard(QWidget *parent)
     QVBoxLayout *delayModLayout = new QVBoxLayout(delayModSection);
     delayModLayout->setContentsMargins(0, 0, 0, 0);
     delayModLayout->setSpacing(7);
+    delayModLayout->setAlignment(Qt::AlignTop);
     QLabel *delayModTitle = new QLabel(tr("MODULATION"));
     delayModTitle->setObjectName("ParameterSectionTitle");
     delayModLayout->addWidget(delayModTitle);
