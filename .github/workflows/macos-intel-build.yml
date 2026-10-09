@@ -1,0 +1,263 @@
+name: macOS Intel prototype
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: Immutable source commit to build (not the workflow branch)
+        required: true
+        type: string
+        default: 8faa9e6cade662e54fe6400affaa90464a7171b0
+
+permissions:
+  contents: read
+
+concurrency:
+  group: macos-intel-prototype
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: macos-15-intel
+    timeout-minutes: 90
+    defaults:
+      run:
+        shell: bash
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
+      MACOSX_DEPLOYMENT_TARGET: '11.0'
+      QT_QPA_PLATFORM: offscreen
+      SOURCE_COMMIT: ${{ inputs.source_ref }}
+    steps:
+      - name: Checkout unchanged reference source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ inputs.source_ref }}
+          persist-credentials: false
+
+      - name: Record native runner and resource graph
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/intel-report" "$RUNNER_TEMP/intel-build"
+          exec > >(tee "$RUNNER_TEMP/intel-report/environment.txt") 2>&1
+          test "$(git rev-parse HEAD)" = "$SOURCE_COMMIT"
+          test "$(uname -m)" = x86_64
+          uname -m
+          arch
+          sw_vers
+          xcodebuild -version
+          xcrun --show-sdk-version
+          xcrun clang --version
+          git rev-parse HEAD
+          df -h "$RUNNER_TEMP"
+          sysctl vm.swapusage
+          python3 - <<'PY'
+          import pathlib, xml.etree.ElementTree as ET
+          root = pathlib.Path.cwd()
+          entries = list(ET.parse(root / 'GT-10FxFloorBoard.qrc').iter('file'))
+          assert len(entries) == 164
+          assert 'CONFIG += resources_big' in (root / 'GT-10FxFloorBoard.pro').read_text()
+          for entry in entries:
+              assert (root / entry.text).is_file(), entry.text
+              assert not any(x in entry.text.lower() for x in ('analysis/', 'ai/', 'assistant'))
+          print('Resource graph:', len(entries), 'files;', sum((root / e.text).stat().st_size for e in entries), 'bytes')
+          PY
+
+      - name: Install Qt 5.15.2 Intel (base and deployment tools only)
+        uses: jurplel/install-qt-action@48d3ad6db93f3627c8ee7a0454bc6f3744f7e730 # v4.3.1
+        with:
+          version: '5.15.2'
+          host: mac
+          target: desktop
+          arch: clang_64
+          archives: qtbase qttools
+          aqtversion: '==3.3.0'
+          py7zrversion: '==1.1.0'
+          cache: false
+
+      - name: Audit installed Qt and generate Makefile
+        run: |
+          set -euo pipefail
+          exec > >(tee "$RUNNER_TEMP/intel-report/qmake.txt") 2>&1
+          "$QT_ROOT_DIR/bin/qmake" -v
+          test "$("$QT_ROOT_DIR/bin/qmake" -query QT_VERSION)" = 5.15.2
+          for binary in "$QT_ROOT_DIR/bin/qmake" "$QT_ROOT_DIR/bin/rcc" "$QT_ROOT_DIR/bin/macdeployqt" "$QT_ROOT_DIR/lib/QtCore.framework/Versions/5/QtCore"; do
+            file "$binary"
+            test "$(lipo -archs "$binary")" = x86_64
+          done
+          cd "$RUNNER_TEMP/intel-build"
+          "$QT_ROOT_DIR/bin/qmake" -spec macx-clang "$GITHUB_WORKSPACE/GT-10FxFloorBoard.pro" CONFIG+=release QMAKE_APPLE_DEVICE_ARCHS=x86_64 QMAKE_MACOSX_DEPLOYMENT_TARGET=11.0
+          grep -E 'rcc.*-pass [12]|CXXFLAGS.*arch|LFLAGS.*arch' Makefile
+          grep -q -- '-pass 1' Makefile
+          grep -q -- '-pass 2' Makefile
+
+      # No automatic source fixes or retries after a failed first build.
+      - name: First unchanged-source build (two workers)
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/intel-build"
+          /usr/bin/time -l make -j2 2>&1 | tee "$RUNNER_TEMP/intel-report/build.txt"
+          file 'packager/GT Lab Editor.app/Contents/MacOS/GTLabEditor'
+          lipo -info 'packager/GT Lab Editor.app/Contents/MacOS/GTLabEditor'
+          test "$(lipo -archs 'packager/GT Lab Editor.app/Contents/MacOS/GTLabEditor')" = x86_64
+          mkdir -p "$RUNNER_TEMP/intel-image"
+          ditto 'packager/GT Lab Editor.app' "$RUNNER_TEMP/intel-image/GT Lab Editor.app"
+          sysctl vm.swapusage
+          df -h "$RUNNER_TEMP"
+          du -sh .
+          ls -lh qrc_GT-10FxFloorBoard.*
+
+      - name: Verify all embedded resources using the application's resource object
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/intel-resource-probe"
+          cd "$RUNNER_TEMP/intel-resource-probe"
+          python3 - <<'PY'
+          import hashlib, os, pathlib, xml.etree.ElementTree as ET
+          root = pathlib.Path(os.environ['GITHUB_WORKSPACE'])
+          lines = []
+          for group in ET.parse(root / 'GT-10FxFloorBoard.qrc').iter('qresource'):
+              for entry in group.findall('file'):
+                  path = ':' + group.get('prefix', '/').rstrip('/') + '/' + entry.get('alias', entry.text)
+                  lines.append(path + '\t' + hashlib.sha256((root / entry.text).read_bytes()).hexdigest())
+          pathlib.Path('manifest.txt').write_text('\n'.join(lines) + '\n')
+          pathlib.Path('probe.cpp').write_text('''#include <QCoreApplication>
+          #include <QFile>
+          #include <QCryptographicHash>
+          #include <QDebug>
+          int main(int argc, char **argv) {
+              QCoreApplication app(argc, argv);
+              QFile manifest("manifest.txt");
+              if (!manifest.open(QIODevice::ReadOnly)) return 1;
+              int count = 0;
+              while (!manifest.atEnd()) {
+                  const auto fields = manifest.readLine().trimmed().split('\\t');
+                  if (fields.size() != 2) return 2;
+                  QFile file(QString::fromUtf8(fields[0]));
+                  if (!file.open(QIODevice::ReadOnly)) return 3;
+                  if (QCryptographicHash::hash(file.readAll(), QCryptographicHash::Sha256).toHex() != fields[1]) return 4;
+                  ++count;
+              }
+              qInfo() << "Embedded resource hashes verified:" << count;
+              return count == 164 ? 0 : 5;
+          }
+          ''')
+          obj = pathlib.Path(os.environ['RUNNER_TEMP']) / 'intel-build/qrc_GT-10FxFloorBoard.o'
+          assert obj.is_file()
+          pathlib.Path('probe.pro').write_text('QT = core\nCONFIG += console\nCONFIG -= app_bundle\nTARGET = resourceProbe\nSOURCES = probe.cpp\nLIBS += ' + str(obj) + '\n')
+          PY
+          "$QT_ROOT_DIR/bin/qmake" -spec macx-clang probe.pro QMAKE_APPLE_DEVICE_ARCHS=x86_64 QMAKE_MACOSX_DEPLOYMENT_TARGET=11.0
+          make -j1
+          ./resourceProbe 2>&1 | tee "$RUNNER_TEMP/intel-report/resources.txt"
+
+      - name: Six core suites sequentially (reuse build objects)
+        run: |
+          set -euo pipefail
+          while read -r config target; do
+            cd "$RUNNER_TEMP/intel-build"
+            "$QT_ROOT_DIR/bin/qmake" -spec macx-clang "$GITHUB_WORKSPACE/GT-10FxFloorBoard.pro" CONFIG+=release "CONFIG+=$config" CONFIG-=app_bundle QMAKE_APPLE_DEVICE_ARCHS=x86_64 QMAKE_MACOSX_DEPLOYMENT_TARGET=11.0
+            make -j1 2>&1 | tee "$RUNNER_TEMP/intel-report/$target-build.txt"
+            cd "$GITHUB_WORKSPACE"
+            "$RUNNER_TEMP/intel-build/$target" 2>&1 | tee "$RUNNER_TEMP/intel-report/$target.txt"
+          done <<'SUITES'
+          signalchain_domain_tests signalChainDomainTests
+          patchchangeguard_tests patchChangeGuardTests
+          patchbackup_tests patchBackupTests
+          patchdecoder_tests patchDecoderTests
+          quicksetting_tests quickSettingCodecTests
+          pedalartwork_tests pedalArtworkResolverTests
+          SUITES
+
+      - name: Deploy with the same Qt and audit every bundled Mach-O
+        run: |
+          set -euo pipefail
+          app="$RUNNER_TEMP/intel-image/GT Lab Editor.app"
+          "$QT_ROOT_DIR/bin/macdeployqt" "$app" -verbose=2 -codesign=- 2>&1 | tee "$RUNNER_TEMP/intel-report/deployment.txt"
+          python3 - <<'PY' | tee "$RUNNER_TEMP/intel-report/bundle.txt"
+          import os, pathlib, plistlib, re, subprocess
+          app = pathlib.Path(os.environ['RUNNER_TEMP']) / 'intel-image/GT Lab Editor.app'
+          info = plistlib.loads((app / 'Contents/Info.plist').read_bytes())
+          assert info['CFBundleShortVersionString'] == '1.2.0'
+          assert info['CFBundleIdentifier'] == 'com.gtlab.GTLabEditor'
+          assert info['LSMinimumSystemVersion'] == '11.0'
+          print(info)
+          executable = app / 'Contents/MacOS/GTLabEditor'
+          executable_loads = subprocess.check_output(['otool', '-l', str(executable)], text=True)
+          executable_rpaths = re.findall(r'cmd LC_RPATH\s+cmdsize \d+\s+path (.+?) \(offset', executable_loads)
+          assert '@executable_path/../Frameworks' in executable_rpaths
+          binaries = []
+          for path in app.rglob('*'):
+              if not path.is_file() or path.is_symlink(): continue
+              description = subprocess.check_output(['file', '-b', str(path)], text=True)
+              if 'Mach-O' not in description: continue
+              binaries.append(path)
+              assert subprocess.check_output(['lipo', '-archs', str(path)], text=True).strip() == 'x86_64', path
+              loads = subprocess.check_output(['otool', '-l', str(path)], text=True)
+              rpaths = re.findall(r'cmd LC_RPATH\s+cmdsize \d+\s+path (.+?) \(offset', loads)
+              print(path.relative_to(app), description, loads)
+              for rpath in rpaths:
+                  assert rpath.startswith(('@executable_path/', '@loader_path/')), rpath
+              deps = subprocess.check_output(['otool', '-L', str(path)], text=True)
+              print(deps)
+              for line in deps.splitlines()[1:]:
+                  dep = line.strip().split(' (compatibility')[0]
+                  if dep.startswith(('/System/Library/', '/usr/lib/')): continue
+                  def expand(value):
+                      return pathlib.Path(value.replace('@executable_path', str(app / 'Contents/MacOS')).replace('@loader_path', str(path.parent))).resolve()
+                  if dep.startswith('@rpath/'):
+                      candidates = [expand(r + '/' + dep[len('@rpath/'):]) for r in rpaths]
+                      for r in executable_rpaths:
+                          candidates.append(pathlib.Path(r.replace('@executable_path', str(executable.parent)).replace('@loader_path', str(executable.parent)) + '/' + dep[len('@rpath/'):]).resolve())
+                  else:
+                      assert dep.startswith(('@executable_path/', '@loader_path/')), dep
+                      candidates = [expand(dep)]
+                  assert any(p.is_file() and app.resolve() in p.parents for p in candidates), dep
+          for framework in ('QtCore', 'QtGui', 'QtWidgets', 'QtXml', 'QtPrintSupport'):
+              assert (app / f'Contents/Frameworks/{framework}.framework/Versions/5/{framework}') in binaries
+          assert (app / 'Contents/PlugIns/platforms/libqcocoa.dylib').is_file()
+          print('Intel-only Mach-O files:', len(binaries))
+          PY
+          codesign --verify --deep --strict --verbose=2 "$app"
+          codesign -dv --verbose=4 "$app" 2>&1 | tee "$RUNNER_TEMP/intel-report/signing.txt"
+
+      - name: Create internal prototype DMG and SHA-256
+        run: |
+          set -euo pipefail
+          ln -s /Applications "$RUNNER_TEMP/intel-image/Applications"
+          mkdir -p "$RUNNER_TEMP/intel-artifact"
+          dmg="$RUNNER_TEMP/intel-artifact/GTLabEditor-1.2.0-macOS-Intel.dmg"
+          hdiutil create -volname 'GT Lab Editor' -srcfolder "$RUNNER_TEMP/intel-image" -fs APFS -format UDZO "$dmg"
+          hdiutil verify "$dmg"
+          cd "$RUNNER_TEMP/intel-artifact"
+          shasum -a 256 GTLabEditor-1.2.0-macOS-Intel.dmg > SHA256SUMS.txt
+          stat -f '%N %z bytes' "$dmg"
+          cat SHA256SUMS.txt
+          printf 'Build/bundle/tests/DMG gates passed. Source: %s\nBridge: PENDING_SEPARATE_VALIDATION\nAd-hoc signing; no notarization; no hardware validation.\n' "$SOURCE_COMMIT" > build-report.txt
+          stat -f '%N %z bytes' "$dmg" >> build-report.txt
+          cat SHA256SUMS.txt >> build-report.txt
+          cat "$RUNNER_TEMP"/intel-report/*.txt >> build-report.txt
+          git -C "$GITHUB_WORKSPACE" diff --exit-code
+
+      - name: Upload internal Intel prototype (never a Release asset)
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: GTLabEditor-1.2.0-macOS-Intel
+          path: ${{ runner.temp }}/intel-artifact/
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Record final resource usage (including failures)
+        if: always()
+        run: |
+          df -h "$RUNNER_TEMP"
+          sysctl vm.swapusage
+          du -sh "$RUNNER_TEMP/intel-build" "$RUNNER_TEMP/intel-image" 2>/dev/null || true
+
+      - name: Preserve diagnostic logs if a gate fails
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: macOS-Intel-failure-diagnostics
+          path: ${{ runner.temp }}/intel-report/
+          if-no-files-found: warn
+          retention-days: 14
