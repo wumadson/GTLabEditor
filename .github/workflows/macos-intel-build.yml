@@ -185,6 +185,46 @@ jobs:
           executable_loads = subprocess.check_output(['otool', '-l', str(executable)], text=True)
           executable_rpaths = re.findall(r'cmd LC_RPATH\s+cmdsize \d+\s+path (.+?) \(offset', executable_loads)
           assert '@executable_path/../Frameworks' in executable_rpaths
+          def dependency_entries(listing, identity_listing):
+              identities = [line.strip() for line in identity_listing.splitlines()[1:] if line.strip()]
+              assert len(identities) <= 1, identity_listing
+              entries = [line.strip().split(' (compatibility')[0] for line in listing.splitlines()[1:] if line.strip()]
+              if identities:
+                  # otool -D confirms LC_ID_DYLIB; only that first -L entry is self-ID.
+                  assert entries and entries[0] == identities[0], (listing, identity_listing)
+                  entries = entries[1:]
+              return entries
+          def validate_dependency(dep, path, rpaths):
+              if dep.startswith(('/System/Library/', '/usr/lib/')): return
+              def expand(value):
+                  return pathlib.Path(value.replace('@executable_path', str(app / 'Contents/MacOS')).replace('@loader_path', str(path.parent))).resolve()
+              if dep.startswith('@rpath/'):
+                  candidates = [expand(r + '/' + dep[len('@rpath/'):]) for r in rpaths]
+                  for r in executable_rpaths:
+                      candidates.append(pathlib.Path(r.replace('@executable_path', str(executable.parent)).replace('@loader_path', str(executable.parent)) + '/' + dep[len('@rpath/'):]).resolve())
+              else:
+                  assert dep.startswith(('@executable_path/', '@loader_path/')), dep
+                  candidates = [expand(dep)]
+              assert any(p.is_file() and app.resolve() in p.parents for p in candidates), dep
+          # Regression fixtures exercise the same parser and dependency validator.
+          fixture_path = app / 'Contents/PlugIns/platforms/libqcocoa.dylib'
+          fixture_id = str(fixture_path) + ':\nlibqcocoa.dylib\n'
+          fixture = str(fixture_path) + ':\n\tlibqcocoa.dylib (compatibility version 0.0.0, current version 0.0.0)\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1.0.0)\n\t@rpath/QtCore.framework/Versions/5/QtCore (compatibility version 5.15.0, current version 5.15.2)\n'
+          fixture_deps = dependency_entries(fixture, fixture_id)
+          assert fixture_deps == ['/usr/lib/libSystem.B.dylib', '@rpath/QtCore.framework/Versions/5/QtCore']
+          for dep in fixture_deps:
+              validate_dependency(dep, fixture_path, [])
+          for forbidden in ('/opt/homebrew/lib/libfoo.dylib', 'libqcocoa.dylib'):
+              # A second bare entry is a real dependency, not another self-ID.
+              entries = dependency_entries(fixture + '\t' + forbidden + ' (compatibility version 1.0.0, current version 1.0.0)\n', fixture_id)
+              assert entries[-1] == forbidden
+              try:
+                  validate_dependency(entries[-1], fixture_path, [])
+              except AssertionError:
+                  pass
+              else:
+                  raise AssertionError('Invalid dependency accepted: ' + forbidden)
+          print('Dependency parser fixtures PASS: confirmed self-ID, internal dependencies, external/bare dependency rejection')
           binaries = []
           for path in app.rglob('*'):
               if not path.is_file() or path.is_symlink(): continue
@@ -198,20 +238,10 @@ jobs:
               for rpath in rpaths:
                   assert rpath.startswith(('@executable_path/', '@loader_path/')), rpath
               deps = subprocess.check_output(['otool', '-L', str(path)], text=True)
-              print(deps)
-              for line in deps.splitlines()[1:]:
-                  dep = line.strip().split(' (compatibility')[0]
-                  if dep.startswith(('/System/Library/', '/usr/lib/')): continue
-                  def expand(value):
-                      return pathlib.Path(value.replace('@executable_path', str(app / 'Contents/MacOS')).replace('@loader_path', str(path.parent))).resolve()
-                  if dep.startswith('@rpath/'):
-                      candidates = [expand(r + '/' + dep[len('@rpath/'):]) for r in rpaths]
-                      for r in executable_rpaths:
-                          candidates.append(pathlib.Path(r.replace('@executable_path', str(executable.parent)).replace('@loader_path', str(executable.parent)) + '/' + dep[len('@rpath/'):]).resolve())
-                  else:
-                      assert dep.startswith(('@executable_path/', '@loader_path/')), dep
-                      candidates = [expand(dep)]
-                  assert any(p.is_file() and app.resolve() in p.parents for p in candidates), dep
+              identity = subprocess.check_output(['otool', '-D', str(path)], text=True)
+              print(deps, identity)
+              for dep in dependency_entries(deps, identity):
+                  validate_dependency(dep, path, rpaths)
           for framework in ('QtCore', 'QtGui', 'QtWidgets', 'QtXml', 'QtPrintSupport'):
               assert (app / f'Contents/Frameworks/{framework}.framework/Versions/5/{framework}') in binaries
           assert (app / 'Contents/PlugIns/platforms/libqcocoa.dylib').is_file()
