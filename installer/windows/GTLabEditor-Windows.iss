@@ -95,6 +95,7 @@ var
   WinUsbRestartRequired: Boolean;
   WinUsbAttempted: Boolean;
   WinUsbSucceeded: Boolean;
+  WinUsbGuidance: String;
   RemoveWinUsbOnUninstall: Boolean;
   WinUsbUninstallInvoked: Boolean;
 
@@ -105,7 +106,7 @@ var
 begin
   LogDirectory := ExpandConstant('{commonappdata}\GT LAB\Logs');
   ForceDirectories(LogDirectory);
-  LogPath := LogDirectory + '\Universal-RC6-Install.log';
+  LogPath := LogDirectory + '\Universal-Install.log';
   SaveStringToFile(LogPath, GetDateTimeString('yyyy-mm-dd hh:nn:ss', '-', ':') + ' ' + MessageText + #13#10, True);
 end;
 
@@ -170,6 +171,34 @@ begin
   Result := (PageID = WinUsbPage.ID) and (not IsWindows11);
 end;
 
+function WinUsbDiagnostic(State: String): String;
+begin
+  if State = 'WINUSB_PRESERVED' then
+    Result := 'GT-10 já pronta: driver WinUSB e certificados preservados. Não houve reinstalação do driver.'
+  else if State = 'WINUSB_BOUND_OK' then
+    Result := 'GT-10 vinculada ao WinUSB: hardware, provedor, INF e estado confirmados.'
+  else if State = 'WINUSB_BOUND_REBOOT_REQUIRED' then
+    Result := 'GT-10 vinculada ao WinUSB. O Windows solicitou reinicialização.'
+  else if State = 'GT10_NOT_PRESENT' then
+    Result := 'GT-10 não conectada. Conecte e ligue a GT-10 antes de configurar o suporte.'
+  else if State = 'GT10_AMBIGUOUS' then
+    Result := 'Mais de uma GT-10 detectada. Mantenha apenas a GT-10 desejada conectada para configurar o suporte.'
+  else if State = 'ROLAND_DRIVER_OK' then
+    Result := 'A GT-10 continua com o driver Roland funcional. A associação ao WinUSB não foi confirmada.'
+  else if State = 'WINUSB_PRESENT_BUT_NOT_BOUND_TO_GT10' then
+    Result := 'WinUSB presente, mas a GT-10 não está vinculada ao pacote GT LAB esperado. Reconecte ou reinicie e verifique o log; não houve nova tentativa automática.'
+  else if State = 'GT10_UNKNOWN_DRIVER' then
+    Result := 'A GT-10 foi detectada com driver não reconhecido. Consulte o log antes de qualquer reparo.'
+  else if State = 'GT10_BROKEN_BINDING' then
+    Result := 'O vínculo da GT-10 está com erro ou mudou durante a verificação. Reconecte ou reinicie e consulte o log antes de reparar.'
+  else if State = 'CERT_E_UNTRUSTEDROOT' then
+    Result := 'Certificado não confiável: CERT_E_UNTRUSTEDROOT (0x800B0109). Consulte o retorno completo no log. Nenhuma proteção foi desativada.'
+  else if State = 'CERTIFICATE_NOT_TRUSTED' then
+    Result := 'O certificado ou catálogo GT LAB não foi validado como confiável. Consulte CAT_SIGNATURE e StatusMessage no log (incluindo eventual 0x800B0109).'
+  else
+    Result := 'A configuração WinUSB falhou. Consulte o retorno do auxiliar e dos comandos no log antes de tentar novamente.';
+end;
+
 function PrepareToInstall(var NeedsRestart: Boolean): String;
 var
   PowerShellPath: String;
@@ -180,6 +209,7 @@ begin
   Result := '';
   WinUsbAttempted := False;
   WinUsbSucceeded := False;
+  WinUsbGuidance := '';
 
   if not IsWindows11 then
   begin
@@ -209,6 +239,9 @@ begin
     ExpandConstant('{tmp}\gt10-winusb.cat') + '" -InfPath "' +
     ExpandConstant('{tmp}\gt10-winusb.inf') + '" -LogPath "' + LogPath + '"';
 
+  if ExpandConstant('{param:PRESERVEWINUSB|0}') = '1' then
+    Parameters := Parameters + ' -PreserveExistingBinding';
+  DeleteFile(LogPath + '.ini');
   WriteUniversalLog('HELPER_PATH=' + ExpandConstant('{tmp}\install-winusb-universal.ps1'));
   WriteUniversalLog('POWERSHELL_PATH=' + PowerShellPath);
   WriteUniversalLog('POWERSHELL_ARGUMENTS=' + Parameters);
@@ -221,6 +254,8 @@ begin
   end;
 
   WriteUniversalLog(Format('HELPER_EXIT_CODE=%d', [ResultCode]));
+  WinUsbGuidance := WinUsbDiagnostic(GetIniString('WinUSB', 'State', 'DRIVER_INSTALL_FAILED', LogPath + '.ini'));
+  WriteUniversalLog(WinUsbGuidance);
 
   if ResultCode = 3010 then
   begin
@@ -238,7 +273,7 @@ begin
   begin
     WriteUniversalLog(Format('O auxiliar WinUSB falhou com o código %d. A instalação do aplicativo continua.', [ResultCode]));
     SuppressibleMsgBox(
-      FmtMessage(ExpandConstant('{cm:WinUsbFailed}'), [IntToStr(ResultCode), LogPath]),
+      FmtMessage(ExpandConstant('{cm:WinUsbFailed}'), [IntToStr(ResultCode), LogPath]) + #13#10 + WinUsbGuidance,
       mbError, MB_OK, IDOK);
   end;
 end;
@@ -255,6 +290,11 @@ begin
       Guidance := FmtMessage(ExpandConstant('{cm:WinUsbFailedFinished}'), [ExpandConstant('{commonappdata}\GT LAB\Logs\WinUSB-Install.log')])
     else
       Guidance := '';
+
+    if WinUsbGuidance <> '' then
+      Guidance := Guidance + #13#10 + WinUsbGuidance;
+    if WinUsbSucceeded then
+      Guidance := Guidance + #13#10 + 'Se o Editor não encontrar a porta apesar do driver correto, confira o USB Mode da GT-10 e as preferências MIDI. Nenhum ajuste da pedaleira foi alterado.';
 
     if Guidance <> '' then
       WizardForm.FinishedLabel.Caption := WizardForm.FinishedLabel.Caption + #13#10 + #13#10 + Guidance;
