@@ -134,6 +134,25 @@ HEADERS += modernFloorBoard.h modernTheme.h modernWidgets.h modernSignalChainMod
 HEADERS += modernAboutDialog.h modernSettingsDialog.h modernPopoverShell.h \
            backupCoordinator.h modernBackupDialog.h patchBackupCodec.h
 
+SOURCES += productEdition.cpp
+HEADERS += productEdition.h
+contains(CONFIG, gtlab_free) {
+    DEFINES += GTLAB_FREE_EDITION
+    TARGET = GTLabEditorFree
+    macx {
+        QMAKE_APPLICATION_BUNDLE_NAME = "GT Lab Editor Free"
+        QMAKE_INFO_PLIST = $$PWD/GTLabEditorFree-Info.plist
+    }
+}
+
+# Explicit local harness. It replaces the application entry point only when
+contains(CONFIG, productedition_tests) {
+    SOURCES -= ./main.cpp
+    SOURCES += productEditionTests.cpp
+    TARGET = productEditionTests
+    DESTDIR = $$OUT_PWD
+}
+
 # Explicit local harness. It replaces the application entry point only when
 # qmake is invoked with CONFIG+=signalchain_domain_tests.
 contains(CONFIG, signalchain_domain_tests) {

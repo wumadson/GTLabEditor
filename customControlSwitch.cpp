@@ -22,6 +22,7 @@
 ****************************************************************************/
 
 #include "customControlSwitch.h"
+#include "productEdition.h"
 #include "MidiTable.h"
 #include "SysxIO.h"
 
@@ -108,6 +109,8 @@ void customControlSwitch::paintEvent(QPaintEvent *)
 
 void customControlSwitch::valueChanged(bool value, QString hex1, QString hex2, QString hex3)
 {
+    if (!ProductEdition::requireParameterEdit(area, hex1, hex3, this))
+        return;
 	QString valueHex;
 	if(value)
 	{

@@ -29,6 +29,7 @@
 #include "sysxWriter.h"
 #include "Preferences.h"
 #include "initPatchListMenu.h"
+#include "productEdition.h"
 
 initPatchListMenu::initPatchListMenu(QRect geometry, QWidget *parent)
     : QWidget(parent)
@@ -135,6 +136,8 @@ void initPatchListMenu::setIndex(int index)
 
 void initPatchListMenu::loadInitPatch(int index)
 {
+    if (index > 0 && !ProductEdition::require(ProductEdition::Feature::ImportPreset, this))
+        return;
 	if(index > 0)
 	{
 		QString fileName = this->initPatches.at(index - 1 );

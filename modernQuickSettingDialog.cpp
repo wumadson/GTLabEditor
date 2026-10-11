@@ -1,4 +1,5 @@
 #include "modernQuickSettingDialog.h"
+#include "productEdition.h"
 
 #include "modernTheme.h"
 
@@ -90,6 +91,8 @@ void ModernQuickSettingDialog::addEffectPage(QuickSettingEffect effect,
 
 void ModernQuickSettingDialog::showEffect(QuickSettingEffect effect)
 {
+    if (!ProductEdition::require(ProductEdition::Feature::QuickSettings, this))
+        return;
     const int key = static_cast<int>(effect);
     if (!pageIndexes.contains(key))
         return;

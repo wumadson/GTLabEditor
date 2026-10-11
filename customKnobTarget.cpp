@@ -22,6 +22,7 @@
 ****************************************************************************/
 
 #include "customKnobTarget.h"
+#include "productEdition.h"
 #include "MidiTable.h"
 #include "SysxIO.h"
 
@@ -117,6 +118,8 @@ void customKnobTarget::setValue(int value)
 
 void customKnobTarget::valueChanged(int value, QString hex1, QString hex2, QString hex3)
 {
+    if (!ProductEdition::requireParameterEdit("Structure", hex1, hex3, this))
+        return;
   if (background != "target")
     {    
      this->knobSignal(hexMsb, hex2, hexLsb);

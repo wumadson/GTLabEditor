@@ -22,6 +22,7 @@
 ****************************************************************************/
 
 #include "menuPage.h"
+#include "productEdition.h"
 #include "MidiTable.h"
 #include "SysxIO.h"
 #include "globalVariables.h"
@@ -94,6 +95,9 @@ editWindow* menuPage::editDetails()
 
 void menuPage::menuButtonSignal(bool value)
 {
+    if (id >= 21 && id <= 28
+        && !ProductEdition::require(ProductEdition::Feature::Assign, this))
+        return;
   if(this->id > 19)
     {
       emitValueChanged(this->hex1, this->hex2, "00", "void");

@@ -30,6 +30,7 @@
 #include "floorBoardDisplay.h"
 #include "floorPanelBar.h"
 #include "floorBoard.h"
+#include "productEdition.h"
 #include "Preferences.h"
 #include "MidiTable.h"
 #include "sysxWriter.h"
@@ -896,6 +897,10 @@ void floorBoard::dropEvent(QDropEvent *event)
         {
                 if(event->mimeData()->hasFormat("text/uri-list"))
                 {
+                        if (!ProductEdition::require(ProductEdition::Feature::ImportPreset, this)) {
+                            event->ignore();
+                            return;
+                        }
                         QByteArray data = event->mimeData()->data("text/uri-list");
                         QString uri(data);
                         if(uri.contains(".syx", Qt::CaseInsensitive))

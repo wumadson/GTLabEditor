@@ -1,4 +1,5 @@
 #include "modernFloorBoard.h"
+#include "productEdition.h"
 #include "SysxIO.h"
 #include "MidiTable.h"
 #include "modernTheme.h"
@@ -406,7 +407,7 @@ public:
     explicit GtLabBrandWidget(QWidget *parent = nullptr)
         : QWidget(parent)
     {
-        setFixedSize(132, 25);
+        setFixedSize(ProductEdition::isFree() ? 178 : 132, 25);
         setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     }
 
@@ -444,7 +445,8 @@ protected:
 
         painter.setFont(editorFont);
         painter.setPen(QColor("#9AA5AF"));
-        painter.drawText(QPointF(editorX, baseline), "Editor");
+        painter.drawText(QPointF(editorX, baseline),
+                         ProductEdition::isFree() ? "Editor Free" : "Editor");
     }
 };
 
@@ -3852,7 +3854,7 @@ void modernFloorBoard::backendActivityChanged(int status)
 QPushButton *modernFloorBoard::createQuickSettingButton(
     QuickSettingEffect effect)
 {
-    auto *button = new QPushButton(tr("QUICK"));
+    auto *button = new QPushButton(ProductEdition::lockedLabel(tr("QUICK")));
     button->setProperty("quickSettingEffect", static_cast<int>(effect));
     button->setFixedSize(58, 27);
     button->setToolTip(tr("Open User Quick Settings"));
@@ -3871,6 +3873,8 @@ QPushButton *modernFloorBoard::createQuickSettingButton(
 
 void modernFloorBoard::showQuickSettings()
 {
+    if (!ProductEdition::require(ProductEdition::Feature::QuickSettings, this))
+        return;
     const QPushButton *button = qobject_cast<QPushButton *>(sender());
     if (!button || !quickSettingDialog)
         return;
@@ -3960,6 +3964,8 @@ void modernFloorBoard::applyQuickSettingPresentation(
 void modernFloorBoard::startQuickSettingPrefetch(
     QuickSettingEffect effect)
 {
+    if (!ProductEdition::allows(ProductEdition::Feature::QuickSettings))
+        return;
     if (effect == QuickSettingEffect::Fx1)
         return;
     cancelQuickSettingPrefetch();
@@ -3986,6 +3992,8 @@ void modernFloorBoard::startQuickSettingPrefetch(
 
 void modernFloorBoard::scheduleNextQuickSettingPrefetch()
 {
+    if (!ProductEdition::allows(ProductEdition::Feature::QuickSettings))
+        return;
     if (!quickPrefetchActive || !quickSettingService
         || quickSettingService->isBusy())
         return;
@@ -4131,6 +4139,8 @@ void modernFloorBoard::refreshQuickSettingControls()
 
 void modernFloorBoard::quickSettingSlotActivated(int)
 {
+    if (!ProductEdition::require(ProductEdition::Feature::QuickSettings, this))
+        return;
     cancelQuickSettingPrefetch();
     QComboBox *combo = qobject_cast<QComboBox *>(sender());
     if (!combo || !quickSettingService)
@@ -4163,6 +4173,8 @@ void modernFloorBoard::quickSettingSlotActivated(int)
 
 void modernFloorBoard::loadQuickSetting()
 {
+    if (!ProductEdition::require(ProductEdition::Feature::QuickSettings, this))
+        return;
     cancelQuickSettingPrefetch();
     QPushButton *button = qobject_cast<QPushButton *>(sender());
     if (!button || !quickSettingService)
@@ -4194,6 +4206,8 @@ void modernFloorBoard::loadQuickSetting()
 
 void modernFloorBoard::saveQuickSetting()
 {
+    if (!ProductEdition::require(ProductEdition::Feature::QuickSettings, this))
+        return;
     cancelQuickSettingPrefetch();
     QPushButton *button = qobject_cast<QPushButton *>(sender());
     if (!button || !quickSettingService)
@@ -6464,6 +6478,8 @@ void modernFloorBoard::refreshPedalFx()
 
 void modernFloorBoard::showControlAssignEditor()
 {
+    if (!ProductEdition::require(ProductEdition::Feature::Assign, this))
+        return;
     if (!controlAssignEditor)
         return;
     selectedEditor = "CONTROL ASSIGN";

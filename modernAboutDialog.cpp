@@ -1,4 +1,5 @@
 #include "modernAboutDialog.h"
+#include "productEdition.h"
 
 #include "modernTheme.h"
 
@@ -29,7 +30,8 @@ ModernAboutDialog::ModernAboutDialog(Page initialPage, QWidget *parent)
     : QDialog(parent), navigation(new QListWidget(this)),
       pages(new QStackedWidget(this))
 {
-    setWindowTitle(tr("About GT Lab Editor"));
+    setWindowTitle(ProductEdition::isFree()
+        ? tr("About GT Lab Editor Free") : tr("About GT Lab Editor"));
     setModal(true);
     resize(760, 540);
     setMinimumSize(680, 480);
@@ -121,7 +123,7 @@ QWidget *ModernAboutDialog::createAboutPage()
 
     auto *product = new QLabel("GT LAB", page);
     product->setObjectName("AboutProduct");
-    auto *subtitle = new QLabel("GT Lab Editor", page);
+    auto *subtitle = new QLabel(ProductEdition::applicationName(), page);
     subtitle->setObjectName("AboutSubtitle");
     auto *build = new QLabel(tr("Version 1.2.0"), page);
     build->setObjectName("AboutBuild");

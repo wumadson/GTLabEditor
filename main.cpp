@@ -32,12 +32,13 @@
 #include "SysxIO.h"
 #include "sysxWriter.h"
 #include "customSplashScreen.h"
+#include "productEdition.h"
 
 int main(int argc, char **argv)
 {
 	QApplication app(argc, argv);
-	QCoreApplication::setApplicationName("GT Lab Editor");
-	app.setApplicationDisplayName("GT Lab Editor");
+	QCoreApplication::setApplicationName(ProductEdition::applicationName());
+	app.setApplicationDisplayName(ProductEdition::applicationName());
 
 	Preferences *preferences = Preferences::Instance(); // Load the preferences.
 	const QString language = preferences->getPreferences(

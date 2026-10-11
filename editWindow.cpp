@@ -22,6 +22,7 @@
 ****************************************************************************/
 
 #include "editWindow.h"
+#include "productEdition.h"
 #include "modernTheme.h"
 #include "MidiTable.h"
 #include "SysxIO.h"
@@ -303,6 +304,8 @@ void editWindow::addPage(QString hex1, QString hex2, QString hex3, QString hex4,
 
 void editWindow::valueChanged(int index)
 {
+    if (!ProductEdition::requireParameterEdit(area, hex1, hex3, this))
+        return;
   QString valueName, valueStr;
         if(hex1 != "void" && hex2 != "void")
         {
@@ -349,6 +352,8 @@ void editWindow::hideWindow()
 
 void editWindow::bulkEdit()
 {
+    if (!ProductEdition::requireParameterEdit(area, temp_hex1, temp_hex3, this))
+        return;
      SysxIO *sysxIO = SysxIO::Instance();
      if (sysxIO->isConnected())
 	       {
@@ -370,6 +375,8 @@ void editWindow::bulkEdit()
 
 void editWindow::temp1()
 {
+    if (!ProductEdition::requireParameterEdit(area, temp_hex1, temp_hex3, this))
+        return;
 
   SysxIO *sysxIO = SysxIO::Instance();
   if (!sysxIO->temp1_sysxMsg.isEmpty() && !temp_hex1.isEmpty() && !temp_hex1.contains("void") )
@@ -412,6 +419,8 @@ void editWindow::temp1()
 
 void editWindow::temp2()
 {
+    if (!ProductEdition::requireParameterEdit(area, temp_hex1, temp_hex3, this))
+        return;
 
   SysxIO *sysxIO = SysxIO::Instance();
   if (!sysxIO->temp2_sysxMsg.isEmpty() && !temp_hex1.isEmpty() && !temp_hex1.contains("void")  )
@@ -453,6 +462,8 @@ void editWindow::temp2()
 
 void editWindow::temp3()
 {
+    if (!ProductEdition::requireParameterEdit(area, temp_hex1, temp_hex3, this))
+        return;
 
   SysxIO *sysxIO = SysxIO::Instance();
   if (!sysxIO->temp3_sysxMsg.isEmpty() && !temp_hex1.isEmpty() && !temp_hex1.contains("void")  )
@@ -494,6 +505,8 @@ void editWindow::temp3()
 
 void editWindow::temp4()
 {
+    if (!ProductEdition::requireParameterEdit(area, temp_hex1, temp_hex3, this))
+        return;
 
   SysxIO *sysxIO = SysxIO::Instance();
   if (!sysxIO->temp4_sysxMsg.isEmpty() && !temp_hex1.isEmpty() && !temp_hex1.contains("void")  )
@@ -535,6 +548,8 @@ void editWindow::temp4()
 
 void editWindow::temp5()
 {
+    if (!ProductEdition::requireParameterEdit(area, temp_hex1, temp_hex3, this))
+        return;
 
   SysxIO *sysxIO = SysxIO::Instance();
   if (!sysxIO->temp5_sysxMsg.isEmpty() && !temp_hex1.isEmpty() && !temp_hex1.contains("void")  )

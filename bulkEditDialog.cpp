@@ -27,6 +27,7 @@
 #include <QByteArray>
 #include <QMessageBox>
 #include "bulkEditDialog.h"
+#include "productEdition.h"
 #include "modernTheme.h"
 #include "Preferences.h"
 #include "globalVariables.h"
@@ -174,7 +175,9 @@ void bulkEditDialog::comboValueChanged(int value)
 }; 
 
 void bulkEditDialog::sendData() 
-{	 
+{
+    if (!ProductEdition::requireParameterEdit("Structure", hex1, hex3, this))
+        return;
   startButton->hide();
   cancelButton->hide();
   progress = 0;
@@ -191,6 +194,8 @@ void bulkEditDialog::sendData()
 	
 void bulkEditDialog::sendPatch(QString data)
 {
+    if (!ProductEdition::requireParameterEdit("Structure", hex1, hex3, this))
+        return;
 	SysxIO *sysxIO = SysxIO::Instance();
 	QObject::connect(sysxIO, SIGNAL(sysxReply(QString)), this, SLOT(sendSequence(QString)));          
   sysxIO->sendSysx(data);               

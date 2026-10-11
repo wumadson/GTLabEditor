@@ -27,6 +27,7 @@
 #include <QByteArray>
 #include <QMessageBox>
 #include "bulkSaveDialog.h"
+#include "productEdition.h"
 #include "modernTheme.h"
 #include "Preferences.h"
 #include "globalVariables.h"
@@ -179,6 +180,8 @@ void bulkSaveDialog::showEvent(QShowEvent *event)
 
 void bulkSaveDialog::backup()
 {
+    if (!ProductEdition::require(ProductEdition::Feature::BackupRestore, this))
+        return;
   this->startButton->hide();
   this->cancelButton->hide();
   this->bankStart = this->startRangeSpinBox->value();
@@ -193,7 +196,9 @@ void bulkSaveDialog::backup()
 };
 
 void bulkSaveDialog::requestPatch(int bank, int patch) 
-{	
+{
+    if (!ProductEdition::require(ProductEdition::Feature::BackupRestore, this))
+        return;
 SysxIO *sysxIO = SysxIO::Instance();
 	if(sysxIO->isConnected() && sysxIO->deviceReady() )
 	{
@@ -358,7 +363,9 @@ void bulkSaveDialog::bulkStatusProgress(int value)
 };
 
 void bulkSaveDialog::writeGXG()         // ************************************ GXG File Format***************************
-{	
+{
+    if (!ProductEdition::require(ProductEdition::Feature::BackupRestore, this))
+        return;
   	Preferences *preferences = Preferences::Instance();
 	          QString dir = preferences->getPreferences("General", "Files", "dir");
 
@@ -447,7 +454,9 @@ void bulkSaveDialog::writeGXG()         // ************************************ 
 };
 
 void bulkSaveDialog::writeSYX()        //********************************* SYX File Format *****************************
-{	
+{
+    if (!ProductEdition::require(ProductEdition::Feature::BackupRestore, this))
+        return;
   	Preferences *preferences = Preferences::Instance();
 	          QString dir = preferences->getPreferences("General", "Files", "dir");
 
@@ -483,7 +492,9 @@ void bulkSaveDialog::writeSYX()        //********************************* SYX F
 };
 
 void bulkSaveDialog::writeSMF()    // **************************** SMF FILE FORMAT ***************************
-{	
+{
+    if (!ProductEdition::require(ProductEdition::Feature::BackupRestore, this))
+        return;
   	Preferences *preferences = Preferences::Instance();
 	          QString dir = preferences->getPreferences("General", "Files", "dir");
 

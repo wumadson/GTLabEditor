@@ -84,6 +84,7 @@ struct WindowsEraseFunctions
 } // namespace
 #endif
 #include "mainWindow.h"
+#include "productEdition.h"
 #include "modernFloorBoard.h"
 #include "modernTheme.h"
 #include "modernAboutDialog.h"
@@ -242,6 +243,8 @@ mainWindow::mainWindow()
 
 
         setWindowTitle(QString());
+        if (ProductEdition::isFree())
+            setWindowTitle(ProductEdition::applicationName());
 
 
 
@@ -462,6 +465,12 @@ void mainWindow::createActions()
         aboutAct->setMenuRole(QAction::AboutRole);
         connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
 
+        for (QAction *action : {openAct, saveAct, saveAsAct, exportSMFAct,
+                               saveGXGAct, systemLoadAct, systemSaveAct,
+                               bulkLoadAct, bulkSaveAct, backupUserPatchesAct,
+                               restoreUserPatchesAct})
+            action->setText(ProductEdition::lockedLabel(action->text()));
+
 };
 
 void mainWindow::createMenus()
@@ -536,6 +545,8 @@ void mainWindow::createStatusBar()
 /* FILE MENU */
 void mainWindow::open()
 {
+    if (!ProductEdition::require(ProductEdition::Feature::ImportPreset, this))
+        return;
         Preferences *preferences = Preferences::Instance();
         QString dir = preferences->getPreferences("General", "Files", "dir");
 
@@ -570,6 +581,8 @@ void mainWindow::open()
 
 void mainWindow::save()
 {
+    if (!ProductEdition::require(ProductEdition::Feature::ExportPreset, this))
+        return;
         Preferences *preferences = Preferences::Instance();
         QString dir = preferences->getPreferences("General", "Files", "dir");
 
@@ -610,6 +623,8 @@ void mainWindow::save()
 
 void mainWindow::saveAs()
 {
+    if (!ProductEdition::require(ProductEdition::Feature::ExportPreset, this))
+        return;
         Preferences *preferences = Preferences::Instance();
         QString dir = preferences->getPreferences("General", "Files", "dir");
 
@@ -642,6 +657,8 @@ void mainWindow::saveAs()
 
 void mainWindow::importSMF()
 {
+    if (!ProductEdition::require(ProductEdition::Feature::ImportPreset, this))
+        return;
         Preferences *preferences = Preferences::Instance();
         QString dir = preferences->getPreferences("General", "Files", "dir");
 
@@ -671,6 +688,8 @@ void mainWindow::importSMF()
 
 void mainWindow::exportSMF()
 {
+    if (!ProductEdition::require(ProductEdition::Feature::ExportPreset, this))
+        return;
         Preferences *preferences = Preferences::Instance();
         QString dir = preferences->getPreferences("General", "Files", "dir");
 
@@ -702,6 +721,8 @@ void mainWindow::exportSMF()
 
 void mainWindow::openGXG()
 {
+    if (!ProductEdition::require(ProductEdition::Feature::ImportPreset, this))
+        return;
         Preferences *preferences = Preferences::Instance();
         QString dir = preferences->getPreferences("General", "Files", "dir");
 
@@ -732,6 +753,8 @@ void mainWindow::openGXG()
 
 void mainWindow::saveGXG()
 {
+    if (!ProductEdition::require(ProductEdition::Feature::ExportPreset, this))
+        return;
         Preferences *preferences = Preferences::Instance();
         QString dir = preferences->getPreferences("General", "Files", "dir");
 
@@ -763,6 +786,8 @@ void mainWindow::saveGXG()
 
 void mainWindow::systemLoad()
 {
+    if (!ProductEdition::require(ProductEdition::Feature::BackupRestore, this))
+        return;
    SysxIO *sysxIO = SysxIO::Instance();
      if (sysxIO->isConnected())
                {
@@ -825,6 +850,8 @@ void mainWindow::systemLoad()
 
 void mainWindow::systemSave()
 {
+    if (!ProductEdition::require(ProductEdition::Feature::BackupRestore, this))
+        return;
 
 
 SysxIO *sysxIO = SysxIO::Instance();
@@ -873,6 +900,8 @@ SysxIO *sysxIO = SysxIO::Instance();
 
 void mainWindow::bulkLoad()
 {
+    if (!ProductEdition::require(ProductEdition::Feature::BackupRestore, this))
+        return;
    SysxIO *sysxIO = SysxIO::Instance();
      if (sysxIO->isConnected())
                {
@@ -896,6 +925,8 @@ void mainWindow::bulkLoad()
 
 void mainWindow::bulkSave()
 {
+    if (!ProductEdition::require(ProductEdition::Feature::BackupRestore, this))
+        return;
 
  SysxIO *sysxIO = SysxIO::Instance();
      if (sysxIO->isConnected())
@@ -924,6 +955,8 @@ void mainWindow::settings()
 
 void mainWindow::backupUserPatches()
 {
+    if (!ProductEdition::require(ProductEdition::Feature::BackupRestore, this))
+        return;
     if (backupCoordinator->operation() != BackupCoordinator::Idle) {
         QMessageBox::information(this, tr("Backup / Restore Busy"),
                                  tr("Another User-memory operation is already active."));
@@ -950,6 +983,8 @@ void mainWindow::backupUserPatches()
 
 void mainWindow::restoreUserPatches()
 {
+    if (!ProductEdition::require(ProductEdition::Feature::BackupRestore, this))
+        return;
     if (backupCoordinator->operation() != BackupCoordinator::Idle) {
         QMessageBox::information(this, tr("Backup / Restore Busy"),
                                  tr("Another User-memory operation is already active."));

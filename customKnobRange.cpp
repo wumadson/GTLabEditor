@@ -22,6 +22,7 @@
 ****************************************************************************/
 
 #include "customKnobRange.h"
+#include "productEdition.h"
 #include "MidiTable.h"
 #include "SysxIO.h"
 
@@ -94,6 +95,8 @@ void customKnobRange::setValue(int value)
 
 void customKnobRange::valueChanged(int value, QString hex1, QString hex2, QString hex3)
 {
+    if (!ProductEdition::requireParameterEdit(area, hex1, hex3, this))
+        return;
 	MidiTable *midiTable = MidiTable::Instance();
 	
 	QString valueHex = QString::number(value, 16).toUpper();

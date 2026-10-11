@@ -830,6 +830,20 @@ Once Modern UI replacements are proven:
 19. Do not hardcode fake patch names once engine integration begins.
 20. Any guessed parameter address must be treated as unverified; prefer mappings proven by original source.
 
+## Free edition (isolated development)
+
+The default qmake build remains Full. `CONFIG+=gtlab_free` defines
+`GTLAB_FREE_EDITION` and builds GT Lab Editor Free 1.2.0 with a distinct
+executable, macOS bundle identity and application-data directory.
+`ProductEdition` owns the edition policy and premium dialog. Only preset file
+import/export, Assign configuration, Backup/Restore and Quick Settings are
+restricted. Guards belong to UI execution handlers, not the shared MIDI engine.
+Loaded Assign bytes must remain intact through ordinary editing and WRITE.
+Legacy Assign refresh is read-only in Free and must never show a premium popup.
+`CONFIG+=productedition_tests` is an offline integration harness; run it for
+both editions. Windows Free installer coexistence remains deferred: never use
+the existing Full installer identity for Free. No installer is created here.
+
 ## Build artifacts
 
 Do not commit generated build artifacts.

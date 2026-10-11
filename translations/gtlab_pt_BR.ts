@@ -5824,4 +5824,10 @@ Destino: U01-1 → U50-4</translation>
         <translation type="unfinished"></translation>
     </message>
 </context>
+<context>
+    <name>ProductEdition</name>
+    <message><source>Premium feature</source><translation>Recurso da versão completa</translation></message>
+    <message><source>This feature is available in the full GT Lab Editor.</source><translation>Esta funcionalidade está disponível no GT Lab Editor completo.</translation></message>
+    <message><source>The full version includes preset import/export, Assign configuration, Backup/Restore and Quick Settings.</source><translation>Na versão completa você pode importar e exportar presets, configurar Assigns, realizar Backup/Restore e utilizar Quick Settings.</translation></message>
+</context>
 </TS>

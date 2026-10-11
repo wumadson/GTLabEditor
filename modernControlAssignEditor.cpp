@@ -1,4 +1,5 @@
 #include "modernControlAssignEditor.h"
+#include "productEdition.h"
 
 #include "assignTargetBrowser.h"
 #include "assignTargetValueEditor.h"
@@ -1323,6 +1324,8 @@ void ModernControlAssignEditor::selectAssign(int index)
 
 void ModernControlAssignEditor::assignStateChanged(bool enabled)
 {
+    if (!refreshing && !ProductEdition::require(ProductEdition::Feature::Assign, widget()))
+        return;
     if (refreshing || !available || selectedAssign < 0
         || selectedAssign >= assignModel.count())
         return;
@@ -1342,6 +1345,8 @@ void ModernControlAssignEditor::assignStateChanged(bool enabled)
 
 void ModernControlAssignEditor::assignSourceChanged(int raw)
 {
+    if (!refreshing && !ProductEdition::require(ProductEdition::Feature::Assign, widget()))
+        return;
     if (refreshing || !available || raw < 0 || selectedAssign < 0
         || selectedAssign >= assignModel.count())
         return;
@@ -1368,6 +1373,8 @@ void ModernControlAssignEditor::assignTargetChanged(
     int targetId, int minimum, int maximum, int expectedCurrentTarget,
     int assignIndex, int loadedBank, int loadedPatch)
 {
+    if (!refreshing && !ProductEdition::require(ProductEdition::Feature::Assign, widget()))
+        return;
     SysxIO *sysx = SysxIO::Instance();
     if (refreshing || !available || targetId < 0 || targetId > 618
         || minimum < 0 || maximum < minimum || maximum > 0x3FFF
@@ -1418,6 +1425,8 @@ void ModernControlAssignEditor::assignTargetMaximumChanged(
 void ModernControlAssignEditor::writeAssignTargetValue(
     int offset, int targetId, int raw)
 {
+    if (!refreshing && !ProductEdition::require(ProductEdition::Feature::Assign, widget()))
+        return;
     if (refreshing || !available || targetId < 0 || targetId > 618
         || (offset != 0x03 && offset != 0x05)
         || selectedAssign < 0 || selectedAssign >= assignModel.count())
@@ -1479,6 +1488,8 @@ int ModernControlAssignEditor::readAssignOffset(int offset) const
 
 void ModernControlAssignEditor::writeAssignOffset(int offset, int raw)
 {
+    if (!refreshing && !ProductEdition::require(ProductEdition::Feature::Assign, widget()))
+        return;
     if (refreshing || !available || selectedAssign < 0
         || selectedAssign >= assignModel.count())
         return;
@@ -1546,6 +1557,8 @@ void ModernControlAssignEditor::assignInternalTimeChanged()
 
 void ModernControlAssignEditor::assignInputSensitivityChanged()
 {
+    if (!refreshing && !ProductEdition::require(ProductEdition::Feature::Assign, widget()))
+        return;
     if (refreshing || !available || !detailInputSensitivityControl
         || selectedAssign < 0 || selectedAssign >= assignModel.count()
         || assignModel.record(selectedAssign).sourceKind
@@ -1778,6 +1791,8 @@ int ModernControlAssignEditor::readValue(const QString &address) const
 
 void ModernControlAssignEditor::writeValue(const QString &address, int raw)
 {
+    if (!refreshing && !ProductEdition::require(ProductEdition::Feature::Assign, widget()))
+        return;
     if (!available || !bufferContains(address))
         return;
     SysxIO::Instance()->setFileSource(

@@ -27,13 +27,18 @@
 #include <QByteArray>
 #include <QMessageBox>
 #include "bulkLoadDialog.h"
+#include "productEdition.h"
 #include "modernTheme.h"
 #include "Preferences.h"
 #include "globalVariables.h"
 
 
 bulkLoadDialog::bulkLoadDialog()
-{ 
+{
+  if (!ProductEdition::require(ProductEdition::Feature::BackupRestore, this)) {
+      failed = true;
+      return;
+  }
   failed = true;
   QLabel *startListLabel = new QLabel(tr("Starting from"));
   this->startPatchCombo = new QComboBox(this);
@@ -272,7 +277,9 @@ void bulkLoadDialog::comboValueChanged(int value)
 }; 
 
 void bulkLoadDialog::sendData() 
-{	
+{
+    if (!ProductEdition::require(ProductEdition::Feature::BackupRestore, this))
+        return;
   bankStart = this->startRangeComboBox->currentIndex()+1;
   startList = this->startPatchCombo->currentIndex();
   finishList = this->finishPatchCombo->currentIndex();
@@ -341,13 +348,17 @@ void bulkLoadDialog::sendData()
 	
 void bulkLoadDialog::sendPatch(QString data)
 {
+    if (!ProductEdition::require(ProductEdition::Feature::BackupRestore, this))
+        return;
 	   SysxIO *sysxIO = SysxIO::Instance();
 	   QObject::connect(sysxIO, SIGNAL(sysxReply(QString)), this, SLOT(sendSequence(QString)));          
      sysxIO->sendSysx(data);	          
 };                                                           
 
 void bulkLoadDialog::sendSequence(QString value)
-{ 
+{
+    if (!ProductEdition::require(ProductEdition::Feature::BackupRestore, this))
+        return;
   SysxIO *sysxIO = SysxIO::Instance();
   QObject::disconnect(sysxIO, SIGNAL(sysxReply(QString)), this, SLOT(sendSequence(QString)));
   sysxIO->setDeviceReady(true); // Free the device after finishing interaction.

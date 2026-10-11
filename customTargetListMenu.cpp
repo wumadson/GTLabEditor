@@ -22,6 +22,8 @@
 ****************************************************************************/
 
 #include "customTargetListMenu.h"
+#include "productEdition.h"
+#include <QSignalBlocker>
 #include "MidiTable.h"
 #include "SysxIO.h"
 
@@ -245,6 +247,8 @@ void customTargetListMenu::setComboBox()
 
 void customTargetListMenu::valueChanged(int index)
 {
+    if (!ProductEdition::requireParameterEdit(area, hex1, hex3, this))
+        return;
 	QString valueHex = QString::number(index, 16).toUpper();
 	if(valueHex.length() < 2) valueHex.prepend("0");
 	
@@ -301,6 +305,12 @@ void customTargetListMenu::valueChanged(int index)
 
 void customTargetListMenu::dialogUpdateSignal(QString valueStr)
 {
+    if (ProductEdition::isFree()
+        && ProductEdition::isAssignParameter(area, hex1, hex3)) {
+        const QSignalBlocker blocker(controlListComboBox);
+        controlListComboBox->setCurrentIndex(valueStr.toInt(nullptr, 16));
+        return;
+    }
         bool ok;
         //SysxIO *sysxIO = SysxIO::Instance();
         int index = valueStr.toInt(&ok, 16);
@@ -312,6 +322,13 @@ void customTargetListMenu::dialogUpdateSignal(QString valueStr)
 
 void customTargetListMenu::comboUpdateSignal()
 {
+    if (ProductEdition::isFree()
+        && ProductEdition::isAssignParameter(area, hex1, hex3)) {
+        const QSignalBlocker blocker(controlListComboBox);
+        controlListComboBox->setCurrentIndex(
+            SysxIO::Instance()->getSourceValue(area, hex1, hex2, hex3));
+        return;
+    }
 
         SysxIO *sysxIO = SysxIO::Instance();
 

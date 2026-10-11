@@ -1,4 +1,5 @@
 #include "modernWidgets.h"
+#include "productEdition.h"
 #include "modernTheme.h"
 
 #include <QApplication>
@@ -755,7 +756,7 @@ BottomControlStrip::BottomControlStrip(QWidget *parent)
         assignLayout->addWidget(badge);
     }
     assignLayout->addStretch(1);
-    QLabel *assigns = new QLabel(QObject::tr("ASSIGNS"));
+    QLabel *assigns = new QLabel(ProductEdition::lockedLabel(QObject::tr("ASSIGNS")));
     assigns->setObjectName("BottomAssignLabel");
     assignLayout->addWidget(assigns);
     for (int index = 0; index < 8; ++index) {
