@@ -2,194 +2,187 @@
 
 **Modern editor for the BOSS GT-10.**
 
-GT Lab Editor is an independent open-source editor and librarian for the
-BOSS GT-10. It is a cross-platform project maintained by Wumadson Cardoso /
-GT LAB. The source version is **1.1.0**, in release preparation; the current
-public release remains v1.0.0 until final artifacts are validated and published.
+O GT Lab Editor é um editor independente para a BOSS GT-10, baseado no
+**GT-10 FxFloorBoard / FXFloorBoard** e mantido por **Wumadson Cardoso / GT LAB**.
+A versão atual do produto é **1.2.0**, nas edições **Free** e **Full**.
+A interface está disponível em português brasileiro e inglês.
 
-Project repository: <https://github.com/wumadson/GTLabEditor>
+## Free e Full
 
-## Requirements
+A Free continua sendo um editor utilizável: permite editar timbres, renomear
+patches e usar a leitura e a escrita normal já suportadas pelo Editor.
+Somente os cinco grupos avançados abaixo são restritos à Full. Assigns já
+existentes no patch são preservados; a Free não permite reconfigurá-los.
 
-- BOSS GT-10
-- USB connection to the computer
-- Windows 10 x64, Windows 11 x64, or a supported macOS version
+| Recurso | Free | Full |
+|---|:---:|:---:|
+| Edição de patches/parâmetros e rename | ✅ | ✅ |
+| PREAMP / OD/DS / COMP / EQ / FX1 / FX2 | ✅ | ✅ |
+| Delay / Reverb / Chorus | ✅ | ✅ |
+| Signal Chain | ✅ | ✅ |
+| Tuner | ✅ | ✅ |
+| Pedalboard | ✅ | ✅ |
+| Library | ✅ | ✅ |
+| Importar Preset | 🔒 | ✅ |
+| Exportar Preset | 🔒 | ✅ |
+| Configuração de Assign | 🔒 | ✅ |
+| Backup / Restore | 🔒 | ✅ |
+| Quick Settings | 🔒 | ✅ |
 
-On Windows 10, the independently installed Roland/BOSS driver is recommended.
-On Windows 11, GT LAB WinUSB provides editor/MIDI communication; it does not
-provide GT-10 USB audio.
+## Download
 
-## Overview
+**[GT Lab Editor Free v1.2.0 — instaladores públicos](https://github.com/wumadson/GTLabEditor/releases/tag/v1.2.0-free)**
 
-GT Lab Editor communicates with the BOSS GT-10 through MIDI and SysEx. Its
-modern interface includes patch management, Signal Chain editing, Quick
-Settings, System controls, and English and Brazilian Portuguese UI support.
+A release inclui o instalador Windows x64, o DMG macOS ARM64, o GT-10 USB
+Bridge ARM64 v1.1.2 e o arquivo de hashes SHA-256. Confira o hash do download
+antes de instalar.
 
-The project targets Windows 10, Windows 11, and macOS. Platform validation and
-hardware requirements may differ as described below.
+**GT Lab Editor Full é distribuído pelos canais oficiais do GT LAB.**
+Seu código-fonte permanece disponível sob a licença GPL aplicável.
+A Free é a única edição com instaladores públicos atualmente.
 
-## Windows 10
+## Compatibilidade
 
-The preferred Windows 10 connection uses the official Roland/BOSS GT-10
-driver. MIDI communication is provided through WinMM/RtMidi, while the
-driver's GT-10 USB audio and ASIO facilities remain available according to the
-driver and operating-system configuration.
+É necessário ter uma BOSS GT-10 e conexão USB. Os estados abaixo refletem
+as validações registradas pelo mantenedor, não uma garantia para todas as
+configurações de computador.
 
-The Roland/BOSS driver is not distributed by this project. Obtain any required
-driver from an official Roland/BOSS source and follow its documentation.
+| Plataforma | Estado |
+|---|---|
+| Windows 10 x64 | ✅ Validado |
+| Windows 11 x64 | ✅ Validado |
+| macOS Apple Silicon / ARM64 | ✅ Validado |
+| macOS Intel / x86_64 | 🧪 Build validada; hardware em validação |
 
-## Windows 11 and GT LAB WinUSB
+## Instalação no Windows
 
-GT Lab Editor includes a GT-10 WinUSB backend for editor and MIDI
-communication. It has been physically validated on Windows 11 x64 with
-HVCI/Memory Integrity enabled. It uses the Microsoft inbox WinUSB driver and
-does not require disabling Windows security features.
+### Windows 10
 
-The backend already exists and has been physically validated. The universal
-installer prepared for v1.1.0 preserves the v1.0.0 model and offers the WinUSB
-component only after explicit user confirmation. It reuses the validated local
-packaging inputs, including the disclosed self-signed laboratory certificate;
-this does not represent new public driver signing approval. Activating
-WinUSB changes the driver binding for the GT-10 USB device. While that binding
-is active:
+Use o **driver oficial BOSS/Roland da GT-10**, instalado separadamente.
+O projeto não distribui esse driver; obtenha-o em uma fonte oficial e siga
+as instruções do fabricante.
 
-- native GT-10 USB audio is unavailable;
-- the Roland ASIO driver is unavailable;
-- the Roland mixer interface is unavailable.
+1. Instale o Editor e conecte/ligue a GT-10.
+2. Abra o Editor e vá em `Tools > USB/MIDI`.
+3. Selecione a porta BOSS GT-10 em **MIDI IN** e **MIDI OUT**.
+4. Confirme a configuração e aguarde a conexão.
 
-### Audio and ASIO limitation
+WinUSB não é o caminho recomendado para Windows 10.
 
-GT LAB WinUSB currently provides editor/MIDI communication only. The original
-GT-10 USB audio/ASIO functionality is not available while the WinUSB binding
-is active.
+### Windows 11
 
-For DAW recording in this mode, use a dedicated external audio interface.
+A Full possui um **Universal Installer** que pode configurar o suporte
+GT LAB WinUSB, mediante consentimento explícito. O suporte é específico da
+GT-10 (`VID_0582 / PID_00DA`), não um driver genérico para outras interfaces.
+O instalador informa a alteração de binding e a confiança local no
+certificado autoassinado do pacote de laboratório.
 
-Do not disable HVCI, Memory Integrity, Secure Boot, or driver-signature
-enforcement to install GT Lab Editor.
+O mantenedor validou binding inicial, repair, fresh binding, reconexão e
+persistência após reboot. A Integridade da Memória/HVCI permaneceu habilitada;
+uma Scarlett conectada no teste não sofreu interferência.
 
-## macOS
+O instalador **Free é APP-ONLY**: não instala drivers nem certificados.
+Ele requer uma infraestrutura GT-10/WinUSB funcional previamente configurada.
+Nessa condição, a Free pode detectar a GT-10 automaticamente no Windows 11.
 
-The application uses the existing CoreMIDI-based transport on macOS. The
-Windows WinUSB backend and Windows version resources are not used on macOS.
+### Áudio USB e ASIO
 
-## Installation and uninstallation
+Com a GT-10 vinculada ao WinUSB, o caminho oficial Roland/BOSS não está ativo
+para esse binding. O Editor dispõe da comunicação necessária, mas recursos
+dependentes do driver oficial, incluindo áudio USB/ASIO da GT-10, podem ficar
+indisponíveis. Use uma interface de áudio externa quando necessário.
 
-On Windows 10, GT Lab Editor can be installed normally and used with an
-independently installed Roland/BOSS driver.
+**Não desabilite HVCI, Integridade da Memória, Secure Boot ou a imposição de
+assinatura de drivers para usar o Editor.**
 
-For Windows 11, the universal installer describes the driver change, local
-certificate trust and audio limitation before requesting consent. Its WinUSB
-payload and helpers are local packaging inputs, excluded from public Git.
-See [BUILDING.md](BUILDING.md) for the distinction between the official universal
-installer and the automated app-only build.
+## Instalação no macOS Apple Silicon / ARM64
 
-The Windows installer registers GT Lab Editor in Apps & Features / Add or
-Remove Programs. Uninstallation removes the installed GT LAB application. If a
-public WinUSB component is installed, its uninstall path must remove that
-component and allow Windows to restore an appropriate previously available
-driver binding, without deleting a Roland driver package from the Driver
-Store. User preferences may be retained intentionally for a later reinstall.
+O Editor precisa do **GT-10 USB Bridge**, distribuído separadamente:
 
-## Original project
+- `GT-10_USB_Bridge_v1.1.2_Installer.pkg`
+- `GTLabEditor-Free-1.2.0-macOS-arm64.dmg`
 
-GT Lab Editor is derived from the **GT-10 FxFloorBoard / FXFloorBoard**
-project.
+1. Instale primeiro o Bridge.
+2. Abra o DMG e copie **GT Lab Editor Free.app** para **Applications**.
+3. Conecte e ligue a GT-10.
+4. Abra o Editor e aguarde **CONNECTED / READY**.
+5. Se necessário, selecione as portas do Bridge em `Tools > USB/MIDI`.
 
-Original development:
+A Full no macOS utiliza o mesmo Bridge. O Editor não substitui o Bridge e
+não comunica com a GT-10 sozinho por esse caminho.
 
-- Colin Willcocks
-- Uco Mesdag
+## macOS Intel
 
-Original source code:
-<https://sourceforge.net/p/fxfloorboard/fxfloorboard/ci/gt-10/tree/>
+O suporte Intel é **experimental; a validação física ainda está pendente**.
+Já foram registrados build x86_64 do Editor, Qt/dependências, seis suítes core
+e geração de DMG. O protótipo separado do Bridge Intel também passou no build
+e na auditoria de package dos seus cinco componentes.
 
-The Git history, source notices, credits, and copyright statements from the
-original project are preserved. GT LAB does not claim authorship of the
-original FXFloorBoard code.
+Ainda não foram confirmados instalação física em Mac Intel, conexão GT-10,
+MIDI, áudio/HAL ou READY reais. Os artifacts internos de CI não são downloads
+oficiais nem uma release estável para Intel.
 
-Modernization and additional development:
+## Coexistência e desinstalação
 
-- Wumadson Cardoso / GT LAB
+Free e Full têm app/executável, identidade de instalação e preferências
+separados; sua coexistência foi validada no macOS ARM64 e Windows.
+A instalação Free não substitui a Full.
 
-## License
+No Windows, remova a edição desejada em **Aplicativos instalados / Apps &
+Features**. A Free remove somente a aplicação, sem alterar drivers.
+O Universal Installer Full oferece a escolha de remover o suporte GT LAB
+WinUSB; isso não equivale a excluir pacotes Roland do Driver Store.
 
-GT Lab Editor is distributed under the **GNU General Public License version 2
-or, at your option, any later version (`GPL-2.0-or-later`)**. The normative
-license declaration is provided by the source headers, project notices, and
-[LICENSE.GPL-2.0](LICENSE.GPL-2.0).
+No macOS, a app do Editor pode ser removida de Applications independentemente
+da outra edição. O Bridge é um componente separado. Preferências podem ser
+mantidas para uma reinstalação.
 
-The historical [`license.txt`](license.txt) contains the complete GNU GPL
-version 3 text. Its presence does **not** change the project to
-`GPL-3.0-only`: the source's `GPL-2.0-or-later` grant permits recipients to
-choose GPL version 2 or a later GPL version, including GPLv3. The historical
-file is retained for provenance and compatibility with earlier distributions.
+## Código-fonte, créditos e licença
 
-The project may be redistributed commercially, subject to the terms of the
-GPL. Recipients retain all rights granted by the GPL. Binary distributions
-must satisfy the GPL requirements, including access to the complete
-corresponding source and applicable build scripts.
+- **Free 1.2.0:** [source da tag v1.2.0-free](https://github.com/wumadson/GTLabEditor/tree/v1.2.0-free)
+  e [branch free/1.2.0](https://github.com/wumadson/GTLabEditor/tree/free/1.2.0).
+- **Full 1.2.0:** [source da tag v1.2.0](https://github.com/wumadson/GTLabEditor/tree/v1.2.0).
+- **Builds:** [BUILDING.md](BUILDING.md).
 
-Third-party components retain their respective licenses and notices. See
-[Third-Party Notices](installer/THIRD-PARTY-NOTICES.txt) and
-[Asset Provenance](ASSET-PROVENANCE.md).
+Desenvolvimento original: **Colin Willcocks** e **Uco Mesdag**.
+Modernização e desenvolvimento adicional: **Wumadson Cardoso / GT LAB**.
+O [projeto original no SourceForge](https://sourceforge.net/p/fxfloorboard/fxfloorboard/ci/gt-10/tree/),
+seus créditos, copyrights e histórico permanecem preservados.
 
-Relevant components include Qt 5.15.2, RtMidi, OSDaB XMLWriter,
-Qtractor-derived material, Microsoft Visual C++ runtime components, and
-ANGLE/Qt runtime components. Upstream binaries must not be represented or
-signed as binaries authored by GT LAB.
+O projeto é distribuído sob a **GNU GPL versão 2 ou, à sua escolha, qualquer
+versão posterior (`GPL-2.0-or-later`)**, conforme os headers e notices.
+Veja [LICENSE.GPL-2.0](LICENSE.GPL-2.0).
+O [license.txt](license.txt) histórico contém a GPLv3; isso não muda a
+declaração do projeto para GPL-3.0-only.
 
-## Privacy
+Os instaladores oficiais Full são distribuídos pelos canais oficiais do
+GT LAB. A distribuição comercial não elimina os direitos dos destinatários
+sob a GPL, incluindo os requisitos de acesso ao código-fonte correspondente
+e aos scripts de build aplicáveis.
 
-This program will not transfer any information to other networked systems
-unless specifically requested by the user or the person installing or
-operating it.
+Componentes terceiros mantêm suas próprias licenças. Veja
+[Third-Party Notices](installer/THIRD-PARTY-NOTICES.txt) e
+[Asset Provenance](ASSET-PROVENANCE.md). A versão do Qt depende da plataforma
+e do pacote; consulte a documentação de build e o About da distribuição.
 
-GT Lab Editor contains no telemetry, analytics, or automatic data upload.
-External Help, Manual, Source Code, Web, and Donate URLs are opened only in
-response to a user action.
+## Privacidade
 
-## Project maintenance
+O Editor não contém telemetry, analytics ou upload automático.
+Links externos de Help, Manual, Source Code, Web e Donate são abertos por
+ação do usuário, não automaticamente. A operação USB/MIDI usa os caminhos
+locais do Editor e da GT-10.
 
-The current repository is maintained by Wumadson Cardoso / GT LAB. The
-original project's history and credits remain part of this derived project.
-Contributions are handled through GitHub. The intended release-signing process
-requires manual approval for each release; the verifiable CI and signing
-workflow are not yet implemented.
+## Assinatura dos instaladores
 
-### Project roles
+Os instaladores públicos ainda não têm certificado oficial Authenticode /
+Developer ID ou notarização Apple. O Windows pode mostrar avisos do
+SmartScreen; o macOS pode mostrar avisos do Gatekeeper.
+O bundle macOS usa assinatura ad-hoc, que não é Developer ID.
 
-- **Authors / Committers:** Wumadson Cardoso / GT LAB
-- **Original project authors:** Colin Willcocks and Uco Mesdag
-- **Reviewers:** TBD before the SignPath application
-- **Approvers:** TBD before the SignPath application
+Opções futuras de assinatura estão em avaliação; veja [SIGNING.md](SIGNING.md).
 
-No additional people are implied by the provisional `TBD` entries. Named
-reviewers and approvers, repository MFA, and SignPath MFA require manual
-confirmation before applying.
+## Aviso de marcas
 
-## Code signing policy
-
-GT Lab Editor is preparing an application to the SignPath Foundation. The
-project has not yet been approved, and current release artifacts must not be
-described as SignPath-signed.
-
-The policy intended after project approval is:
-
-> Free code signing provided by SignPath.io, certificate by SignPath Foundation.
-
-Only artifacts built verifiably from this repository may be submitted. Each
-signing request must receive manual approval. Project-owned artifacts intended
-for signing are `GTLabEditor.exe` and the GT Lab Editor Windows installer.
-Upstream Qt, ANGLE, Microsoft runtime, Windows system, and other third-party
-binaries are not to be signed as GT LAB-authored binaries.
-
-Until SignPath approves the project and the verifiable build workflow is in
-place, this section records an intended policy rather than an active signing
-service.
-
-## Trademark disclaimer
-
-BOSS and GT-10 are trademarks or registered trademarks of their respective
-owners. GT Lab Editor is an independent project and is not affiliated with,
-endorsed by, or sponsored by Roland Corporation or BOSS.
+BOSS e GT-10 são marcas de seus respectivos proprietários.
+GT Lab Editor é um projeto independente, sem afiliação, endosso ou patrocínio
+da Roland Corporation ou BOSS.

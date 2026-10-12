@@ -1,4 +1,5 @@
 # AGENTS.md
+
 # GT-10 FxFloorBoard Modern
 
 ## GT LAB project rules
@@ -23,7 +24,29 @@ Mandatory rules:
 - Do not claim hardware validation without a real physical test.
 - Do not make commits or pushes without explicit authorization.
 
-Windows initial target:
+## Current product and source references
+
+The released product is GT Lab Editor 1.2.0, in Free and Full editions.
+The public Free release is `v1.2.0-free`; its source branch is `free/1.2.0`.
+Full source is tagged `v1.2.0`; its binaries are distributed through GT LAB's
+official channels and its GitHub release remains Draft. The older `v1.0.0`
+and `v1.1.0` releases are also Draft. Do not change release visibility casually.
+
+The default branch is `modern-ui`, but its source/packaging metadata still
+precedes the 1.2.0 release tags. A documentation refresh is not a source merge
+or version bump. Use the appropriate tag in an isolated worktree for builds.
+
+Free is a compile-time edition (`CONFIG+=gtlab_free` / `GTLAB_FREE_EDITION`)
+on the Free source ref; default builds remain Full. Restrict only preset
+Import/Export, Assign configuration, Backup/Restore and Quick Settings.
+Preserve loaded Assign data, normal editing/WRITE, routing and USB/MIDI.
+Free has separate app/executable/bundle/AppData identity; its Windows installer
+is app-only and must not install or remove drivers/certificates.
+
+GT Lab Assistant development was discontinued. Do not reintroduce its
+runtime/UI without an explicit maintainer request.
+
+Windows validated paths:
 
 - Windows 10 x64
 - Visual Studio 2022
@@ -31,6 +54,9 @@ Windows initial target:
 - MSVC
 - Direct MIDI through the official BOSS/Roland GT-10 Windows driver
 - WinMM -> RtMidi -> existing GT Lab Editor MIDI/SysEx backend
+- Windows 11 x64: GT-10-specific WinUSB backend; Full Universal Installer
+  may configure the audited binding with consent. Free requires a functional
+  existing binding. Preserve HVCI/Memory Integrity and other security settings.
 - Do not create a GT-10 USB Bridge for Windows in this phase
 
 ## Project purpose
@@ -70,20 +96,20 @@ Typical build:
 ```bash
 cd ~/Documents/GT10-FXFloorBoard-Modern
 /opt/homebrew/opt/qt@5/bin/qmake GT-10FxFloorBoard.pro
-make -j$(sysctl -n hw.ncpu) 2>&1 | tee /tmp/gt10-modern-build.log
+make -j1 2>&1 | tee /tmp/gt10-modern-build.log
 grep -n "error:" /tmp/gt10-modern-build.log | head -30
 ```
 
 Generated application:
 
 ```text
-packager/GT-10FxFloorBoard.app
+packager/GT Lab Editor.app
 ```
 
 Launch:
 
 ```bash
-open packager/GT-10FxFloorBoard.app
+open "packager/GT Lab Editor.app"
 ```
 
 ## Repository checkpoints
@@ -154,16 +180,21 @@ Validated bridge capabilities:
 Validated release:
 
 ```text
-GT-10 USB Bridge v1.1.1
+GT-10 USB Bridge v1.1.2 (ARM64)
 ```
 
 Validated installer SHA-256:
 
 ```text
-db53d8ed6338ffbc45787ce1dfe162bf3d3e16ee3d2a558f39749379b4e02156
+0a54a9344f44997f7b885f2f28e7b913e720b73d78f9af0692dd82f56bb631cd
 ```
 
 Treat the USB Bridge as external infrastructure. Do not modify or redesign it from this repository unless explicitly requested.
+
+Intel Editor and Bridge prototype builds/audits passed; physical Mac Intel
+installation, GT-10 connection, MIDI/audio/HAL and READY remain unvalidated.
+Do not promote internal Intel artifacts to a stable download or reuse them
+for ARM64 packaging. See BUILDING.md for edition/platform build boundaries.
 
 ## Original FxFloorBoard architecture
 
@@ -352,7 +383,9 @@ Do not spend significant time cosmetically repairing the old UI unless required 
 - cards for COMP, OD/DS, PREAMP, EQ, FX-1, FX-2, DELAY and REVERB;
 - large effect-editor area.
 
-It is still primarily a visual shell and is not yet a complete replacement for the old editor.
+The following shell description records early migration context, not the
+feature-completeness status of the 1.2.0 product. Current product capabilities
+are summarized in README.md; hardware claims remain limited to evidence.
 
 The Modern UI workstation layout now uses one continuous composition:
 
@@ -362,10 +395,10 @@ Patch Library | Signal Chain
               | Expression | Control Assign | Pedalboard | Tuner
 ```
 
-The structural Model Browser and bottom control regions intentionally contain
-no fabricated GT-10 data. Their backend bindings are deferred until separately
-validated. Existing effect controls remain connected through `modernFloorBoard`
-to the proven `SysxIO` and `MidiTable` paths.
+Early structural Model Browser and bottom control regions contained no
+fabricated GT-10 data; bindings were introduced only through separately
+validated work. Existing controls connect through `modernFloorBoard` to the
+proven `SysxIO` and `MidiTable` paths. Do not invent device capabilities.
 
 The connection label must reflect `SysxIO::isConnected()`. Do not hardcode a fake connected state.
 
@@ -739,7 +772,7 @@ Rules:
 
 Original source and real GT-10 behavior are the source of truth.
 
-## Recommended migration order
+## Historical migration order
 
 ### Phase 1 - Architecture proof
 
@@ -857,8 +890,11 @@ Build:
 ```bash
 /opt/homebrew/opt/qt@5/bin/qmake GT-10FxFloorBoard.pro
 
-make -j$(sysctl -n hw.ncpu) 2>&1   | tee /tmp/gt10-modern-build.log
+make -j1 2>&1 | tee /tmp/gt10-modern-build.log
 ```
+
+For current 1.2.0 packaging use `make -j1`, preserve the tag's `resources_big`
+configuration, monitor memory/swap, and run tests only after build completion.
 
 Errors only:
 
@@ -869,13 +905,13 @@ grep -n "error:" /tmp/gt10-modern-build.log | head -40
 Launch:
 
 ```bash
-open packager/GT-10FxFloorBoard.app
+open "packager/GT Lab Editor.app"
 ```
 
 Process:
 
 ```bash
-pgrep -fl GT-10FxFloorBoard
+pgrep -fl GTLabEditor
 ```
 
 Current working directory:
@@ -887,7 +923,7 @@ lsof -a -p <PID> -d cwd -Fn
 Architecture:
 
 ```bash
-file packager/GT-10FxFloorBoard.app/Contents/MacOS/GT-10FxFloorBoard
+file "packager/GT Lab Editor.app/Contents/MacOS/GTLabEditor"
 ```
 
 Expected:
@@ -896,7 +932,7 @@ Expected:
 Mach-O 64-bit executable arm64
 ```
 
-## Current highest-priority task
+## Hardware regression checklist
 
 When GT-10 hardware is available:
 
@@ -911,7 +947,9 @@ When GT-10 hardware is available:
 9. verify Modern connection label;
 10. test Modern REVERB ON/OFF against the real pedal.
 
-Until that test passes, do not expand blindly to every effect.
+This milestone was already validated. Re-run it for relevant regressions;
+do not reset the recorded validation status or claim new hardware coverage
+without a physical test. Edition-specific build details belong in BUILDING.md.
 
 ## Initial Codex instruction
 

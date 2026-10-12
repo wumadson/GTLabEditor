@@ -1,113 +1,131 @@
-# Building GT Lab Editor on Windows
+# Building GT Lab Editor 1.2.0
 
-This document describes the versioned, unsigned Windows build used to prepare
-GT Lab Editor for verifiable CI and future SignPath integration.
+Documentação técnica das edições Full e Free. Para instalação pelo usuário,
+consulte [README.md](README.md). Estes passos não modificam drivers e não
+publicam releases automaticamente.
 
-## Pinned toolchain
+## Escolha o source correto
 
-| Component | Required version |
+A default branch `modern-ui` ainda contém source, metadata e scripts Windows
+rotulados como 1.1.0. Ela não é, por si só, o source das distribuições 1.2.0.
+Use as tags imutáveis em checkouts/worktrees separados:
+
+| Edição | Ref de release | Comportamento do build |
+|---|---|---|
+| Full 1.2.0 | `v1.2.0` | padrão, sem flag Free |
+| Free 1.2.0 | `v1.2.0-free` | `CONFIG+=gtlab_free` |
+
+A branch `free/1.2.0` acompanha o desenvolvimento Free; para reproduzir a
+release, prefira sua tag. Não copie installers ou scripts entre as edições
+e não mescle Free na Full para compilar. O refresh documental não atualiza
+código ou pipelines da default branch.
+
+O build normal na tag Free continua Full por padrão; a flag Free define
+`GTLAB_FREE_EDITION`, identidade própria e guards somente para Import,
+Export, configuração Assign, Backup/Restore e Quick Settings.
+
+## macOS Apple Silicon / ARM64
+
+Toolchain local validada: Apple clang, Qt **5.15.19**, qmake 3.1 e SDK macOS.
+A distribuição ARM64 tem mínimo macOS 11.0 no bundle. Confirme a arquitetura
+e o deployment do Qt utilizado; não presuma que qualquer build Qt serve.
+
+Exemplos de shadow build, executados no respectivo checkout da tag:
+
+```bash
+# Full — source v1.2.0
+mkdir -p build/macos-full
+cd build/macos-full
+/opt/homebrew/opt/qt@5/bin/qmake ../../GT-10FxFloorBoard.pro CONFIG+=release
+make -j1
+```
+
+```bash
+# Free — source v1.2.0-free
+mkdir -p build/macos-free
+cd build/macos-free
+/opt/homebrew/opt/qt@5/bin/qmake ../../GT-10FxFloorBoard.pro CONFIG+=release CONFIG+=gtlab_free
+make -j1
+```
+
+Saídas relativas ao shadow build:
+
+- Full: `packager/GT Lab Editor.app`, executável `GTLabEditor`.
+- Free: `packager/GT Lab Editor Free.app`, executável `GTLabEditorFree`.
+
+As tags 1.2.0 usam `resources_big`, mecanismo nativo Qt/qmake que evita
+compilar o resource monolítico como um enorme array C++.
+Não remova essa configuração. Use paralelismo 1 e monitore RSS, memória/swap.
+Não execute testes junto com o build; interrompa diante de pressão anormal.
+
+### Deployment e DMG
+
+Use `macdeployqt` da mesma instalação Qt, em uma cópia de staging da app:
+
+```bash
+/opt/homebrew/opt/qt@5/bin/macdeployqt "GT Lab Editor Free.app" -verbose=2 -codesign=-
+codesign --verify --deep --strict "GT Lab Editor Free.app"
+```
+
+Antes de gerar o DMG, audite todos os Mach-O com `file`, `lipo -archs` e
+`otool -L`: executável, frameworks Qt, plugins e dylibs devem ser ARM64.
+Dependências não fornecidas pelo sistema devem estar dentro da app, com
+paths internos resolvíveis; não pode restar dependência necessária do
+Homebrew, checkout ou diretório de build.
+
+Na preparação da Free, `macdeployqt` omitiu a dependência WebP transitiva
+`libsharpyuv.0.dylib`. Foi incorporada somente no staging ARM64, com caminhos
+internos ajustados e reassinatura ad-hoc. Verifique dependências transitivas,
+não apenas Qt; não altere o source para compensar falhas de deployment.
+
+Gere o DMG com `hdiutil create`, contendo somente a app da edição e, se usado,
+o atalho Applications. Monte-o read-only, copie a app para um diretório
+temporário, verifique assinatura/arquitetura e teste abertura, About e recursos.
+Não substitua a Full instalada para validar a Free.
+
+Artefato público Free: `GTLabEditor-Free-1.2.0-macOS-arm64.dmg`.
+Use saída separada, por exemplo `dist/free/macos/1.2.0/`, e registre SHA-256.
+O Bridge ARM64 v1.1.2 é instalado/distribuído separadamente; não o reconstrua
+ou inclua dentro do DMG do Editor.
+
+## Windows x64
+
+Toolchain do pipeline versionado e validado:
+
+| Componente | Versão |
 |---|---|
 | Qt | 5.15.2 `msvc2019_64` |
-| qmake | 3.1, from Qt 5.15.2 |
+| qmake | 3.1 |
 | MSVC | v142, `cl.exe` 19.29.x, x64 |
 | Windows SDK | 10.0.26100.x |
 | Inno Setup | 6.7.3 |
-| Configuration | Release x64 |
+| Configuração | Release x64 |
 
-The scripts fail if the compiler, SDK, or Qt version does not match these
-constraints. They do not depend on a developer username or a fixed repository
-location.
+Visual Studio 2022 pode hospedar o toolset v142. Os scripts versionados
+verificam essas versões; não use apenas o nome da instalação VS como prova
+do compilador ativo. Use o ambiente x64 do toolset correto e o Qt correspondente.
 
-## Local prerequisites
+### Full
 
-Install the pinned Qt, Visual C++ v142 x64 build tools, Windows SDK, and Inno
-Setup versions. The Inno Setup licensing question identified in the release
-audit remains **PENDING**; this pipeline reproduces the currently validated
-technical build and does not claim that the release-policy question is
-resolved.
+Na tag `v1.2.0`, os scripts `scripts/windows/build-release.ps1` e
+`stage-release.ps1` oferecem build/staging do executável Full.
+Defina `QT_ROOT_DIR` e `INNO_SETUP_ROOT`; informe `VsInstallPath` se necessário.
 
-Provide tool locations through parameters or environment variables:
+O **Universal Installer Full** é `installer/windows/GTLabEditor-Windows.iss`.
+Ele usa os inputs locais auditados de `installer/windows/winusb-lab/`, com
+consentimento para WinUSB no Windows 11. Esses inputs não estão no Git público.
+Não gere novos INF/CAT/certificados nem altere binding ao compilar a aplicação.
 
-```powershell
-$env:QT_ROOT_DIR = 'C:\Qt\5.15.2\msvc2019_64'
-$env:INNO_SETUP_ROOT = 'C:\path\to\Inno Setup 6'
-```
-
-Visual Studio is discovered through `vswhere.exe`. If necessary, pass its
-installation directory with `-VsInstallPath`.
-
-## One-command build
-
-From the repository root:
+O `GTLabEditor.iss` usado pelo pipeline automático é **app-only Full**,
+não o Universal. Separe as saídas: ambos os definitions Full podem produzir
+o mesmo nome de Setup. Registre source, definition, toolchain e hash final.
 
 ```powershell
-.\scripts\windows\build-all.ps1
-```
-
-The orchestrator performs these steps:
-
-1. initializes the MSVC v142 x64 environment;
-2. verifies `cl.exe`, Windows SDK, qmake, and Qt versions;
-3. creates a clean shadow build below `build/windows-release`;
-4. runs qmake and nmake;
-5. creates a clean deployment staging directory;
-6. runs the matching Qt 5.15.2 `windeployqt` and stages the complete VC142
-   app-local CRT assembly;
-7. copies the confirmed license and notice files;
-8. validates mandatory Qt DLLs and `platforms/qwindows.dll`;
-9. creates a staging manifest with file sizes and SHA-256 hashes;
-10. builds the common unsigned Inno Setup installer;
-11. creates the portable ZIP and `SHA256SUMS.txt`.
-
-Individual phases may be run with:
-
-```powershell
-.\scripts\windows\build-release.ps1
-.\scripts\windows\stage-release.ps1
-.\scripts\windows\build-installer.ps1
-```
-
-## Outputs
-
-Generated files are deliberately ignored by Git:
-
-- `build/windows-release/packager/GTLabEditor.exe`
-- `dist/staging/windows/GTLabEditor/`
-- `dist/windows/GTLabEditor-1.1.0-Windows-x64-Portable.zip`
-- `dist/windows/GTLabEditor-1.1.0-Windows-x64-Setup.exe`
-- `dist/windows/SHA256SUMS.txt`
-- `dist/windows/build-manifest.txt`
-
-The manifest records the commit, branch/ref, UTC build timestamp, tool
-versions, and the SHA-256 and size of each staged file.
-
-## Official v1.1.0 universal installer
-
-The public v1.1.0 installer is built manually with
-`installer/windows/GTLabEditor-Windows.iss`, preserving the universal Windows
-10/11 installation model used for v1.0.0. The scripts above and CI still select
-`GTLabEditor.iss` (app-only); they are not a substitute for building and validating
-the universal installer. The app-only installer and portable ZIP are not public
-v1.1.0 release assets.
-
-Both installer definitions currently produce the same Setup filename. Keep their
-outputs separate and record the exact `.iss`, source commit and final SHA-256 in
-the release manifest to avoid publishing the app-only artifact by mistake.
-
-After building and staging the release executable, invoke Inno Setup 6.7.3
-explicitly from the repository root:
-
-```powershell
+# Após build e staging Full, a partir do checkout v1.2.0:
 & "$env:INNO_SETUP_ROOT\ISCC.exe" .\installer\windows\GTLabEditor-Windows.iss
 ```
 
-The historical WinUSB payload and final install/uninstall helpers must be
-available locally under `installer/windows/winusb-lab/`. These packaging inputs
-do not belong in public Git. Do not regenerate or modify them for the Editor
-version bump. The maintainer confirmed recovery and reproduction of the v1.0.0
-universal Setup; its SHA-256 was
-`5e13b21c09967a1d8596676ada1cc256e7bdbd663f967ec668716650f3f3321f`.
-Verify the recovered inputs before packaging:
+Inputs históricos auditados, reutilizados sem regeneração:
 
 | Input | SHA-256 |
 |---|---|
@@ -115,56 +133,86 @@ Verify the recovered inputs before packaging:
 | `gt10-winusb.cat` | `5ff62b27a436df0ab2d649458cc93839e24d57e3b944dcb35e0fb068a59df85e` |
 | `GT-LAB-WinUSB-Lab.cer` | `39ce00a770ab28c9de39dfd92eedecb1ba342a7ba21ae9a78e7d242934af150e` |
 
-Retest explicit WinUSB consent, the audio/ASIO warning, and app-only/full
-uninstallation on Windows 11. Windows 10 must retain the Roland/WinMM path.
-This preparation does not claim final v1.1.0 artifact validation or public
-driver signing approval.
+### Free
 
-## GitHub Actions
+Use a tag `v1.2.0-free`, com `CONFIG+=gtlab_free`.
+Ela seleciona `GTLabEditorFree.exe` e o resource Windows próprio.
+Os scripts Full existentes não recebem automaticamente essa flag e procuram
+`GTLabEditor.exe`; não execute `build-all.ps1` esperando um pacote Free.
 
-`.github/workflows/windows-build.yml` uses `windows-2022`, fixed action commit
-SHAs, Qt 5.15.2, MSVC v142, SDK 10.0.26100.x, and Inno Setup 6.7.3. It runs on
-manual dispatch and pushes to `modern-ui`. It uploads unsigned artifacts only
-and has `contents: read` repository permission.
+Em um shadow build limpo e no ambiente MSVC x64 adequado:
 
-The workflow contains no signing key, certificate, password, custom token, or
-SignPath secret. It does not create a GitHub Release.
+```powershell
+# Executar a partir de build\windows-free no checkout Free:
+& "$env:QT_ROOT_DIR\bin\qmake.exe" ..\..\GT-10FxFloorBoard.pro -spec win32-msvc CONFIG+=release CONFIG+=gtlab_free
+nmake
+```
 
-## Verifiability and reproducibility
+Algumas instalações Qt/MSVC exigem informar `QMAKE_MSC_VER` e
+`QMAKE_MSC_FULL_VER` antes de carregar o projeto, como faz o script Full.
+Derive os valores do `cl.exe` ativo; não copie um valor de patch do compilador
+de outra máquina.
 
-The process is **source-to-artifact verifiable**: build commands, dependency
-versions, staging rules, hashes, and packaging inputs are versioned. It is not
-yet guaranteed to be **bit-for-bit reproducible**. Sources of variation include
-PE/COFF timestamps, Inno Setup timestamps, ZIP entry timestamps, runner image
-updates, and deployment ordering.
+Prepare staging separado em `dist/staging/windows/GTLabEditorFree/`.
+Use o `windeployqt --release` correspondente e o CRT VC142 app-local completo;
+copie licenças/notices e valide DLLs, plugins e manifest de hashes.
+Então, a partir do checkout Free:
 
-## SBOM
+```powershell
+& "$env:INNO_SETUP_ROOT\ISCC.exe" .\installer\windows\GTLabEditor-Free.iss
+```
 
-SBOM generation remains **PENDING**. No additional SBOM tool is introduced in
-this stage. A future change should select and pin a trusted SPDX JSON or
-CycloneDX JSON generator and verify that it accurately describes Qt plugins,
-ANGLE, the MSVC runtime, and other packaged components.
+Saída: `GTLabEditor-Free-1.2.0-Windows-x64-Setup.exe`.
+O installer Free é APP-ONLY: AppId, diretório, atalhos e executável próprios,
+sem instalação/remoção de drivers ou certificados. Não reutilize o AppId Full.
 
-## Future SignPath flow
+### Transporte e validação
 
-The intended two-stage flow, subject to confirmation with SignPath, is:
+Windows 10: driver BOSS/Roland instalado independentemente, WinMM/RtMidi.
+Windows 11 Full: WinUSB opcional pelo Universal Installer, específico da GT-10.
+Windows 11 Free: requer binding WinUSB funcional prévio; o startup verifica
+disponibilidade e reutiliza o backend, sem instalar drivers.
+Áudio USB/ASIO do driver oficial pode ficar indisponível nesse binding.
+Não desabilite HVCI, Memory Integrity, Secure Boot ou driver-signature enforcement.
 
-1. build an unsigned `GTLabEditor.exe` from a release candidate commit;
-2. submit that EXE for a SignPath signing request and manual approval;
-3. assemble the final installer using the signed EXE and unsigned upstream
-   runtime binaries;
-4. submit the installer for a second signing request and manual approval;
-5. publish only the approved signed artifacts in the GitHub Release.
+## Testes e gates
 
-SignPath APIs, secrets, artifact configuration, and signing workflows are not
-implemented here. No speculative `signpath/` schema is added.
+Execute suítes sequencialmente, depois do build: Signal Chain, Patch Change
+Guard, Backup, Decoder, Quick Settings e Artwork. Na tag Free, execute também
+`CONFIG+=productedition_tests` em Full e Free. Os harnesses substituem o entry
+point somente com configuração explícita; não os inclua no pacote final.
+Use perfis offline sem portas MIDI para testes automatizados.
 
-## WinUSB driver package
+Gate de distribuição: versão/identidade, arquitetura, recursos, dependências,
+assinatura aplicável, abertura de uma cópia do pacote, licenças/notices e hashes.
+Testes offline não comprovam comportamento físico USB/MIDI/áudio.
 
-The WinUSB backend is compiled into `GTLabEditor.exe`, but this CI does not
-build, install, or sign a public WinUSB INF/CAT package.
+## macOS Intel e CI
 
-**PUBLIC WINUSB DRIVER PACKAGE SIGNING = PENDING**
+O workflow experimental `.github/workflows/macos-intel-build.yml` está na
+default branch, mas recebe um `source_ref` imutável separado (padrão Full 1.2.0).
+Não compila implicitamente a HEAD do workflow. Usa runner Intel, Qt 5.15.2,
+deployment target 11.0 e gates de arquitetura/dependências, testes e DMG.
 
-Laboratory INF, CAT, certificate, installer, and test checklists are excluded
-from this process.
+Editor x86_64 e protótipo Bridge x86_64 passaram em build/auditoria; a
+validação física de instalação, GT-10, MIDI, áudio/HAL e READY segue pendente.
+Não tratar artifacts internos como downloads estáveis. O source do Bridge
+pertence a outro projeto e não é alterado pelo build do Editor.
+
+O workflow Windows `.github/workflows/windows-build.yml` continua como
+pipeline unsigned app-only, disparado por dispatch/push em `modern-ui`.
+Na default branch, nomes e caminhos de artifacts ainda são 1.1.0.
+Não equivale ao pacote Free 1.2.0 nem ao Universal Full 1.2.0.
+Esta revisão não corrige scripts/workflows: isso exige outra autorização.
+
+## Licenças, assinatura e reprodução
+
+Preserve licenças, créditos e notices; veja [README.md](README.md),
+[ASSET-PROVENANCE.md](ASSET-PROVENANCE.md) e [SIGNING.md](SIGNING.md).
+A questão de licenciamento do Inno Setup registrada no audit anterior e a
+geração de SBOM permanecem pendentes de confirmação, não resolvidas por este texto.
+
+O pipeline registra comandos, versões e hashes para rastreabilidade, mas
+não garante reprodução bit-for-bit: timestamps PE/COFF, Inno/ZIP, imagem do
+runner e ordering de deployment podem variar.
+Nenhum segredo ou credencial deve entrar no source, logs ou pacotes.
