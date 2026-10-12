@@ -191,8 +191,8 @@ Previously verified patches remain overwritten.</source>
     </message>
     <message>
         <location filename="../modernAboutDialog.cpp" line="126"/>
-        <source>Version 1.1.0</source>
-        <translation>Versão 1.1.0</translation>
+        <source>Version 1.2.0</source>
+        <translation>Versão 1.2.0</translation>
     </message>
     <message>
         <location filename="../modernAboutDialog.cpp" line="133"/>
@@ -574,22 +574,22 @@ Previously verified patches remain overwritten.</source>
         <translation>SEM ASSIGNS DE EXP</translation>
     </message>
     <message>
-        <location filename="../modernExpressionEditor.cpp" line="266"/>
+        <location filename="../modernExpressionEditor.cpp" line="279"/>
         <source>FV %1 / %2 · %3</source>
         <translation>FV %1 / %2 · %3</translation>
     </message>
     <message>
-        <location filename="../modernExpressionEditor.cpp" line="272"/>
+        <location filename="../modernExpressionEditor.cpp" line="285"/>
         <source>WAH %1 / %2</source>
         <translation>WAH %1 / %2</translation>
     </message>
     <message>
-        <location filename="../modernExpressionEditor.cpp" line="277"/>
+        <location filename="../modernExpressionEditor.cpp" line="290"/>
         <source>PB %1 / %2</source>
         <translation>PB %1 / %2</translation>
     </message>
     <message>
-        <location filename="../modernExpressionEditor.cpp" line="305"/>
+        <location filename="../modernExpressionEditor.cpp" line="318"/>
         <source>A%1   %2  →  %3</source>
         <translation>A%1   %2  →  %3</translation>
     </message>
@@ -597,17 +597,17 @@ Previously verified patches remain overwritten.</source>
 <context>
     <name>ModernFxEditor</name>
     <message>
-        <location filename="../modernFxEditor.cpp" line="367"/>
+        <location filename="../modernFxEditor.cpp" line="390"/>
         <source>State</source>
         <translation>Estado</translation>
     </message>
     <message>
-        <location filename="../modernFxEditor.cpp" line="374"/>
+        <location filename="../modernFxEditor.cpp" line="397"/>
         <source>Type</source>
         <translation>Tipo</translation>
     </message>
     <message>
-        <location filename="../modernFxEditor.cpp" line="1086"/>
+        <location filename="../modernFxEditor.cpp" line="1109"/>
         <source>Modern editor migration pending</source>
         <translation>Migração para o editor moderno pendente</translation>
     </message>
@@ -661,23 +661,38 @@ Previously verified patches remain overwritten.</source>
 <context>
     <name>ModernMessageDialog</name>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="226"/>
-        <location filename="../modernFloorBoard.cpp" line="242"/>
+        <location filename="../modernFloorBoard.cpp" line="261"/>
+        <location filename="../modernFloorBoard.cpp" line="277"/>
         <source>Cancel</source>
         <translation>Cancelar</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="227"/>
+        <location filename="../modernFloorBoard.cpp" line="262"/>
         <source>Write Patch</source>
         <translation>Gravar Patch</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="243"/>
+        <location filename="../modernFloorBoard.cpp" line="278"/>
         <source>Copy</source>
         <translation>Copiar</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="258"/>
+        <location filename="../modernFloorBoard.cpp" line="293"/>
+        <source>Cancelar</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../modernFloorBoard.cpp" line="294"/>
+        <source>Descartar</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../modernFloorBoard.cpp" line="295"/>
+        <source>Salvar</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../modernFloorBoard.cpp" line="322"/>
         <source>OK</source>
         <translation>OK</translation>
     </message>
@@ -685,27 +700,27 @@ Previously verified patches remain overwritten.</source>
 <context>
     <name>ModernNoiseSuppressorEditor</name>
     <message>
-        <location filename="../modernNoiseSuppressorEditor.cpp" line="84"/>
+        <location filename="../modernNoiseSuppressorEditor.cpp" line="101"/>
         <source>State</source>
         <translation>Estado</translation>
     </message>
     <message>
-        <location filename="../modernNoiseSuppressorEditor.cpp" line="91"/>
+        <location filename="../modernNoiseSuppressorEditor.cpp" line="108"/>
         <source>SUPPRESSION</source>
         <translation>SUPRESSÃO</translation>
     </message>
     <message>
-        <location filename="../modernNoiseSuppressorEditor.cpp" line="96"/>
+        <location filename="../modernNoiseSuppressorEditor.cpp" line="113"/>
         <source>Threshold</source>
         <translation>Threshold</translation>
     </message>
     <message>
-        <location filename="../modernNoiseSuppressorEditor.cpp" line="105"/>
+        <location filename="../modernNoiseSuppressorEditor.cpp" line="122"/>
         <source>Release</source>
         <translation>Release</translation>
     </message>
     <message>
-        <location filename="../modernNoiseSuppressorEditor.cpp" line="115"/>
+        <location filename="../modernNoiseSuppressorEditor.cpp" line="132"/>
         <source>Detect</source>
         <translation>Detect</translation>
     </message>
@@ -713,24 +728,35 @@ Previously verified patches remain overwritten.</source>
 <context>
     <name>ModernPedalFxEditor</name>
     <message>
-        <location filename="../modernPedalFxEditor.cpp" line="128"/>
         <source>PEDAL / EXP</source>
-        <translation>PEDAL / EXP</translation>
+        <translation type="vanished">PEDAL / EXP</translation>
     </message>
     <message>
-        <location filename="../modernPedalFxEditor.cpp" line="149"/>
+        <location filename="../modernPedalFxEditor.cpp" line="144"/>
+        <location filename="../modernPedalFxEditor.cpp" line="145"/>
+        <location filename="../modernPedalFxEditor.cpp" line="538"/>
+        <source>P.FX</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../modernPedalFxEditor.cpp" line="166"/>
         <source>State</source>
         <translation>Estado</translation>
     </message>
     <message>
-        <location filename="../modernPedalFxEditor.cpp" line="505"/>
+        <location filename="../modernPedalFxEditor.cpp" line="526"/>
         <source>GENERAL PEDAL FX CONTEXT</source>
         <translation>CONTEXTO GERAL DE PEDAL FX</translation>
     </message>
     <message>
-        <location filename="../modernPedalFxEditor.cpp" line="507"/>
+        <location filename="../modernPedalFxEditor.cpp" line="528"/>
         <source>FOOT VOLUME SECTION ACTIVE</source>
         <translation>SEÇÃO FOOT VOLUME ATIVA</translation>
+    </message>
+    <message>
+        <location filename="../modernPedalFxEditor.cpp" line="535"/>
+        <source>FV</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -758,23 +784,23 @@ Previously verified patches remain overwritten.</source>
 <context>
     <name>ModernRenamePatchDialog</name>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="280"/>
-        <location filename="../modernFloorBoard.cpp" line="308"/>
+        <location filename="../modernFloorBoard.cpp" line="344"/>
+        <location filename="../modernFloorBoard.cpp" line="372"/>
         <source>RENAME PATCH</source>
         <translation>RENOMEAR PATCH</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="312"/>
+        <location filename="../modernFloorBoard.cpp" line="376"/>
         <source>NEW NAME</source>
         <translation>NOVO NOME</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="319"/>
+        <location filename="../modernFloorBoard.cpp" line="383"/>
         <source>Cancel</source>
         <translation>Cancelar</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="320"/>
+        <location filename="../modernFloorBoard.cpp" line="384"/>
         <source>Rename</source>
         <translation>Renomear</translation>
     </message>
@@ -782,47 +808,52 @@ Previously verified patches remain overwritten.</source>
 <context>
     <name>ModernSendReturnEditor</name>
     <message>
-        <location filename="../modernSendReturnEditor.cpp" line="50"/>
         <source>SEND/RETURN</source>
-        <translation>SEND/RETURN</translation>
+        <translation type="vanished">SEND/RETURN</translation>
     </message>
     <message>
-        <location filename="../modernSendReturnEditor.cpp" line="70"/>
+        <location filename="../modernSendReturnEditor.cpp" line="51"/>
+        <location filename="../modernSendReturnEditor.cpp" line="52"/>
+        <source>S/R</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../modernSendReturnEditor.cpp" line="83"/>
         <source>State</source>
         <translation>Estado</translation>
     </message>
     <message>
-        <location filename="../modernSendReturnEditor.cpp" line="77"/>
+        <location filename="../modernSendReturnEditor.cpp" line="90"/>
         <source>LEVELS</source>
         <translation>NÍVEIS</translation>
     </message>
     <message>
-        <location filename="../modernSendReturnEditor.cpp" line="82"/>
+        <location filename="../modernSendReturnEditor.cpp" line="95"/>
         <source>Send Level</source>
         <translation>Send Level</translation>
     </message>
     <message>
-        <location filename="../modernSendReturnEditor.cpp" line="91"/>
+        <location filename="../modernSendReturnEditor.cpp" line="104"/>
         <source>Return Level</source>
         <translation>Return Level</translation>
     </message>
     <message>
-        <location filename="../modernSendReturnEditor.cpp" line="101"/>
+        <location filename="../modernSendReturnEditor.cpp" line="114"/>
         <source>Mode</source>
         <translation>Modo</translation>
     </message>
     <message>
-        <location filename="../modernSendReturnEditor.cpp" line="104"/>
+        <location filename="../modernSendReturnEditor.cpp" line="117"/>
         <source>NORMAL</source>
         <translation>NORMAL</translation>
     </message>
     <message>
-        <location filename="../modernSendReturnEditor.cpp" line="105"/>
+        <location filename="../modernSendReturnEditor.cpp" line="118"/>
         <source>DIRECT MIX</source>
         <translation>DIRECT MIX</translation>
     </message>
     <message>
-        <location filename="../modernSendReturnEditor.cpp" line="106"/>
+        <location filename="../modernSendReturnEditor.cpp" line="119"/>
         <source>BRANCH OUT</source>
         <translation>BRANCH OUT</translation>
     </message>
@@ -1079,18 +1110,23 @@ Previously verified patches remain overwritten.</source>
 <context>
     <name>ModernSystemEditor</name>
     <message>
+        <location filename="../modernSystemEditor.cpp" line="115"/>
+        <location filename="../modernSystemEditor.cpp" line="894"/>
         <source>READ SYSTEM</source>
         <translation>LER SYSTEM</translation>
     </message>
     <message>
+        <location filename="../modernSystemEditor.cpp" line="118"/>
         <source>Reload SYSTEM parameters from the GT-10</source>
         <translation>Reler os parâmetros SYSTEM da GT-10</translation>
     </message>
     <message>
+        <location filename="../modernSystemEditor.cpp" line="894"/>
         <source>READING…</source>
         <translation>LENDO…</translation>
     </message>
     <message>
+        <location filename="../modernSystemEditor.cpp" line="896"/>
         <source>READING SYSTEM…</source>
         <translation>LENDO SYSTEM…</translation>
     </message>
@@ -1101,49 +1137,49 @@ Previously verified patches remain overwritten.</source>
     </message>
     <message>
         <location filename="../modernSystemEditor.cpp" line="76"/>
-        <location filename="../modernSystemEditor.cpp" line="822"/>
+        <location filename="../modernSystemEditor.cpp" line="905"/>
         <source>SYSTEM DATA UNAVAILABLE</source>
         <translation>DADOS DE SYSTEM INDISPONÍVEIS</translation>
     </message>
     <message>
         <location filename="../modernSystemEditor.cpp" line="85"/>
-        <location filename="../modernSystemEditor.cpp" line="425"/>
+        <location filename="../modernSystemEditor.cpp" line="452"/>
         <source>INPUT</source>
         <translation>INPUT</translation>
     </message>
     <message>
         <location filename="../modernSystemEditor.cpp" line="85"/>
-        <location filename="../modernSystemEditor.cpp" line="497"/>
+        <location filename="../modernSystemEditor.cpp" line="524"/>
         <source>OUTPUT</source>
         <translation>OUTPUT</translation>
     </message>
     <message>
         <location filename="../modernSystemEditor.cpp" line="85"/>
-        <location filename="../modernSystemEditor.cpp" line="477"/>
+        <location filename="../modernSystemEditor.cpp" line="504"/>
         <source>GLOBAL EQ</source>
         <translation>GLOBAL EQ</translation>
     </message>
     <message>
         <location filename="../modernSystemEditor.cpp" line="86"/>
-        <location filename="../modernSystemEditor.cpp" line="556"/>
+        <location filename="../modernSystemEditor.cpp" line="583"/>
         <source>LCD</source>
         <translation>LCD</translation>
     </message>
     <message>
         <location filename="../modernSystemEditor.cpp" line="86"/>
-        <location filename="../modernSystemEditor.cpp" line="567"/>
+        <location filename="../modernSystemEditor.cpp" line="594"/>
         <source>USB</source>
         <translation>USB</translation>
     </message>
     <message>
         <location filename="../modernSystemEditor.cpp" line="86"/>
-        <location filename="../modernSystemEditor.cpp" line="394"/>
+        <location filename="../modernSystemEditor.cpp" line="421"/>
         <source>PLAY OPTION</source>
         <translation>PLAY OPTION</translation>
     </message>
     <message>
         <location filename="../modernSystemEditor.cpp" line="87"/>
-        <location filename="../modernSystemEditor.cpp" line="535"/>
+        <location filename="../modernSystemEditor.cpp" line="562"/>
         <source>PHRASE LOOP</source>
         <translation>PHRASE LOOP</translation>
     </message>
@@ -1154,364 +1190,364 @@ Previously verified patches remain overwritten.</source>
     </message>
     <message>
         <location filename="../modernSystemEditor.cpp" line="88"/>
-        <location filename="../modernSystemEditor.cpp" line="585"/>
+        <location filename="../modernSystemEditor.cpp" line="612"/>
         <source>CATEGORY NAMES</source>
         <translation>CATEGORY NAMES</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="372"/>
+        <location filename="../modernSystemEditor.cpp" line="391"/>
         <source>Scope</source>
         <translation>Escopo</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="373"/>
+        <location filename="../modernSystemEditor.cpp" line="392"/>
         <source>Setting</source>
         <translation>Configuração</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="374"/>
+        <location filename="../modernSystemEditor.cpp" line="393"/>
         <source>Function</source>
         <translation>Função</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="375"/>
+        <location filename="../modernSystemEditor.cpp" line="394"/>
         <source>Target Min</source>
         <translation>Destino mín.</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="376"/>
+        <location filename="../modernSystemEditor.cpp" line="395"/>
         <source>Target Max</source>
         <translation>Destino máx.</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="377"/>
+        <location filename="../modernSystemEditor.cpp" line="396"/>
         <source>Source Mode</source>
         <translation>Modo da fonte</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="379"/>
+        <location filename="../modernSystemEditor.cpp" line="398"/>
         <source>Active Range Low</source>
         <translation>Limite inferior da faixa ativa</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="381"/>
+        <location filename="../modernSystemEditor.cpp" line="400"/>
         <source>Active Range High</source>
         <translation>Limite superior da faixa ativa</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="397"/>
+        <location filename="../modernSystemEditor.cpp" line="424"/>
         <source>PATCH / BANK</source>
         <translation>PATCH / BANK</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="398"/>
+        <location filename="../modernSystemEditor.cpp" line="425"/>
         <source>Preamp Mode</source>
         <translation>Modo do Preamp</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="399"/>
+        <location filename="../modernSystemEditor.cpp" line="426"/>
         <source>Patch Change Mode</source>
         <translation>Modo de troca de Patch</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="400"/>
+        <location filename="../modernSystemEditor.cpp" line="427"/>
         <source>Bank Change Mode</source>
         <translation>Modo de troca de Bank</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="401"/>
+        <location filename="../modernSystemEditor.cpp" line="428"/>
         <source>Bank Extent Min</source>
         <translation>Limite mín. de Bank</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="402"/>
+        <location filename="../modernSystemEditor.cpp" line="429"/>
         <source>Bank Extent Max</source>
         <translation>Limite máx. de Bank</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="403"/>
+        <location filename="../modernSystemEditor.cpp" line="430"/>
         <source>PEDAL</source>
         <translation>PEDAL</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="404"/>
+        <location filename="../modernSystemEditor.cpp" line="431"/>
         <source>EXP Pedal Hold</source>
         <translation>EXP Pedal Hold</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="405"/>
+        <location filename="../modernSystemEditor.cpp" line="432"/>
         <source>Pedal Indication</source>
         <translation>Indicação do pedal</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="406"/>
+        <location filename="../modernSystemEditor.cpp" line="433"/>
         <source>Number Pedal Control</source>
         <translation>Controle numérico do pedal</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="407"/>
+        <location filename="../modernSystemEditor.cpp" line="434"/>
         <source>PANEL</source>
         <translation>PANEL</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="408"/>
+        <location filename="../modernSystemEditor.cpp" line="435"/>
         <source>Dial Function</source>
         <translation>Função do dial</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="409"/>
+        <location filename="../modernSystemEditor.cpp" line="436"/>
         <source>Knob P1 Target</source>
         <translation>Destino do knob P1</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="410"/>
+        <location filename="../modernSystemEditor.cpp" line="437"/>
         <source>Knob P2 Target</source>
         <translation>Destino do knob P2</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="411"/>
+        <location filename="../modernSystemEditor.cpp" line="438"/>
         <source>Knob P3 Target</source>
         <translation>Destino do knob P3</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="412"/>
+        <location filename="../modernSystemEditor.cpp" line="439"/>
         <source>Knob P4 Target</source>
         <translation>Destino do knob P4</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="414"/>
+        <location filename="../modernSystemEditor.cpp" line="441"/>
         <source>Patch and bank options affect the GT-10&apos;s physical switching behavior.</source>
         <translation>As opções de Patch e Bank afetam o comportamento físico de comutação da GT-10.</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="428"/>
+        <location filename="../modernSystemEditor.cpp" line="455"/>
         <source>INPUT SOURCE</source>
         <translation>FONTE DE ENTRADA</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="436"/>
+        <location filename="../modernSystemEditor.cpp" line="463"/>
         <source>GUITAR 1</source>
         <translation>GUITAR 1</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="436"/>
+        <location filename="../modernSystemEditor.cpp" line="463"/>
         <source>GUITAR 2</source>
         <translation>GUITAR 2</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="437"/>
+        <location filename="../modernSystemEditor.cpp" line="464"/>
         <source>GUITAR 3</source>
         <translation>GUITAR 3</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="437"/>
+        <location filename="../modernSystemEditor.cpp" line="464"/>
         <source>USB IN</source>
         <translation>USB IN</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="451"/>
+        <location filename="../modernSystemEditor.cpp" line="478"/>
         <source>INPUT PARAMETERS</source>
         <translation>PARÂMETROS DE ENTRADA</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="452"/>
+        <location filename="../modernSystemEditor.cpp" line="479"/>
         <source>LEVEL</source>
         <translation>LEVEL</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="453"/>
+        <location filename="../modernSystemEditor.cpp" line="480"/>
         <source>PRES</source>
         <translation>PRES</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="480"/>
+        <location filename="../modernSystemEditor.cpp" line="507"/>
         <source>LOW</source>
         <translation>LOW</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="481"/>
-        <location filename="../modernSystemEditor.cpp" line="483"/>
-        <location filename="../modernSystemEditor.cpp" line="487"/>
+        <location filename="../modernSystemEditor.cpp" line="508"/>
+        <location filename="../modernSystemEditor.cpp" line="510"/>
+        <location filename="../modernSystemEditor.cpp" line="514"/>
         <source>Gain</source>
         <translation>Gain</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="482"/>
+        <location filename="../modernSystemEditor.cpp" line="509"/>
         <source>MID</source>
         <translation>MID</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="484"/>
+        <location filename="../modernSystemEditor.cpp" line="511"/>
         <source>Frequency</source>
         <translation>Frequency</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="485"/>
+        <location filename="../modernSystemEditor.cpp" line="512"/>
         <source>Q</source>
         <translation>Q</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="486"/>
+        <location filename="../modernSystemEditor.cpp" line="513"/>
         <source>HIGH</source>
         <translation>HIGH</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="500"/>
+        <location filename="../modernSystemEditor.cpp" line="527"/>
         <source>GLOBAL / MAIN OUTPUT</source>
         <translation>GLOBAL / MAIN OUTPUT</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="502"/>
+        <location filename="../modernSystemEditor.cpp" line="529"/>
         <source>Global NS Threshold</source>
         <translation>Global NS Threshold</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="503"/>
+        <location filename="../modernSystemEditor.cpp" line="530"/>
         <source>Global Reverb Level</source>
         <translation>Global Reverb Level</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="504"/>
+        <location filename="../modernSystemEditor.cpp" line="531"/>
         <source>Main Out Level</source>
         <translation>Main Out Level</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="513"/>
+        <location filename="../modernSystemEditor.cpp" line="540"/>
         <source>SYSTEM CONTROLLERS</source>
         <translation>CONTROLADORES DE SYSTEM</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="516"/>
+        <location filename="../modernSystemEditor.cpp" line="543"/>
         <source>EXP1</source>
         <translation>EXP1</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="517"/>
+        <location filename="../modernSystemEditor.cpp" line="544"/>
         <source>EXP SW</source>
         <translation>EXP SW</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="518"/>
+        <location filename="../modernSystemEditor.cpp" line="545"/>
         <source>CTL1</source>
         <translation>CTL1</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="519"/>
+        <location filename="../modernSystemEditor.cpp" line="546"/>
         <source>CTL2</source>
         <translation>CTL2</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="520"/>
+        <location filename="../modernSystemEditor.cpp" line="547"/>
         <source>EXP2</source>
         <translation>EXP2</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="521"/>
+        <location filename="../modernSystemEditor.cpp" line="548"/>
         <source>CTL3</source>
         <translation>CTL3</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="522"/>
+        <location filename="../modernSystemEditor.cpp" line="549"/>
         <source>CTL4</source>
         <translation>CTL4</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="524"/>
+        <location filename="../modernSystemEditor.cpp" line="551"/>
         <source>These settings belong to the GT-10 System controller layer.</source>
         <translation>Estas configurações pertencem à camada de controladores de System da GT-10.</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="538"/>
+        <location filename="../modernSystemEditor.cpp" line="565"/>
         <source>SYSTEM CONFIGURATION</source>
         <translation>CONFIGURAÇÃO DE SYSTEM</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="539"/>
+        <location filename="../modernSystemEditor.cpp" line="566"/>
         <source>Mode</source>
         <translation>Mode</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="540"/>
+        <location filename="../modernSystemEditor.cpp" line="567"/>
         <source>Record Mode</source>
         <translation>Record Mode</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="541"/>
+        <location filename="../modernSystemEditor.cpp" line="568"/>
         <source>Pedal Mode</source>
         <translation>Pedal Mode</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="542"/>
+        <location filename="../modernSystemEditor.cpp" line="569"/>
         <source>Clear Pedal</source>
         <translation>Clear Pedal</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="543"/>
+        <location filename="../modernSystemEditor.cpp" line="570"/>
         <source>Play Level</source>
         <translation>Play Level</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="545"/>
+        <location filename="../modernSystemEditor.cpp" line="572"/>
         <source>Runtime REC, PLAY and OVERDUB states are not part of the known System buffer.</source>
         <translation>Os estados de runtime REC, PLAY e OVERDUB não fazem parte do buffer de System conhecido.</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="559"/>
+        <location filename="../modernSystemEditor.cpp" line="586"/>
         <source>DISPLAY</source>
         <translation>TELA</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="560"/>
+        <location filename="../modernSystemEditor.cpp" line="587"/>
         <source>LCD Contrast</source>
         <translation>Contraste do LCD</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="570"/>
+        <location filename="../modernSystemEditor.cpp" line="597"/>
         <source>GT-10 USB SYSTEM</source>
         <translation>GT-10 USB SYSTEM</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="571"/>
+        <location filename="../modernSystemEditor.cpp" line="598"/>
         <source>USB Driver Mode</source>
         <translation>USB Driver Mode</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="572"/>
+        <location filename="../modernSystemEditor.cpp" line="599"/>
         <source>USB Monitor Command</source>
         <translation>USB Monitor Command</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="573"/>
+        <location filename="../modernSystemEditor.cpp" line="600"/>
         <source>USB Digital Out Level</source>
         <translation>USB Digital Out Level</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="574"/>
+        <location filename="../modernSystemEditor.cpp" line="601"/>
         <source>USB Mix Level</source>
         <translation>USB Mix Level</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="576"/>
+        <location filename="../modernSystemEditor.cpp" line="603"/>
         <source>USB input profile settings are available in INPUT.</source>
         <translation>As configurações do perfil de entrada USB estão disponíveis em INPUT.</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="588"/>
+        <location filename="../modernSystemEditor.cpp" line="615"/>
         <source>USER CATEGORIES</source>
         <translation>CATEGORIAS DE USER</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="596"/>
+        <location filename="../modernSystemEditor.cpp" line="623"/>
         <source>CATEGORY %1</source>
         <translation>CATEGORIA %1</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="610"/>
+        <location filename="../modernSystemEditor.cpp" line="637"/>
         <source>Names use the GT-10 legacy 8-byte character set.</source>
         <translation>Os nomes usam o conjunto legado de caracteres de 8 bytes da GT-10.</translation>
     </message>
     <message>
-        <location filename="../modernSystemEditor.cpp" line="821"/>
+        <location filename="../modernSystemEditor.cpp" line="904"/>
         <source>EDITABLE · GT-10 SYSTEM BUFFER</source>
         <translation>EDITÁVEL · BUFFER DE SYSTEM DA GT-10</translation>
     </message>
@@ -1519,42 +1555,42 @@ Previously verified patches remain overwritten.</source>
 <context>
     <name>PatchSidebar</name>
     <message>
-        <location filename="../patchSidebar.cpp" line="189"/>
+        <location filename="../patchSidebar.cpp" line="171"/>
         <source>PATCH LIBRARY</source>
         <translation>BIBLIOTECA DE PATCHES</translation>
     </message>
     <message>
-        <location filename="../patchSidebar.cpp" line="191"/>
+        <location filename="../patchSidebar.cpp" line="173"/>
         <source>To change patches from the Editor, keep the GT-10 on the Play screen.</source>
         <translation>Para trocar patches pelo Editor, mantenha a GT-10 na tela Play.</translation>
     </message>
     <message>
-        <location filename="../patchSidebar.cpp" line="219"/>
+        <location filename="../patchSidebar.cpp" line="194"/>
         <source>USER</source>
         <translation>USER</translation>
     </message>
     <message>
-        <location filename="../patchSidebar.cpp" line="219"/>
+        <location filename="../patchSidebar.cpp" line="194"/>
         <source>PRESET</source>
         <translation>PRESET</translation>
     </message>
     <message>
-        <location filename="../patchSidebar.cpp" line="228"/>
+        <location filename="../patchSidebar.cpp" line="203"/>
         <source>Bank %1</source>
         <translation>Bank %1</translation>
     </message>
     <message>
-        <location filename="../patchSidebar.cpp" line="271"/>
+        <location filename="../patchSidebar.cpp" line="234"/>
         <source>Rename Patch</source>
         <translation>Renomear Patch</translation>
     </message>
     <message>
-        <location filename="../patchSidebar.cpp" line="272"/>
+        <location filename="../patchSidebar.cpp" line="235"/>
         <source>Copy Patch</source>
         <translation>Copiar Patch</translation>
     </message>
     <message>
-        <location filename="../patchSidebar.cpp" line="273"/>
+        <location filename="../patchSidebar.cpp" line="236"/>
         <source>Paste Patch</source>
         <translation>Colar Patch</translation>
     </message>
@@ -1622,17 +1658,17 @@ Previously verified patches remain overwritten.</source>
         <translation>AÇÃO</translation>
     </message>
     <message>
-        <location filename="../assignTargetValueEditor.cpp" line="157"/>
+        <location filename="../assignTargetValueEditor.cpp" line="166"/>
         <source>TIME</source>
         <translation>TEMPO</translation>
     </message>
     <message>
-        <location filename="../assignTargetValueEditor.cpp" line="158"/>
+        <location filename="../assignTargetValueEditor.cpp" line="167"/>
         <source>RHYTHM</source>
         <translation>RHYTHM</translation>
     </message>
     <message>
-        <location filename="../assignTargetValueEditor.cpp" line="310"/>
+        <location filename="../assignTargetValueEditor.cpp" line="319"/>
         <source>SELECT RHYTHM</source>
         <translation>SELECIONAR RHYTHM</translation>
     </message>
@@ -1699,65 +1735,65 @@ Previously verified patches remain overwritten.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../bulkLoadDialog.cpp" line="533"/>
+        <location filename="../bulkLoadDialog.cpp" line="534"/>
         <location filename="../sysxWriter.cpp" line="403"/>
         <source>SMF file import</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../bulkLoadDialog.cpp" line="538"/>
+        <location filename="../bulkLoadDialog.cpp" line="539"/>
         <source>This is not a GT-10 file!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../bulkLoadDialog.cpp" line="540"/>
+        <location filename="../bulkLoadDialog.cpp" line="541"/>
         <location filename="../sysxWriter.cpp" line="410"/>
         <source>this file is a GT-10B Bass version&lt;br&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../bulkLoadDialog.cpp" line="541"/>
+        <location filename="../bulkLoadDialog.cpp" line="542"/>
         <location filename="../sysxWriter.cpp" line="411"/>
         <source>*Loading this file may have unpredictable results*.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="103"/>
+        <location filename="../main.cpp" line="102"/>
         <source>Starting GT Lab Editor...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="110"/>
+        <location filename="../main.cpp" line="109"/>
         <source>Preparing application...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="111"/>
+        <location filename="../main.cpp" line="110"/>
         <source>Loading application resources...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="115"/>
+        <location filename="../main.cpp" line="114"/>
         <source>Loading MIDI definitions...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="121"/>
+        <location filename="../main.cpp" line="120"/>
         <source>Preparing workspace...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="169"/>
+        <location filename="../main.cpp" line="168"/>
         <source>Restoring window...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="184"/>
+        <location filename="../main.cpp" line="183"/>
         <source>Preparing window...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="199"/>
+        <location filename="../main.cpp" line="192"/>
         <source>Ready</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1834,7 +1870,7 @@ Previously verified patches remain overwritten.</source>
         <translation>Pesquisar...</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="1064"/>
+        <location filename="../modernFloorBoard.cpp" line="1170"/>
         <source>NO PATCH DATA</source>
         <translation>SEM DADOS DO PATCH</translation>
     </message>
@@ -1870,122 +1906,132 @@ Previously verified patches remain overwritten.</source>
         <translation>Dados indisponíveis</translation>
     </message>
     <message>
-        <location filename="../modernWidgets.cpp" line="158"/>
         <source>PARAMETERS</source>
-        <translation>PARÂMETROS</translation>
+        <translation type="vanished">PARÂMETROS</translation>
     </message>
     <message>
-        <location filename="../modernWidgets.cpp" line="182"/>
+        <location filename="../modernWidgets.cpp" line="361"/>
         <source>OD/DS MODELS</source>
         <translation>OD/DS MODELS</translation>
     </message>
     <message>
-        <location filename="../modernWidgets.cpp" line="183"/>
+        <location filename="../modernWidgets.cpp" line="362"/>
         <source>%1 TYPES</source>
         <translation>TIPOS DE %1</translation>
     </message>
     <message>
-        <location filename="../modernWidgets.cpp" line="191"/>
+        <location filename="../modernWidgets.cpp" line="370"/>
         <source>MODEL BROWSER
 NOT INTEGRATED</source>
         <translation>NAVEGADOR DE MODELOS
 NÃO INTEGRADO</translation>
     </message>
     <message>
-        <location filename="../modernWidgets.cpp" line="450"/>
         <source>EXPRESSION</source>
-        <translation>EXPRESSION</translation>
+        <translation type="vanished">EXPRESSION</translation>
     </message>
     <message>
-        <location filename="../modernWidgets.cpp" line="450"/>
         <source>CONTROL ASSIGN</source>
-        <translation>CONTROL ASSIGN</translation>
+        <translation type="vanished">CONTROL ASSIGN</translation>
     </message>
     <message>
-        <location filename="../modernWidgets.cpp" line="451"/>
+        <location filename="../modernWidgets.cpp" line="799"/>
         <source>PEDALBOARD</source>
         <translation>PEDALBOARD</translation>
     </message>
     <message>
-        <location filename="../modernWidgets.cpp" line="451"/>
+        <location filename="../modernWidgets.cpp" line="848"/>
         <source>TUNER</source>
         <translation>TUNER</translation>
     </message>
     <message>
-        <location filename="../modernWidgets.cpp" line="475"/>
+        <location filename="../modernWidgets.cpp" line="686"/>
+        <location filename="../modernWidgets.cpp" line="801"/>
         <source>EDIT</source>
         <translation>EDITAR</translation>
     </message>
     <message>
-        <location filename="../modernWidgets.cpp" line="498"/>
+        <location filename="../modernWidgets.cpp" line="286"/>
+        <source>Effect power</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../modernWidgets.cpp" line="678"/>
+        <source>CONTROL/EXPRESSION</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../modernWidgets.cpp" line="743"/>
+        <source>EXP</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../modernWidgets.cpp" line="859"/>
         <source>REFERENCE</source>
         <translation>REFERÊNCIA</translation>
     </message>
     <message>
-        <location filename="../modernWidgets.cpp" line="500"/>
+        <location filename="../modernWidgets.cpp" line="859"/>
         <source>OUTPUT</source>
         <translation>OUTPUT</translation>
     </message>
     <message>
-        <location filename="../modernWidgets.cpp" line="510"/>
+        <location filename="../modernWidgets.cpp" line="867"/>
         <source>MUTE</source>
         <translation>MUTE</translation>
     </message>
     <message>
-        <location filename="../modernWidgets.cpp" line="511"/>
+        <location filename="../modernWidgets.cpp" line="868"/>
         <source>BYPASSED</source>
         <translation>EM BYPASS</translation>
     </message>
     <message>
-        <location filename="../modernWidgets.cpp" line="606"/>
-        <location filename="../modernWidgets.cpp" line="680"/>
+        <location filename="../modernWidgets.cpp" line="757"/>
         <source>ASSIGNS</source>
         <translation>ASSIGNS</translation>
     </message>
     <message>
-        <location filename="../modernWidgets.cpp" line="740"/>
         <source>DIRECT CONTROLS</source>
-        <translation>CONTROLES DIRETOS</translation>
+        <translation type="vanished">CONTROLES DIRETOS</translation>
     </message>
     <message>
-        <location filename="../modernWidgets.cpp" line="741"/>
         <source>NOT INTEGRATED</source>
-        <translation>NÃO INTEGRADO</translation>
+        <translation type="vanished">NÃO INTEGRADO</translation>
     </message>
     <message>
-        <location filename="../modernWidgets.cpp" line="1357"/>
-        <location filename="../modernWidgets.cpp" line="1817"/>
+        <location filename="../modernWidgets.cpp" line="1608"/>
+        <location filename="../modernWidgets.cpp" line="2074"/>
         <source>ON</source>
         <translation>ON</translation>
     </message>
     <message>
-        <location filename="../modernWidgets.cpp" line="1357"/>
-        <location filename="../modernWidgets.cpp" line="1817"/>
+        <location filename="../modernWidgets.cpp" line="1608"/>
+        <location filename="../modernWidgets.cpp" line="2074"/>
         <source>OFF</source>
         <translation>OFF</translation>
     </message>
     <message>
-        <location filename="../modernWidgets.cpp" line="1364"/>
+        <location filename="../modernWidgets.cpp" line="1620"/>
         <source>IN</source>
         <translation>IN</translation>
     </message>
     <message>
-        <location filename="../modernWidgets.cpp" line="1364"/>
+        <location filename="../modernWidgets.cpp" line="1621"/>
         <source>OUT</source>
         <translation>OUT</translation>
     </message>
     <message>
-        <location filename="../modernWidgets.cpp" line="1893"/>
+        <location filename="../modernWidgets.cpp" line="2173"/>
         <source>GT-10 CONNECTED</source>
         <translation>GT-10 CONECTADO</translation>
     </message>
     <message>
-        <location filename="../modernWidgets.cpp" line="1894"/>
+        <location filename="../modernWidgets.cpp" line="2174"/>
         <source>NOT CONNECTED</source>
         <translation>NÃO CONECTADO</translation>
     </message>
     <message>
-        <location filename="../modernWidgets.cpp" line="1913"/>
+        <location filename="../modernWidgets.cpp" line="2193"/>
         <source>Unavailable</source>
         <translation>Indisponível</translation>
     </message>
@@ -2426,87 +2472,87 @@ NÃO INTEGRADO</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../quickSettingService.cpp" line="314"/>
+        <location filename="../quickSettingService.cpp" line="316"/>
         <source>Saving FX-1 Quick Setting</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../quickSettingService.cpp" line="326"/>
+        <location filename="../quickSettingService.cpp" line="328"/>
         <source>Saving Quick Setting</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../quickSettingService.cpp" line="344"/>
+        <location filename="../quickSettingService.cpp" line="346"/>
         <source>FX-1 Quick Setting segment index is invalid.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../quickSettingService.cpp" line="359"/>
+        <location filename="../quickSettingService.cpp" line="361"/>
         <source>FX-1 Quick Setting segment is invalid.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../quickSettingService.cpp" line="385"/>
+        <location filename="../quickSettingService.cpp" line="387"/>
         <source>FX-1 Quick Setting transfer state is invalid.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../quickSettingService.cpp" line="446"/>
+        <location filename="../quickSettingService.cpp" line="448"/>
         <source>FX-1 Quick Setting readback did not match.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../quickSettingService.cpp" line="485"/>
+        <location filename="../quickSettingService.cpp" line="487"/>
         <source>FX-1 data verified, but the shared TYPE name did not match.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../quickSettingService.cpp" line="489"/>
+        <location filename="../quickSettingService.cpp" line="491"/>
         <source>FX-1 Quick Setting data and shared TYPE name verified.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../quickSettingService.cpp" line="504"/>
+        <location filename="../quickSettingService.cpp" line="506"/>
         <source>FX-1 Quick Setting loaded into the Temporary Buffer.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../quickSettingService.cpp" line="529"/>
+        <location filename="../quickSettingService.cpp" line="531"/>
         <source>Unexpected FX-1 Quick Setting service reply.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../quickSettingService.cpp" line="628"/>
+        <location filename="../quickSettingService.cpp" line="630"/>
         <source>Quick Setting loaded into the Temporary Buffer.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../quickSettingService.cpp" line="723"/>
+        <location filename="../quickSettingService.cpp" line="727"/>
         <source>Quick Setting effect readback did not match.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../quickSettingService.cpp" line="734"/>
+        <location filename="../quickSettingService.cpp" line="738"/>
         <source>Quick Setting write verified.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../quickSettingService.cpp" line="747"/>
+        <location filename="../quickSettingService.cpp" line="751"/>
         <source>Quick Setting name readback did not match.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../quickSettingService.cpp" line="751"/>
+        <location filename="../quickSettingService.cpp" line="755"/>
         <source>Quick Setting effect and name write verified.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../quickSettingService.cpp" line="779"/>
+        <location filename="../quickSettingService.cpp" line="783"/>
         <source>Ready</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../quickSettingService.cpp" line="779"/>
+        <location filename="../quickSettingService.cpp" line="783"/>
         <source>Quick Setting operation failed</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2676,8 +2722,8 @@ NÃO INTEGRADO</translation>
     </message>
     <message>
         <location filename="../bankTreeList.cpp" line="655"/>
-        <location filename="../bankTreeList.cpp" line="1052"/>
-        <location filename="../bankTreeList.cpp" line="1059"/>
+        <location filename="../bankTreeList.cpp" line="1061"/>
+        <location filename="../bankTreeList.cpp" line="1073"/>
         <source>Ready</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2687,7 +2733,7 @@ NÃO INTEGRADO</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../bankTreeList.cpp" line="1041"/>
+        <location filename="../bankTreeList.cpp" line="1048"/>
         <source>Reading names</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2849,7 +2895,7 @@ NÃO INTEGRADO</translation>
     </message>
     <message>
         <location filename="../bulkLoadDialog.cpp" line="265"/>
-        <location filename="../bulkLoadDialog.cpp" line="434"/>
+        <location filename="../bulkLoadDialog.cpp" line="435"/>
         <source>Finish at U</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3292,489 +3338,489 @@ NÃO INTEGRADO</translation>
 <context>
     <name>floorBoardDisplay</name>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="65"/>
+        <location filename="../floorBoardDisplay.cpp" line="68"/>
         <source>Patch Number Display.&lt;br&gt;displays the currently selected patch&lt;br&gt;and patch write memory location.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="76"/>
-        <location filename="../floorBoardDisplay.cpp" line="81"/>
-        <location filename="../floorBoardDisplay.cpp" line="86"/>
-        <location filename="../floorBoardDisplay.cpp" line="91"/>
-        <location filename="../floorBoardDisplay.cpp" line="96"/>
-        <location filename="../floorBoardDisplay.cpp" line="289"/>
+        <location filename="../floorBoardDisplay.cpp" line="79"/>
+        <location filename="../floorBoardDisplay.cpp" line="84"/>
+        <location filename="../floorBoardDisplay.cpp" line="89"/>
+        <location filename="../floorBoardDisplay.cpp" line="94"/>
+        <location filename="../floorBoardDisplay.cpp" line="99"/>
+        <location filename="../floorBoardDisplay.cpp" line="303"/>
         <source>Empty</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="77"/>
-        <location filename="../floorBoardDisplay.cpp" line="82"/>
-        <location filename="../floorBoardDisplay.cpp" line="87"/>
-        <location filename="../floorBoardDisplay.cpp" line="92"/>
-        <location filename="../floorBoardDisplay.cpp" line="97"/>
+        <location filename="../floorBoardDisplay.cpp" line="80"/>
+        <location filename="../floorBoardDisplay.cpp" line="85"/>
+        <location filename="../floorBoardDisplay.cpp" line="90"/>
+        <location filename="../floorBoardDisplay.cpp" line="95"/>
+        <location filename="../floorBoardDisplay.cpp" line="100"/>
         <source>Name of the currently stored patch in the clipboard.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="101"/>
-        <location filename="../floorBoardDisplay.cpp" line="299"/>
-        <location filename="../floorBoardDisplay.cpp" line="1113"/>
-        <location filename="../floorBoardDisplay.cpp" line="1140"/>
+        <location filename="../floorBoardDisplay.cpp" line="104"/>
+        <location filename="../floorBoardDisplay.cpp" line="313"/>
+        <location filename="../floorBoardDisplay.cpp" line="1127"/>
+        <location filename="../floorBoardDisplay.cpp" line="1154"/>
         <source> Fx FloorBoard</source>
         <translation type="unfinished"> Fx FloorBoard</translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="102"/>
+        <location filename="../floorBoardDisplay.cpp" line="105"/>
         <source>version</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="105"/>
+        <location filename="../floorBoardDisplay.cpp" line="108"/>
         <source>Clicking on this will load a patch from a predefined selection.&lt;br&gt;patches place in the Init Patches folder will appear in this list at the start of the next session.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="108"/>
         <location filename="../floorBoardDisplay.cpp" line="111"/>
         <location filename="../floorBoardDisplay.cpp" line="114"/>
+        <location filename="../floorBoardDisplay.cpp" line="117"/>
         <source>Clicking on this will open&lt;br&gt;a text dialog window&lt;br&gt;allowing user text input.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="117"/>
+        <location filename="../floorBoardDisplay.cpp" line="120"/>
         <source>This is the Patch Mode setting of Output Select&lt;br&gt;this is only active if the SYSTEM setting&lt;br&gt;is set to Patch Mode.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="121"/>
+        <location filename="../floorBoardDisplay.cpp" line="124"/>
         <source>Connect</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="122"/>
+        <location filename="../floorBoardDisplay.cpp" line="125"/>
         <source>Connect Button&lt;br&gt;used to establish a continuous midi connection&lt;br&gt;when lit green, the connection is valid</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="123"/>
+        <location filename="../floorBoardDisplay.cpp" line="126"/>
         <source>Write/Sync</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="124"/>
+        <location filename="../floorBoardDisplay.cpp" line="127"/>
         <source>Write/Sync Button&lt;br&gt;if the patch number displays [temp buffer]&lt;br&gt;the current patch is sent to the GT temporary memory only&lt;br&gt;or else the patch will be written to the displayed patch memory location.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="127"/>
+        <location filename="../floorBoardDisplay.cpp" line="130"/>
         <source>System Midi</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="128"/>
-        <location filename="../floorBoardDisplay.cpp" line="130"/>
-        <location filename="../floorBoardDisplay.cpp" line="132"/>
-        <location filename="../floorBoardDisplay.cpp" line="134"/>
-        <location filename="../floorBoardDisplay.cpp" line="136"/>
-        <location filename="../floorBoardDisplay.cpp" line="140"/>
-        <location filename="../floorBoardDisplay.cpp" line="142"/>
-        <location filename="../floorBoardDisplay.cpp" line="144"/>
-        <location filename="../floorBoardDisplay.cpp" line="146"/>
-        <location filename="../floorBoardDisplay.cpp" line="148"/>
-        <location filename="../floorBoardDisplay.cpp" line="150"/>
-        <location filename="../floorBoardDisplay.cpp" line="152"/>
-        <location filename="../floorBoardDisplay.cpp" line="154"/>
-        <location filename="../floorBoardDisplay.cpp" line="156"/>
-        <location filename="../floorBoardDisplay.cpp" line="158"/>
-        <location filename="../floorBoardDisplay.cpp" line="160"/>
-        <location filename="../floorBoardDisplay.cpp" line="162"/>
-        <location filename="../floorBoardDisplay.cpp" line="164"/>
-        <location filename="../floorBoardDisplay.cpp" line="166"/>
-        <location filename="../floorBoardDisplay.cpp" line="168"/>
+        <location filename="../floorBoardDisplay.cpp" line="131"/>
+        <location filename="../floorBoardDisplay.cpp" line="133"/>
+        <location filename="../floorBoardDisplay.cpp" line="135"/>
+        <location filename="../floorBoardDisplay.cpp" line="137"/>
+        <location filename="../floorBoardDisplay.cpp" line="139"/>
+        <location filename="../floorBoardDisplay.cpp" line="143"/>
+        <location filename="../floorBoardDisplay.cpp" line="145"/>
+        <location filename="../floorBoardDisplay.cpp" line="147"/>
+        <location filename="../floorBoardDisplay.cpp" line="149"/>
+        <location filename="../floorBoardDisplay.cpp" line="151"/>
+        <location filename="../floorBoardDisplay.cpp" line="153"/>
+        <location filename="../floorBoardDisplay.cpp" line="155"/>
+        <location filename="../floorBoardDisplay.cpp" line="157"/>
+        <location filename="../floorBoardDisplay.cpp" line="159"/>
+        <location filename="../floorBoardDisplay.cpp" line="161"/>
+        <location filename="../floorBoardDisplay.cpp" line="163"/>
+        <location filename="../floorBoardDisplay.cpp" line="165"/>
+        <location filename="../floorBoardDisplay.cpp" line="167"/>
+        <location filename="../floorBoardDisplay.cpp" line="169"/>
         <location filename="../floorBoardDisplay.cpp" line="171"/>
-        <location filename="../floorBoardDisplay.cpp" line="173"/>
-        <location filename="../floorBoardDisplay.cpp" line="175"/>
-        <location filename="../floorBoardDisplay.cpp" line="177"/>
-        <location filename="../floorBoardDisplay.cpp" line="179"/>
-        <location filename="../floorBoardDisplay.cpp" line="181"/>
-        <location filename="../floorBoardDisplay.cpp" line="183"/>
-        <location filename="../floorBoardDisplay.cpp" line="185"/>
+        <location filename="../floorBoardDisplay.cpp" line="174"/>
+        <location filename="../floorBoardDisplay.cpp" line="176"/>
+        <location filename="../floorBoardDisplay.cpp" line="178"/>
+        <location filename="../floorBoardDisplay.cpp" line="180"/>
+        <location filename="../floorBoardDisplay.cpp" line="182"/>
+        <location filename="../floorBoardDisplay.cpp" line="184"/>
+        <location filename="../floorBoardDisplay.cpp" line="186"/>
+        <location filename="../floorBoardDisplay.cpp" line="188"/>
         <source>Deep editing of the selected effect&lt;br&gt;pressing this button will open an edit page&lt;br&gt;allowing detailed setting of this effects parameters.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="129"/>
+        <location filename="../floorBoardDisplay.cpp" line="132"/>
         <source>System Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="131"/>
+        <location filename="../floorBoardDisplay.cpp" line="134"/>
         <source>Master</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="133"/>
+        <location filename="../floorBoardDisplay.cpp" line="136"/>
         <source>FX1 AutoRiff</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="135"/>
+        <location filename="../floorBoardDisplay.cpp" line="138"/>
         <source>FX2 AutoRiff</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="139"/>
+        <location filename="../floorBoardDisplay.cpp" line="142"/>
         <source>Channel Mode</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="141"/>
+        <location filename="../floorBoardDisplay.cpp" line="144"/>
         <source>PreAmp A</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="143"/>
+        <location filename="../floorBoardDisplay.cpp" line="146"/>
         <source>PreAmp B</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="145"/>
+        <location filename="../floorBoardDisplay.cpp" line="148"/>
         <source>Distortion</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="147"/>
+        <location filename="../floorBoardDisplay.cpp" line="150"/>
         <source>Compressor</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="149"/>
+        <location filename="../floorBoardDisplay.cpp" line="152"/>
         <source>NS 1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="151"/>
+        <location filename="../floorBoardDisplay.cpp" line="154"/>
         <source>NS 2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="153"/>
+        <location filename="../floorBoardDisplay.cpp" line="156"/>
         <source>FX 1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="155"/>
+        <location filename="../floorBoardDisplay.cpp" line="158"/>
         <source>FX 2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="157"/>
+        <location filename="../floorBoardDisplay.cpp" line="160"/>
         <source>Reverb</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="159"/>
+        <location filename="../floorBoardDisplay.cpp" line="162"/>
         <source>Delay</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="161"/>
+        <location filename="../floorBoardDisplay.cpp" line="164"/>
         <source>Chorus</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="163"/>
+        <location filename="../floorBoardDisplay.cpp" line="166"/>
         <source>Send/Return</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="165"/>
+        <location filename="../floorBoardDisplay.cpp" line="168"/>
         <source>Equalizer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="167"/>
+        <location filename="../floorBoardDisplay.cpp" line="170"/>
         <source>Pedal/Wah</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="170"/>
+        <location filename="../floorBoardDisplay.cpp" line="173"/>
         <source>Assign 1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="172"/>
+        <location filename="../floorBoardDisplay.cpp" line="175"/>
         <source>Assign 2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="174"/>
+        <location filename="../floorBoardDisplay.cpp" line="177"/>
         <source>Assign 3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="176"/>
+        <location filename="../floorBoardDisplay.cpp" line="179"/>
         <source>Assign 4</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="178"/>
+        <location filename="../floorBoardDisplay.cpp" line="181"/>
         <source>Assign 5</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="180"/>
+        <location filename="../floorBoardDisplay.cpp" line="183"/>
         <source>Assign 6</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="182"/>
+        <location filename="../floorBoardDisplay.cpp" line="185"/>
         <source>Assign 7</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="184"/>
+        <location filename="../floorBoardDisplay.cpp" line="187"/>
         <source>Assign 8</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="187"/>
+        <location filename="../floorBoardDisplay.cpp" line="190"/>
         <source>Temp-1 Copy</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="188"/>
-        <location filename="../floorBoardDisplay.cpp" line="192"/>
-        <location filename="../floorBoardDisplay.cpp" line="196"/>
-        <location filename="../floorBoardDisplay.cpp" line="200"/>
-        <location filename="../floorBoardDisplay.cpp" line="204"/>
+        <location filename="../floorBoardDisplay.cpp" line="191"/>
+        <location filename="../floorBoardDisplay.cpp" line="195"/>
+        <location filename="../floorBoardDisplay.cpp" line="199"/>
+        <location filename="../floorBoardDisplay.cpp" line="203"/>
+        <location filename="../floorBoardDisplay.cpp" line="207"/>
         <source>Copy current patch to clipboard&lt;br&gt;pressing this button will save the current patch to a clipboard&lt;br&gt;the clipboard is saved to file and is re-loaded&lt;br&gt;on the next session startup.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="189"/>
+        <location filename="../floorBoardDisplay.cpp" line="192"/>
         <source>Temp-1 Paste</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="190"/>
-        <location filename="../floorBoardDisplay.cpp" line="194"/>
-        <location filename="../floorBoardDisplay.cpp" line="198"/>
-        <location filename="../floorBoardDisplay.cpp" line="202"/>
-        <location filename="../floorBoardDisplay.cpp" line="206"/>
+        <location filename="../floorBoardDisplay.cpp" line="193"/>
+        <location filename="../floorBoardDisplay.cpp" line="197"/>
+        <location filename="../floorBoardDisplay.cpp" line="201"/>
+        <location filename="../floorBoardDisplay.cpp" line="205"/>
+        <location filename="../floorBoardDisplay.cpp" line="209"/>
         <source>Paste current patch from clipboard&lt;br&gt;pressing this button will load the current patch to a clipboard&lt;br&gt;the clipboard is re-loaded&lt;br&gt;from the previous session copy.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="191"/>
+        <location filename="../floorBoardDisplay.cpp" line="194"/>
         <source>Temp-2 Copy</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="193"/>
+        <location filename="../floorBoardDisplay.cpp" line="196"/>
         <source>Temp-2 Paste</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="195"/>
+        <location filename="../floorBoardDisplay.cpp" line="198"/>
         <source>Temp-3 Copy</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="197"/>
+        <location filename="../floorBoardDisplay.cpp" line="200"/>
         <source>Temp-3 Paste</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="199"/>
+        <location filename="../floorBoardDisplay.cpp" line="202"/>
         <source>Temp-4 Copy</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="201"/>
+        <location filename="../floorBoardDisplay.cpp" line="204"/>
         <source>Temp-4 Paste</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="203"/>
+        <location filename="../floorBoardDisplay.cpp" line="206"/>
         <source>Temp-5 Copy</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="205"/>
+        <location filename="../floorBoardDisplay.cpp" line="208"/>
         <source>Temp-5 Paste</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="286"/>
+        <location filename="../floorBoardDisplay.cpp" line="300"/>
         <source>init patch</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="293"/>
+        <location filename="../floorBoardDisplay.cpp" line="307"/>
         <source> patch</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="304"/>
+        <location filename="../floorBoardDisplay.cpp" line="318"/>
         <source>Error while changing banks.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="306"/>
+        <location filename="../floorBoardDisplay.cpp" line="320"/>
         <source>An incorrect patch has been loaded. Please try to load the patch again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="326"/>
+        <location filename="../floorBoardDisplay.cpp" line="340"/>
         <source>User</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="331"/>
+        <location filename="../floorBoardDisplay.cpp" line="345"/>
         <source>Preset</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="336"/>
-        <location filename="../floorBoardDisplay.cpp" line="341"/>
+        <location filename="../floorBoardDisplay.cpp" line="350"/>
+        <location filename="../floorBoardDisplay.cpp" line="355"/>
         <source>Quick</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="370"/>
+        <location filename="../floorBoardDisplay.cpp" line="384"/>
         <source>Temp</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="371"/>
+        <location filename="../floorBoardDisplay.cpp" line="385"/>
         <source>Buffer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="462"/>
-        <location filename="../floorBoardDisplay.cpp" line="975"/>
+        <location filename="../floorBoardDisplay.cpp" line="476"/>
+        <location filename="../floorBoardDisplay.cpp" line="989"/>
         <source>Connecting</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="699"/>
-        <location filename="../floorBoardDisplay.cpp" line="756"/>
-        <location filename="../floorBoardDisplay.cpp" line="812"/>
-        <location filename="../floorBoardDisplay.cpp" line="868"/>
-        <location filename="../floorBoardDisplay.cpp" line="924"/>
+        <location filename="../floorBoardDisplay.cpp" line="713"/>
+        <location filename="../floorBoardDisplay.cpp" line="770"/>
+        <location filename="../floorBoardDisplay.cpp" line="826"/>
+        <location filename="../floorBoardDisplay.cpp" line="882"/>
+        <location filename="../floorBoardDisplay.cpp" line="938"/>
         <source>in-consistant patch data detected </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="699"/>
-        <location filename="../floorBoardDisplay.cpp" line="756"/>
-        <location filename="../floorBoardDisplay.cpp" line="812"/>
-        <location filename="../floorBoardDisplay.cpp" line="868"/>
-        <location filename="../floorBoardDisplay.cpp" line="924"/>
+        <location filename="../floorBoardDisplay.cpp" line="713"/>
+        <location filename="../floorBoardDisplay.cpp" line="770"/>
+        <location filename="../floorBoardDisplay.cpp" line="826"/>
+        <location filename="../floorBoardDisplay.cpp" line="882"/>
+        <location filename="../floorBoardDisplay.cpp" line="938"/>
         <source>bytes: re-save or re-load file to correct</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="717"/>
-        <location filename="../floorBoardDisplay.cpp" line="773"/>
-        <location filename="../floorBoardDisplay.cpp" line="829"/>
-        <location filename="../floorBoardDisplay.cpp" line="885"/>
-        <location filename="../floorBoardDisplay.cpp" line="941"/>
+        <location filename="../floorBoardDisplay.cpp" line="731"/>
+        <location filename="../floorBoardDisplay.cpp" line="787"/>
+        <location filename="../floorBoardDisplay.cpp" line="843"/>
+        <location filename="../floorBoardDisplay.cpp" line="899"/>
+        <location filename="../floorBoardDisplay.cpp" line="955"/>
         <source>patch must be copied to clipboard first</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="1009"/>
-        <location filename="../floorBoardDisplay.cpp" line="1309"/>
+        <location filename="../floorBoardDisplay.cpp" line="1023"/>
+        <location filename="../floorBoardDisplay.cpp" line="1323"/>
         <source>Ready</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="1040"/>
-        <location filename="../floorBoardDisplay.cpp" line="1066"/>
+        <location filename="../floorBoardDisplay.cpp" line="1054"/>
+        <location filename="../floorBoardDisplay.cpp" line="1080"/>
         <source> Fx FloorBoard connection Error !!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="1045"/>
+        <location filename="../floorBoardDisplay.cpp" line="1059"/>
         <source>The device connected is not a Boss </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="1045"/>
+        <location filename="../floorBoardDisplay.cpp" line="1059"/>
         <source> Effects Processor.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="1047"/>
+        <location filename="../floorBoardDisplay.cpp" line="1061"/>
         <source>&lt;br&gt;Midi loopback detected, ensure midi device &apos;thru&apos; is switched off.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="1057"/>
-        <location filename="../floorBoardDisplay.cpp" line="1084"/>
-        <location filename="../floorBoardDisplay.cpp" line="1335"/>
+        <location filename="../floorBoardDisplay.cpp" line="1071"/>
+        <location filename="../floorBoardDisplay.cpp" line="1098"/>
+        <location filename="../floorBoardDisplay.cpp" line="1349"/>
         <source>Not connected</source>
         <translation type="unfinished">Não conectado</translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="1071"/>
+        <location filename="../floorBoardDisplay.cpp" line="1085"/>
         <source>The Boss </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="1071"/>
+        <location filename="../floorBoardDisplay.cpp" line="1085"/>
         <source> Effects Processor was not found.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="1072"/>
+        <location filename="../floorBoardDisplay.cpp" line="1086"/>
         <source>&lt;br&gt;&lt;br&gt;Ensure correct midi device is selected in Menu, </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="1073"/>
+        <location filename="../floorBoardDisplay.cpp" line="1087"/>
         <source>&lt;br&gt;Boss drivers are installed and the GT-10 is switched on,</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="1074"/>
+        <location filename="../floorBoardDisplay.cpp" line="1088"/>
         <source>&lt;br&gt;and GT-10 USB driver mode is set to advanced</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="1118"/>
+        <location filename="../floorBoardDisplay.cpp" line="1132"/>
         <source>You can&apos;t write to the preset banks.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="1120"/>
+        <location filename="../floorBoardDisplay.cpp" line="1134"/>
         <source>Please select a user bank to write this patch to and try again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="1145"/>
+        <location filename="../floorBoardDisplay.cpp" line="1159"/>
         <source>You have chosen to write the patch permanently into </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="1147"/>
+        <location filename="../floorBoardDisplay.cpp" line="1161"/>
         <source>This will overwrite the patch currently stored at patch location&lt;br&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="1152"/>
+        <location filename="../floorBoardDisplay.cpp" line="1166"/>
         <source> and can&apos;t be undone. </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="1153"/>
+        <location filename="../floorBoardDisplay.cpp" line="1167"/>
         <source>Are you sure you want to continue?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../floorBoardDisplay.cpp" line="1189"/>
+        <location filename="../floorBoardDisplay.cpp" line="1203"/>
         <source>Writing to Patch</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3800,496 +3846,496 @@ NÃO INTEGRADO</translation>
 <context>
     <name>mainWindow</name>
     <message>
-        <location filename="../mainWindow.cpp" line="262"/>
+        <location filename="../mainWindow.cpp" line="270"/>
         <source>StatusBar&lt;br&gt;midi activity is displayed here&lt;br&gt;and some status messages are displayed.</source>
         <translation>Barra de status&lt;br&gt;a atividade MIDI é exibida aqui&lt;br&gt;e algumas mensagens de status são exibidas.</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="352"/>
+        <location filename="../mainWindow.cpp" line="360"/>
         <source>&amp;Load Patch File... (*.syx, *.mid, *.gxg *.gxb)</source>
         <translation>&amp;Carregar arquivo de Patch... (*.syx, *.mid, *.gxg *.gxb)</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="353"/>
+        <location filename="../mainWindow.cpp" line="361"/>
         <source>Ctrl+O</source>
         <translation>Ctrl+O</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="354"/>
+        <location filename="../mainWindow.cpp" line="362"/>
         <source>Open an existing file</source>
         <translation>Abrir um arquivo existente</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="357"/>
+        <location filename="../mainWindow.cpp" line="365"/>
         <source>&amp;Save Patch...       (*.syx)</source>
         <translation>&amp;Salvar Patch...       (*.syx)</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="358"/>
+        <location filename="../mainWindow.cpp" line="366"/>
         <source>Ctrl+S</source>
         <translation>Ctrl+S</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="359"/>
-        <location filename="../mainWindow.cpp" line="360"/>
+        <location filename="../mainWindow.cpp" line="367"/>
+        <location filename="../mainWindow.cpp" line="368"/>
         <source>Save the document to disk</source>
         <translation>Salvar o documento em disco</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="363"/>
+        <location filename="../mainWindow.cpp" line="371"/>
         <source>Save &amp;As Patch...  (*.syx)</source>
         <translation>Salvar Patch &amp;como...  (*.syx)</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="364"/>
+        <location filename="../mainWindow.cpp" line="372"/>
         <source>Ctrl+Shift+S</source>
         <translation>Ctrl+Shift+S</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="365"/>
+        <location filename="../mainWindow.cpp" line="373"/>
         <source>Save the document under a new name</source>
         <translation>Salvar o documento com um novo nome</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="368"/>
+        <location filename="../mainWindow.cpp" line="376"/>
         <source>Save As &amp;SMF Patch... (*.mid)</source>
         <translation>Salvar Patch como &amp;SMF... (*.mid)</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="369"/>
+        <location filename="../mainWindow.cpp" line="377"/>
         <source>Ctrl+Shift+E</source>
         <translation>Ctrl+Shift+E</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="370"/>
+        <location filename="../mainWindow.cpp" line="378"/>
         <source>Export as a Standard Midi File</source>
         <translation>Exportar como arquivo MIDI padrão</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="373"/>
+        <location filename="../mainWindow.cpp" line="381"/>
         <source>Save As GXG Patch... (*.gxg)</source>
         <translation>Salvar Patch como GXG... (*.gxg)</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="374"/>
+        <location filename="../mainWindow.cpp" line="382"/>
         <source>Ctrl+Shift+G</source>
         <translation>Ctrl+Shift+G</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="375"/>
+        <location filename="../mainWindow.cpp" line="383"/>
         <source>Export as a Boss Librarian File</source>
         <translation>Exportar como arquivo Boss Librarian</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="378"/>
+        <location filename="../mainWindow.cpp" line="386"/>
         <source>&amp;Load System and Global Data...</source>
         <translation>&amp;Carregar dados de System e Global...</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="379"/>
+        <location filename="../mainWindow.cpp" line="387"/>
         <source>Ctrl+L</source>
         <translation>Ctrl+L</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="380"/>
+        <location filename="../mainWindow.cpp" line="388"/>
         <source>Load System Data to GT-10</source>
         <translation>Carregar dados de System na GT-10</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="383"/>
+        <location filename="../mainWindow.cpp" line="391"/>
         <source>Save System and Global Data to File...</source>
         <translation>Salvar dados de System e Global em arquivo...</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="384"/>
+        <location filename="../mainWindow.cpp" line="392"/>
         <source>Ctrl+D</source>
         <translation>Ctrl+D</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="385"/>
+        <location filename="../mainWindow.cpp" line="393"/>
         <source>Save System Data to File</source>
         <translation>Salvar dados de System em arquivo</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="388"/>
+        <location filename="../mainWindow.cpp" line="396"/>
         <source>&amp;Load Bulk Patch File to GT-10...</source>
         <translation>&amp;Carregar arquivo em lote de Patches na GT-10...</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="389"/>
+        <location filename="../mainWindow.cpp" line="397"/>
         <source>Ctrl+B</source>
         <translation>Ctrl+B</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="390"/>
+        <location filename="../mainWindow.cpp" line="398"/>
         <source>Load Bulk Data to GT-10</source>
         <translation>Carregar dados em lote na GT-10</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="393"/>
+        <location filename="../mainWindow.cpp" line="401"/>
         <source>Save Bulk GT-10 Patches to File...</source>
         <translation>Salvar Patches da GT-10 em lote em arquivo...</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="394"/>
+        <location filename="../mainWindow.cpp" line="402"/>
         <source>Ctrl+G</source>
         <translation>Ctrl+G</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="395"/>
+        <location filename="../mainWindow.cpp" line="403"/>
         <source>Save Bulk Data to File</source>
         <translation>Salvar dados em lote em arquivo</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="400"/>
-        <location filename="../mainWindow.cpp" line="406"/>
+        <location filename="../mainWindow.cpp" line="408"/>
+        <location filename="../mainWindow.cpp" line="414"/>
         <source>&amp;User Patches…</source>
         <translation>Patches de &amp;User…</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="410"/>
+        <location filename="../mainWindow.cpp" line="418"/>
         <source>E&amp;xit</source>
         <translation>Sai&amp;r</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="411"/>
+        <location filename="../mainWindow.cpp" line="419"/>
         <source>Ctrl+Q</source>
         <translation>Ctrl+Q</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="412"/>
+        <location filename="../mainWindow.cpp" line="420"/>
         <source>Exit the application</source>
         <translation>Sair do aplicativo</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="416"/>
+        <location filename="../mainWindow.cpp" line="424"/>
         <source>&amp;Settings...</source>
         <translation>&amp;Configurações...</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="417"/>
+        <location filename="../mainWindow.cpp" line="425"/>
         <source>Ctrl+P</source>
         <translation>Ctrl+P</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="418"/>
+        <location filename="../mainWindow.cpp" line="426"/>
         <source>FxFloorBoard Preferences&lt;br&gt;Select midi device, language,splash, directories</source>
         <translation>Preferências do FxFloorBoard&lt;br&gt;Selecione dispositivo MIDI, idioma, tela de abertura e diretórios</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="426"/>
+        <location filename="../mainWindow.cpp" line="430"/>
         <source>Patch Text Summary</source>
         <translation>Resumo textual do Patch</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="427"/>
+        <location filename="../mainWindow.cpp" line="431"/>
         <source>Display the current patch parameters&lt;br&gt;in a readable text format, which&lt;br&gt;can be printed or saved to file.</source>
         <translation>Exibir os parâmetros do Patch atual&lt;br&gt;em formato de texto legível, que pode&lt;br&gt;ser impresso ou salvo em arquivo.</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="430"/>
+        <location filename="../mainWindow.cpp" line="434"/>
         <source>System/Global Text Summary</source>
         <translation>Resumo textual de System/Global</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="431"/>
+        <location filename="../mainWindow.cpp" line="435"/>
         <source>Display the current System and Global parameters&lt;br&gt;in a readable text format, which&lt;br&gt;can be printed or saved to file.</source>
         <translation>Exibir os parâmetros atuais de System e Global&lt;br&gt;em formato de texto legível, que pode&lt;br&gt;ser impresso ou salvo em arquivo.</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="434"/>
+        <location filename="../mainWindow.cpp" line="438"/>
         <source>GT-10 Patch List Summary</source>
         <translation>Resumo da lista de Patches da GT-10</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="435"/>
+        <location filename="../mainWindow.cpp" line="439"/>
         <source>Display the GT-10 patch listing names&lt;br&gt;in a readable text format, which&lt;br&gt;can be printed or saved to file.</source>
         <translation>Exibir os nomes da lista de Patches da GT-10&lt;br&gt;em formato de texto legível, que pode&lt;br&gt;ser impresso ou salvo em arquivo.</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="438"/>
+        <location filename="../mainWindow.cpp" line="455"/>
         <source>GT Lab Editor &amp;Help</source>
         <translation>&amp;Ajuda do GT Lab Editor</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="439"/>
+        <location filename="../mainWindow.cpp" line="456"/>
         <source>Ctrl+F1</source>
         <translation>Ctrl+F1</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="440"/>
+        <location filename="../mainWindow.cpp" line="457"/>
         <source>Help page to assist with FxFloorBoard functions.</source>
         <translation>Página de ajuda para as funções do FxFloorBoard.</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="448"/>
+        <location filename="../mainWindow.cpp" line="460"/>
         <source>Original FxFloorBoard &amp;Project</source>
         <translation>&amp;Projeto FxFloorBoard original</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="449"/>
+        <location filename="../mainWindow.cpp" line="461"/>
         <source>download Webpage for FxFloorBoard&lt;br&gt;find if the latest version is available.</source>
         <translation>Abrir a página do FxFloorBoard&lt;br&gt;para verificar se a versão mais recente está disponível.</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="452"/>
+        <location filename="../mainWindow.cpp" line="464"/>
         <source>Donate towards GT test equipment for Gumtown</source>
         <translation>Contribuir para equipamentos de teste GT do Gumtown</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="453"/>
+        <location filename="../mainWindow.cpp" line="465"/>
         <source>Even though the software is free,&lt;br&gt;an occassional donation is very much appreciated&lt;br&gt;i am not paid for this work.</source>
         <translation>Embora o software seja livre,&lt;br&gt;uma contribuição ocasional é muito apreciada;&lt;br&gt;não recebo pagamento por este trabalho.</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="456"/>
+        <location filename="../mainWindow.cpp" line="468"/>
         <source>BOSS GT-10 Documentation</source>
         <translation>Documentação da BOSS GT-10</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="457"/>
+        <location filename="../mainWindow.cpp" line="469"/>
         <source>........</source>
         <translation>........</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="460"/>
+        <location filename="../mainWindow.cpp" line="472"/>
         <source>License &amp;&amp; &amp;Credits</source>
         <translation>Licença e &amp;Créditos</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="461"/>
+        <location filename="../mainWindow.cpp" line="473"/>
         <source>licence agreement which you&lt;br&gt;have accepted by installing this software.</source>
         <translation>Contrato de licença que você&lt;br&gt;aceitou ao instalar este software.</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="464"/>
+        <location filename="../mainWindow.cpp" line="476"/>
         <source>&amp;Third-Party Software</source>
         <translation>Software de &amp;terceiros</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="467"/>
+        <location filename="../mainWindow.cpp" line="479"/>
         <source>&amp;Source Code</source>
         <translation>&amp;Código-fonte</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="470"/>
+        <location filename="../mainWindow.cpp" line="482"/>
         <source>&amp;About GT Lab Editor</source>
         <translation>&amp;Sobre o GT Lab Editor</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="471"/>
+        <location filename="../mainWindow.cpp" line="483"/>
         <source>Show the application&apos;s About box</source>
         <translation>Mostrar a janela Sobre do aplicativo</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="480"/>
+        <location filename="../mainWindow.cpp" line="492"/>
         <source>&amp;File</source>
         <translation>&amp;Arquivo</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="496"/>
+        <location filename="../mainWindow.cpp" line="508"/>
         <source>File Saving and Loading,&lt;br&gt; and application Exit.</source>
         <translation>Salvar e carregar arquivos,&lt;br&gt;e sair do aplicativo.</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="500"/>
+        <location filename="../mainWindow.cpp" line="512"/>
         <source>&amp;Tools</source>
         <translation>&amp;Ferramentas</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="511"/>
+        <location filename="../mainWindow.cpp" line="524"/>
         <source>&amp;Help</source>
         <translation>A&amp;juda</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="534"/>
+        <location filename="../mainWindow.cpp" line="546"/>
         <source>Not connected</source>
         <translation>Não conectado</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="557"/>
-        <location filename="../mainWindow.cpp" line="658"/>
-        <location filename="../mainWindow.cpp" line="718"/>
-        <location filename="../mainWindow.cpp" line="782"/>
+        <location filename="../mainWindow.cpp" line="604"/>
+        <location filename="../mainWindow.cpp" line="710"/>
+        <location filename="../mainWindow.cpp" line="770"/>
+        <location filename="../mainWindow.cpp" line="834"/>
         <source>Choose a file</source>
         <translation>Escolher um arquivo</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="559"/>
+        <location filename="../mainWindow.cpp" line="606"/>
         <source>for GT-10, GT-10B, or GT-8   (*.syx *.mid *.gxg *.gxb)</source>
         <translation>para GT-10, GT-10B ou GT-8   (*.syx *.mid *.gxg *.gxb)</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="591"/>
-        <location filename="../mainWindow.cpp" line="626"/>
+        <location filename="../mainWindow.cpp" line="643"/>
+        <location filename="../mainWindow.cpp" line="678"/>
         <source>Save As</source>
         <translation>Salvar como</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="593"/>
-        <location filename="../mainWindow.cpp" line="628"/>
+        <location filename="../mainWindow.cpp" line="645"/>
+        <location filename="../mainWindow.cpp" line="680"/>
         <source>System Exclusive (*.syx)</source>
         <translation>System Exclusive (*.syx)</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="660"/>
-        <location filename="../mainWindow.cpp" line="689"/>
+        <location filename="../mainWindow.cpp" line="712"/>
+        <location filename="../mainWindow.cpp" line="741"/>
         <source>Standard Midi File (*.mid)</source>
         <translation>Arquivo MIDI padrão (*.mid)</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="687"/>
+        <location filename="../mainWindow.cpp" line="739"/>
         <source>Export SMF</source>
         <translation>Exportar SMF</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="720"/>
+        <location filename="../mainWindow.cpp" line="772"/>
         <source>Boss Librarian File (*.gxg *.gxb)</source>
         <translation>Arquivo Boss Librarian (*.gxg *.gxb)</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="748"/>
+        <location filename="../mainWindow.cpp" line="800"/>
         <source>Export GXG</source>
         <translation>Exportar GXG</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="750"/>
+        <location filename="../mainWindow.cpp" line="802"/>
         <source>Boss Librarian File (*.gxg)</source>
         <translation>Arquivo Boss Librarian (*.gxg)</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="784"/>
+        <location filename="../mainWindow.cpp" line="836"/>
         <source> System Data File (*.GT10_system_syx)</source>
         <translation> Arquivo System Data (*.GT10_system_syx)</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="799"/>
+        <location filename="../mainWindow.cpp" line="851"/>
         <source> Fx FloorBoard</source>
         <translation> Fx FloorBoard</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="804"/>
+        <location filename="../mainWindow.cpp" line="856"/>
         <source>You have chosen to load a SYSTEM DATA file.</source>
         <translation>Você escolheu carregar um arquivo SYSTEM DATA.</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="806"/>
+        <location filename="../mainWindow.cpp" line="858"/>
         <source>This will overwrite the SYSTEM DATA currently stored in the </source>
         <translation>Isso substituirá os SYSTEM DATA armazenados atualmente na </translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="807"/>
+        <location filename="../mainWindow.cpp" line="859"/>
         <source>&lt;br&gt; and can&apos;t be undone.&lt;br&gt;</source>
         <translation>&lt;br&gt; e não poderá ser desfeito.&lt;br&gt;</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="808"/>
+        <location filename="../mainWindow.cpp" line="860"/>
         <source>Select &apos;NO&apos; to only update the Editor - Select &apos;YES&apos; to update the GT System&lt;br&gt;</source>
         <translation>Selecione &apos;NÃO&apos; para atualizar somente o Editor — selecione &apos;SIM&apos; para atualizar o GT System&lt;br&gt;</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="811"/>
+        <location filename="../mainWindow.cpp" line="863"/>
         <source>Are you sure you want to write to the </source>
         <translation>Tem certeza de que deseja gravar na </translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="824"/>
-        <location filename="../mainWindow.cpp" line="892"/>
-        <location filename="../mainWindow.cpp" line="913"/>
+        <location filename="../mainWindow.cpp" line="876"/>
+        <location filename="../mainWindow.cpp" line="947"/>
+        <location filename="../mainWindow.cpp" line="968"/>
         <source>Ensure connection is active and retry</source>
         <translation>Verifique se a conexão está ativa e tente novamente</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="826"/>
-        <location filename="../mainWindow.cpp" line="874"/>
-        <location filename="../mainWindow.cpp" line="894"/>
-        <location filename="../mainWindow.cpp" line="915"/>
+        <location filename="../mainWindow.cpp" line="878"/>
+        <location filename="../mainWindow.cpp" line="926"/>
+        <location filename="../mainWindow.cpp" line="949"/>
+        <location filename="../mainWindow.cpp" line="970"/>
         <source> not connected !!</source>
         <translation> não conectado!!</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="848"/>
+        <location filename="../mainWindow.cpp" line="900"/>
         <source>Save System Data</source>
         <translation>Salvar dados de System</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="850"/>
+        <location filename="../mainWindow.cpp" line="902"/>
         <source>System Exclusive File (*.GT10_system_syx)</source>
         <translation>Arquivo System Exclusive (*.GT10_system_syx)</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="872"/>
+        <location filename="../mainWindow.cpp" line="924"/>
         <source>Ensure connection is active and retry&lt;br&gt;</source>
         <translation>Verifique se a conexão está ativa e tente novamente&lt;br&gt;</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="933"/>
-        <location filename="../mainWindow.cpp" line="959"/>
+        <location filename="../mainWindow.cpp" line="988"/>
+        <location filename="../mainWindow.cpp" line="1014"/>
         <source>Backup / Restore Busy</source>
         <translation>Backup / restauração ocupados</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="934"/>
-        <location filename="../mainWindow.cpp" line="960"/>
+        <location filename="../mainWindow.cpp" line="989"/>
+        <location filename="../mainWindow.cpp" line="1015"/>
         <source>Another User-memory operation is already active.</source>
         <translation>Outra operação na memória User já está ativa.</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="939"/>
+        <location filename="../mainWindow.cpp" line="994"/>
         <source>Backup 200 User Patches</source>
         <translation>Fazer backup de 200 Patches de User</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="941"/>
-        <location filename="../mainWindow.cpp" line="967"/>
+        <location filename="../mainWindow.cpp" line="996"/>
+        <location filename="../mainWindow.cpp" line="1022"/>
         <source>GT-10 User Patch Backup (*.syx)</source>
         <translation>Backup de Patches de User da GT-10 (*.syx)</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="947"/>
+        <location filename="../mainWindow.cpp" line="1002"/>
         <source>BACKUP USER PATCHES</source>
         <translation>FAZER BACKUP DOS PATCHES DE USER</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="949"/>
+        <location filename="../mainWindow.cpp" line="1004"/>
         <source>Backup unavailable</source>
         <translation>Backup indisponível</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="950"/>
-        <location filename="../mainWindow.cpp" line="998"/>
+        <location filename="../mainWindow.cpp" line="1005"/>
+        <location filename="../mainWindow.cpp" line="1053"/>
         <source>The GT-10 is disconnected or another persistent operation is active.</source>
         <translation>A GT-10 está desconectada ou outra operação persistente está ativa.</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="965"/>
+        <location filename="../mainWindow.cpp" line="1020"/>
         <source>Restore 200 User Patches</source>
         <translation>Restaurar 200 Patches de User</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="973"/>
-        <location filename="../mainWindow.cpp" line="997"/>
+        <location filename="../mainWindow.cpp" line="1028"/>
+        <location filename="../mainWindow.cpp" line="1052"/>
         <source>Restore unavailable</source>
         <translation>Restauração indisponível</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="974"/>
+        <location filename="../mainWindow.cpp" line="1029"/>
         <source>The selected backup could not be opened.</source>
         <translation>Não foi possível abrir o backup selecionado.</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="980"/>
+        <location filename="../mainWindow.cpp" line="1035"/>
         <source>Invalid GT-10 backup</source>
         <translation>Backup da GT-10 inválido</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="984"/>
-        <location filename="../mainWindow.cpp" line="995"/>
+        <location filename="../mainWindow.cpp" line="1039"/>
+        <location filename="../mainWindow.cpp" line="1050"/>
         <source>RESTORE USER PATCHES</source>
         <translation>RESTAURAR PATCHES DE USER</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="985"/>
+        <location filename="../mainWindow.cpp" line="1040"/>
         <source>This operation will overwrite all 200 User patches.
 
 Destination: U01-1 → U50-4</source>
@@ -4298,12 +4344,12 @@ Destination: U01-1 → U50-4</source>
 Destino: U01-1 → U50-4</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="987"/>
+        <location filename="../mainWindow.cpp" line="1042"/>
         <source>CANCEL</source>
         <translation>CANCELAR</translation>
     </message>
     <message>
-        <location filename="../mainWindow.cpp" line="989"/>
+        <location filename="../mainWindow.cpp" line="1044"/>
         <source>RESTORE 200 PATCHES</source>
         <translation>RESTAURAR 200 PATCHES</translation>
     </message>
@@ -4511,94 +4557,94 @@ Destino: U01-1 → U50-4</translation>
 <context>
     <name>midiIO</name>
     <message>
-        <location filename="../midiIO.cpp" line="163"/>
-        <location filename="../midiIO.cpp" line="172"/>
-        <location filename="../midiIO.cpp" line="342"/>
+        <location filename="../midiIO.cpp" line="243"/>
+        <location filename="../midiIO.cpp" line="252"/>
+        <location filename="../midiIO.cpp" line="422"/>
         <source>Midi Output Error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../midiIO.cpp" line="163"/>
-        <location filename="../midiIO.cpp" line="213"/>
+        <location filename="../midiIO.cpp" line="243"/>
+        <location filename="../midiIO.cpp" line="293"/>
         <source>port error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../midiIO.cpp" line="172"/>
-        <location filename="../midiIO.cpp" line="220"/>
-        <location filename="../midiIO.cpp" line="304"/>
-        <location filename="../midiIO.cpp" line="342"/>
-        <location filename="../midiIO.cpp" line="423"/>
+        <location filename="../midiIO.cpp" line="252"/>
+        <location filename="../midiIO.cpp" line="300"/>
+        <location filename="../midiIO.cpp" line="384"/>
+        <location filename="../midiIO.cpp" line="422"/>
+        <location filename="../midiIO.cpp" line="517"/>
         <source>data error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../midiIO.cpp" line="179"/>
-        <location filename="../midiIO.cpp" line="226"/>
+        <location filename="../midiIO.cpp" line="259"/>
+        <location filename="../midiIO.cpp" line="306"/>
         <source>un-named midi device: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../midiIO.cpp" line="188"/>
-        <location filename="../midiIO.cpp" line="236"/>
+        <location filename="../midiIO.cpp" line="268"/>
+        <location filename="../midiIO.cpp" line="316"/>
         <source>no midi device available</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../midiIO.cpp" line="213"/>
-        <location filename="../midiIO.cpp" line="220"/>
-        <location filename="../midiIO.cpp" line="423"/>
+        <location filename="../midiIO.cpp" line="293"/>
+        <location filename="../midiIO.cpp" line="300"/>
+        <location filename="../midiIO.cpp" line="517"/>
         <source>Midi Input Error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../midiIO.cpp" line="304"/>
+        <location filename="../midiIO.cpp" line="384"/>
         <source>Syx Output Error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../midiIO.cpp" line="556"/>
+        <location filename="../midiIO.cpp" line="670"/>
         <source>re-trying data request</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../midiIO.cpp" line="562"/>
+        <location filename="../midiIO.cpp" line="676"/>
         <source>Quick Setting RQ1 completed by explicit size/address match</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../midiIO.cpp" line="563"/>
+        <location filename="../midiIO.cpp" line="677"/>
         <source>Quick Setting RQ1 completed after retry limit</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../midiIO.cpp" line="569"/>
+        <location filename="../midiIO.cpp" line="683"/>
         <source>Sending</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../midiIO.cpp" line="636"/>
+        <location filename="../midiIO.cpp" line="763"/>
         <source>identity request</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../midiIO.cpp" line="640"/>
+        <location filename="../midiIO.cpp" line="767"/>
         <source>patch request</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../midiIO.cpp" line="643"/>
+        <location filename="../midiIO.cpp" line="770"/>
         <source>name request</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../midiIO.cpp" line="646"/>
+        <location filename="../midiIO.cpp" line="773"/>
         <source>system request</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../midiIO.cpp" line="655"/>
-        <location filename="../midiIO.cpp" line="675"/>
+        <location filename="../midiIO.cpp" line="782"/>
+        <location filename="../midiIO.cpp" line="802"/>
         <source>no midi device set</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4606,497 +4652,518 @@ Destino: U01-1 → U50-4</translation>
 <context>
     <name>modernFloorBoard</name>
     <message>
+        <location filename="../modernFloorBoard.cpp" line="3697"/>
         <source>Device busy — retry READ SYSTEM when ready</source>
         <translation>Dispositivo ocupado — tente LER SYSTEM novamente quando estiver pronto</translation>
     </message>
     <message>
+        <location filename="../modernFloorBoard.cpp" line="3720"/>
         <source>SYSTEM read failed — retry READ SYSTEM</source>
         <translation>Falha na leitura de SYSTEM — tente LER SYSTEM novamente</translation>
     </message>
     <message>
+        <location filename="../modernFloorBoard.cpp" line="4588"/>
         <source>PATCH LOADED</source>
         <translation>PATCH CARREGADO</translation>
     </message>
     <message>
+        <location filename="../modernFloorBoard.cpp" line="4588"/>
         <source>PATCH LOAD FAILED</source>
         <translation>FALHA AO CARREGAR PATCH</translation>
     </message>
     <message>
+        <location filename="../modernFloorBoard.cpp" line="4590"/>
         <source>Patch loaded successfully.</source>
         <translation>Patch carregado com sucesso.</translation>
     </message>
     <message>
+        <location filename="../modernFloorBoard.cpp" line="4592"/>
         <source>Click Write to save it to the GT-10.</source>
         <translation>Clique em Gravar para salvá-lo na GT-10.</translation>
     </message>
     <message>
+        <location filename="../modernFloorBoard.cpp" line="4591"/>
         <source>The selected file could not be loaded.</source>
         <translation>Não foi possível carregar o arquivo selecionado.</translation>
     </message>
     <message>
+        <location filename="../modernFloorBoard.cpp" line="4593"/>
         <source>Choose a supported GT-10 patch file and try again.</source>
         <translation>Escolha um arquivo de patch compatível com a GT-10 e tente novamente.</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="1109"/>
+        <location filename="../modernFloorBoard.cpp" line="1217"/>
         <source>BOSS GT-10</source>
         <translation>BOSS GT-10</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="1145"/>
+        <location filename="../modernFloorBoard.cpp" line="1250"/>
         <source>PATCH</source>
         <translation>PATCH</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="1152"/>
-        <location filename="../modernFloorBoard.cpp" line="1154"/>
-        <location filename="../modernFloorBoard.cpp" line="3749"/>
-        <location filename="../modernFloorBoard.cpp" line="3750"/>
+        <location filename="../modernFloorBoard.cpp" line="1257"/>
+        <location filename="../modernFloorBoard.cpp" line="1259"/>
+        <location filename="../modernFloorBoard.cpp" line="3831"/>
+        <location filename="../modernFloorBoard.cpp" line="3832"/>
         <source>NO PATCH DATA</source>
         <translation>SEM DADOS DO PATCH</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="1175"/>
+        <location filename="../modernFloorBoard.cpp" line="1280"/>
         <source>TEMPO BPM</source>
         <translation>TEMPO BPM</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="1217"/>
+        <location filename="../modernFloorBoard.cpp" line="1312"/>
         <source>PATCH LEVEL</source>
         <translation>PATCH LEVEL</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="1264"/>
+        <location filename="../modernFloorBoard.cpp" line="1347"/>
         <source>OUTPUT SELECT</source>
         <translation>OUTPUT SELECT</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="1307"/>
+        <location filename="../modernFloorBoard.cpp" line="1383"/>
         <source>READ</source>
         <translation>LER</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="1311"/>
+        <location filename="../modernFloorBoard.cpp" line="1387"/>
         <source>Reload the current GT-10 temporary patch buffer</source>
         <translation>Recarregar o buffer temporário do Patch atual da GT-10</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="1326"/>
+        <location filename="../modernFloorBoard.cpp" line="1391"/>
         <source>WRITE</source>
         <translation>GRAVAR</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="1330"/>
+        <location filename="../modernFloorBoard.cpp" line="1395"/>
         <source>Write and verify the current patch in GT-10 User memory</source>
         <translation>Gravar e verificar o Patch atual na memória User da GT-10</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="1345"/>
+        <location filename="../modernFloorBoard.cpp" line="1399"/>
         <source>SYSTEM</source>
         <translation>SYSTEM</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="1348"/>
+        <location filename="../modernFloorBoard.cpp" line="1402"/>
         <source>Open GT-10 System workspace</source>
         <translation>Abrir o workspace de System da GT-10</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="1434"/>
+        <location filename="../modernFloorBoard.cpp" line="1479"/>
         <source>SIGNAL CHAIN</source>
         <translation>SIGNAL CHAIN</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="1474"/>
+        <location filename="../modernFloorBoard.cpp" line="1520"/>
         <source>REVERB</source>
         <translation>REVERB</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="1498"/>
-        <location filename="../modernFloorBoard.cpp" line="1599"/>
-        <location filename="../modernFloorBoard.cpp" line="1704"/>
-        <location filename="../modernFloorBoard.cpp" line="1825"/>
-        <location filename="../modernFloorBoard.cpp" line="2013"/>
-        <location filename="../modernFloorBoard.cpp" line="2102"/>
+        <location filename="../modernFloorBoard.cpp" line="1545"/>
+        <location filename="../modernFloorBoard.cpp" line="1645"/>
+        <location filename="../modernFloorBoard.cpp" line="1750"/>
+        <location filename="../modernFloorBoard.cpp" line="1871"/>
+        <location filename="../modernFloorBoard.cpp" line="2058"/>
+        <location filename="../modernFloorBoard.cpp" line="2138"/>
         <source>State</source>
         <translation>Estado</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="1525"/>
-        <location filename="../modernFloorBoard.cpp" line="1626"/>
-        <location filename="../modernFloorBoard.cpp" line="1732"/>
-        <location filename="../modernFloorBoard.cpp" line="1853"/>
-        <location filename="../modernFloorBoard.cpp" line="2040"/>
-        <location filename="../modernFloorBoard.cpp" line="2130"/>
-        <location filename="../modernFloorBoard.cpp" line="2286"/>
-        <location filename="../modernFloorBoard.cpp" line="2446"/>
+        <location filename="../modernFloorBoard.cpp" line="1570"/>
+        <location filename="../modernFloorBoard.cpp" line="1670"/>
+        <location filename="../modernFloorBoard.cpp" line="1777"/>
+        <location filename="../modernFloorBoard.cpp" line="1897"/>
+        <location filename="../modernFloorBoard.cpp" line="2083"/>
+        <location filename="../modernFloorBoard.cpp" line="2171"/>
+        <location filename="../modernFloorBoard.cpp" line="2325"/>
+        <location filename="../modernFloorBoard.cpp" line="2489"/>
         <source>LOAD</source>
         <translation>CARREGAR</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="1526"/>
-        <location filename="../modernFloorBoard.cpp" line="1627"/>
-        <location filename="../modernFloorBoard.cpp" line="1733"/>
-        <location filename="../modernFloorBoard.cpp" line="1854"/>
-        <location filename="../modernFloorBoard.cpp" line="2041"/>
-        <location filename="../modernFloorBoard.cpp" line="2131"/>
-        <location filename="../modernFloorBoard.cpp" line="2287"/>
-        <location filename="../modernFloorBoard.cpp" line="2447"/>
+        <location filename="../modernFloorBoard.cpp" line="1571"/>
+        <location filename="../modernFloorBoard.cpp" line="1671"/>
+        <location filename="../modernFloorBoard.cpp" line="1778"/>
+        <location filename="../modernFloorBoard.cpp" line="1898"/>
+        <location filename="../modernFloorBoard.cpp" line="2084"/>
+        <location filename="../modernFloorBoard.cpp" line="2172"/>
+        <location filename="../modernFloorBoard.cpp" line="2326"/>
+        <location filename="../modernFloorBoard.cpp" line="2490"/>
         <source>SAVE</source>
         <translation>SALVAR</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="1546"/>
+        <location filename="../modernFloorBoard.cpp" line="1591"/>
         <source>SPACE</source>
         <translation>SPACE</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="1555"/>
-        <location filename="../modernFloorBoard.cpp" line="2068"/>
+        <location filename="../modernFloorBoard.cpp" line="1600"/>
+        <location filename="../modernFloorBoard.cpp" line="2111"/>
         <source>FILTER</source>
         <translation>FILTER</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="1561"/>
+        <location filename="../modernFloorBoard.cpp" line="1606"/>
         <source>MIX</source>
         <translation>MIX</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="1569"/>
+        <location filename="../modernFloorBoard.cpp" line="1614"/>
         <source>COMP</source>
         <translation>COMP</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="1652"/>
+        <location filename="../modernFloorBoard.cpp" line="1696"/>
         <source>COMPRESSOR</source>
         <translation>COMPRESSOR</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="1665"/>
+        <location filename="../modernFloorBoard.cpp" line="1709"/>
         <source>LIMITER</source>
         <translation>LIMITER</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="1679"/>
+        <location filename="../modernFloorBoard.cpp" line="1723"/>
         <source>OD/DS</source>
         <translation>OD/DS</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="1761"/>
+        <location filename="../modernFloorBoard.cpp" line="1806"/>
         <source>DRIVE / MIX</source>
         <translation>DRIVE / MIX</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="1771"/>
+        <location filename="../modernFloorBoard.cpp" line="1816"/>
         <source>SOLO</source>
         <translation>SOLO</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="1774"/>
         <source>Solo Switch</source>
-        <translation>Solo Switch</translation>
+        <translation type="vanished">Solo Switch</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="1787"/>
+        <location filename="../modernFloorBoard.cpp" line="1832"/>
         <source>CUSTOM</source>
         <translation>CUSTOM</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="1801"/>
-        <location filename="../modernFloorBoard.cpp" line="1879"/>
+        <location filename="../modernFloorBoard.cpp" line="1846"/>
+        <location filename="../modernFloorBoard.cpp" line="1923"/>
         <source>DELAY</source>
         <translation>DELAY</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="1894"/>
+        <location filename="../modernFloorBoard.cpp" line="1938"/>
         <source>PAN</source>
         <translation>PAN</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="1904"/>
+        <location filename="../modernFloorBoard.cpp" line="1948"/>
         <source>WARP</source>
         <translation>WARP</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="1908"/>
+        <location filename="../modernFloorBoard.cpp" line="1952"/>
         <source>Warp Switch</source>
         <translation>Warp Switch</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="1925"/>
-        <location filename="../modernFloorBoard.cpp" line="2057"/>
+        <location filename="../modernFloorBoard.cpp" line="1969"/>
+        <location filename="../modernFloorBoard.cpp" line="2100"/>
         <source>MODULATION</source>
         <translation>MODULATION</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="1944"/>
+        <location filename="../modernFloorBoard.cpp" line="1988"/>
         <source>DELAY 1</source>
         <translation>DELAY 1</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="1956"/>
+        <location filename="../modernFloorBoard.cpp" line="2000"/>
         <source>DELAY 2</source>
         <translation>DELAY 2</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="1966"/>
+        <location filename="../modernFloorBoard.cpp" line="2010"/>
         <source>COMMON</source>
         <translation>COMMON</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="1976"/>
+        <location filename="../modernFloorBoard.cpp" line="2020"/>
         <source>CHORUS</source>
         <translation>CHORUS</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="2063"/>
+        <location filename="../modernFloorBoard.cpp" line="2106"/>
         <source>TIMING</source>
         <translation>TEMPORIZAÇÃO</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="2080"/>
-        <location filename="../modernFloorBoard.cpp" line="2180"/>
+        <location filename="../modernFloorBoard.cpp" line="2123"/>
         <source>OUTPUT</source>
         <translation>OUTPUT</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="2098"/>
+        <location filename="../modernFloorBoard.cpp" line="2137"/>
         <source>EQ</source>
         <translation>EQ</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="2157"/>
+        <location filename="../modernFloorBoard.cpp" line="2198"/>
         <source>LOW</source>
         <translation>LOW</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="2162"/>
+        <location filename="../modernFloorBoard.cpp" line="2202"/>
         <source>LOW-MID</source>
         <translation>LOW-MID</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="2168"/>
+        <location filename="../modernFloorBoard.cpp" line="2208"/>
         <source>HIGH-MID</source>
         <translation>HIGH-MID</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="2174"/>
+        <location filename="../modernFloorBoard.cpp" line="2214"/>
         <source>HIGH</source>
         <translation>HIGH</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="2414"/>
+        <location filename="../modernFloorBoard.cpp" line="2460"/>
         <source>State (A/B)</source>
         <translation>Estado (A/B)</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="2511"/>
+        <location filename="../modernFloorBoard.cpp" line="2553"/>
         <source>CUSTOM SPEAKER</source>
         <translation>CUSTOM SPEAKER</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="2539"/>
+        <location filename="../modernFloorBoard.cpp" line="2578"/>
         <source>CUSTOM PREAMP</source>
         <translation>CUSTOM PREAMP</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="2591"/>
+        <location filename="../modernFloorBoard.cpp" line="2625"/>
         <source>(OTHER) %1</source>
         <translation>(OUTRO) %1</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="2678"/>
+        <location filename="../modernFloorBoard.cpp" line="2716"/>
         <source>CHANNEL ROUTING</source>
         <translation>ROTEAMENTO DE CANAIS</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="2682"/>
+        <location filename="../modernFloorBoard.cpp" line="2712"/>
         <source>PREAMP A/B</source>
         <translation>PREAMP A/B</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="2709"/>
+        <location filename="../modernFloorBoard.cpp" line="1819"/>
+        <source>On/Off</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../modernFloorBoard.cpp" line="2745"/>
         <source>Mode</source>
         <translation>Modo</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="2721"/>
+        <location filename="../modernFloorBoard.cpp" line="2757"/>
         <source>CHANNEL MODE</source>
         <translation>MODO DE CANAL</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="2765"/>
+        <location filename="../modernFloorBoard.cpp" line="2789"/>
         <source>CHANNEL</source>
         <translation>CANAL</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="2772"/>
+        <location filename="../modernFloorBoard.cpp" line="2796"/>
         <source>A</source>
         <translation>A</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="2773"/>
+        <location filename="../modernFloorBoard.cpp" line="2797"/>
         <source>B</source>
         <translation>B</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="2810"/>
+        <location filename="../modernFloorBoard.cpp" line="2824"/>
         <source>Channel Delay</source>
         <translation>Channel Delay</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="2825"/>
+        <location filename="../modernFloorBoard.cpp" line="2839"/>
         <source>Dynamic Sense</source>
         <translation>Dynamic Sense</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="2960"/>
+        <location filename="../modernFloorBoard.cpp" line="2974"/>
         <source>(CUSTOM) %1</source>
         <translation>(PERSONALIZADO) %1</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="3524"/>
+        <location filename="../modernFloorBoard.cpp" line="3560"/>
         <source>Patch Output Select</source>
         <translation>Output Select do Patch</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="3525"/>
+        <location filename="../modernFloorBoard.cpp" line="3561"/>
         <source>System Output Select</source>
         <translation>Output Select de System</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="3767"/>
+        <location filename="../modernFloorBoard.cpp" line="3849"/>
         <source>QUICK</source>
         <translation>QUICK</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="3770"/>
+        <location filename="../modernFloorBoard.cpp" line="3852"/>
         <source>Open User Quick Settings</source>
         <translation>Abrir Quick Settings de User</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="3857"/>
+        <location filename="../modernFloorBoard.cpp" line="3938"/>
         <source> · Loading...</source>
         <translation> · Carregando...</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4071"/>
+        <location filename="../modernFloorBoard.cpp" line="4154"/>
         <source>READING…</source>
         <translation>LENDO…</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4137"/>
+        <location filename="../modernFloorBoard.cpp" line="4220"/>
         <source>SAVE QUICK SETTING</source>
         <translation>SALVAR QUICK SETTING</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4183"/>
+        <location filename="../modernFloorBoard.cpp" line="4268"/>
         <source>Effect:</source>
         <translation>Efeito:</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4193"/>
+        <location filename="../modernFloorBoard.cpp" line="4278"/>
         <source>Destination:</source>
         <translation>Destino:</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4201"/>
+        <location filename="../modernFloorBoard.cpp" line="4286"/>
         <source>Quick Setting name</source>
         <translation>Nome da Quick Setting</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4202"/>
+        <location filename="../modernFloorBoard.cpp" line="4287"/>
         <source>Name:</source>
         <translation>Nome:</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4208"/>
+        <location filename="../modernFloorBoard.cpp" line="4293"/>
         <source>Current Mode:</source>
         <translation>Modo atual:</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4208"/>
+        <location filename="../modernFloorBoard.cpp" line="4293"/>
         <source>Current Type:</source>
         <translation>Tipo atual:</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4217"/>
+        <location filename="../modernFloorBoard.cpp" line="4302"/>
         <source>FX-1 and FX-2 share the Quick Setting name for the same effect type.</source>
         <translation>FX-1 e FX-2 compartilham o nome da Quick Setting para o mesmo tipo de efeito.</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4428"/>
+        <location filename="../modernFloorBoard.cpp" line="4521"/>
         <source>QUICK SETTING LOAD FAILED</source>
         <translation>FALHA AO CARREGAR QUICK SETTING</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4430"/>
+        <location filename="../modernFloorBoard.cpp" line="4523"/>
         <source>The effect Quick Setting was not loaded.</source>
         <translation>A Quick Setting do efeito não foi carregada.</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4469"/>
+        <location filename="../modernFloorBoard.cpp" line="4562"/>
         <source>QUICK SETTING VERIFIED</source>
         <translation>QUICK SETTING VERIFICADA</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4470"/>
+        <location filename="../modernFloorBoard.cpp" line="4563"/>
         <source>QUICK SETTING SAVE FAILED</source>
         <translation>FALHA AO SALVAR QUICK SETTING</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4472"/>
+        <location filename="../modernFloorBoard.cpp" line="4565"/>
         <source>Effect data matched the GT-10 readback.</source>
         <translation>Os dados do efeito corresponderam ao readback da GT-10.</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4473"/>
+        <location filename="../modernFloorBoard.cpp" line="4566"/>
         <source>Automatic verification did not match.</source>
         <translation>A verificação automática não correspondeu.</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4602"/>
+        <location filename="../modernFloorBoard.cpp" line="4876"/>
+        <source>Alterações não salvas</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../modernFloorBoard.cpp" line="4878"/>
+        <source>Existem alterações neste patch que ainda não foram salvas. Deseja salvar antes de carregar outro patch?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../modernFloorBoard.cpp" line="4926"/>
         <source>OVERWRITE PATCH</source>
         <translation>SUBSTITUIR PATCH</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4603"/>
+        <location filename="../modernFloorBoard.cpp" line="4927"/>
         <source>%1 — %2</source>
         <translation>%1 — %2</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4604"/>
+        <location filename="../modernFloorBoard.cpp" line="4928"/>
         <source>This will replace the patch stored in GT-10 User memory.</source>
         <translation>Isso substituirá o Patch armazenado na memória User da GT-10.</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4617"/>
-        <location filename="../modernFloorBoard.cpp" line="4787"/>
+        <location filename="../modernFloorBoard.cpp" line="4941"/>
+        <location filename="../modernFloorBoard.cpp" line="5117"/>
         <source>WRITE NOT STARTED</source>
         <translation>WRITE NÃO INICIADO</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4618"/>
+        <location filename="../modernFloorBoard.cpp" line="4942"/>
         <source>The confirmed User patch changed. Nothing was written.</source>
         <translation>O Patch de User confirmado mudou. Nada foi gravado.</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4651"/>
-        <location filename="../modernFloorBoard.cpp" line="4727"/>
+        <location filename="../modernFloorBoard.cpp" line="4975"/>
+        <location filename="../modernFloorBoard.cpp" line="5051"/>
         <source>RENAME FAILED</source>
         <translation>FALHA AO RENOMEAR</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4653"/>
+        <location filename="../modernFloorBoard.cpp" line="4977"/>
         <source>The current patch name could not be read. Nothing was written.</source>
         <translation>Não foi possível ler o nome do Patch atual. Nada foi gravado.</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4691"/>
+        <location filename="../modernFloorBoard.cpp" line="5015"/>
         <source>COPY PATCH</source>
         <translation>COPIAR PATCH</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4692"/>
+        <location filename="../modernFloorBoard.cpp" line="5016"/>
         <source>%1 — %2
 →
 %3 — %4</source>
@@ -5105,103 +5172,103 @@ Destino: U01-1 → U50-4</translation>
 %3 — %4</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4694"/>
+        <location filename="../modernFloorBoard.cpp" line="5018"/>
         <source>This will overwrite the destination patch.</source>
         <translation>Isso substituirá o Patch de destino.</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4720"/>
+        <location filename="../modernFloorBoard.cpp" line="5044"/>
         <source>RENAME VERIFIED</source>
         <translation>RENOMEAÇÃO VERIFICADA</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4721"/>
+        <location filename="../modernFloorBoard.cpp" line="5045"/>
         <source>The patch name was written and read back successfully.</source>
         <translation>O nome do Patch foi gravado e lido novamente com sucesso.</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4727"/>
+        <location filename="../modernFloorBoard.cpp" line="5051"/>
         <source>RENAME MISMATCH</source>
         <translation>DIVERGÊNCIA NA RENOMEAÇÃO</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4728"/>
+        <location filename="../modernFloorBoard.cpp" line="5052"/>
         <source>The patch-name readback did not confirm the change.</source>
         <translation>O readback do nome do Patch não confirmou a alteração.</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4744"/>
+        <location filename="../modernFloorBoard.cpp" line="5068"/>
         <source>COPY VERIFIED</source>
         <translation>CÓPIA VERIFICADA</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4745"/>
+        <location filename="../modernFloorBoard.cpp" line="5069"/>
         <source>Authoritative patch blocks 00-0C were copied and verified.</source>
         <translation>Os blocos autoritativos 00-0C do Patch foram copiados e verificados.</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4746"/>
+        <location filename="../modernFloorBoard.cpp" line="5070"/>
         <source>Block 0D is the legacy synthetic, non-verifiable block.</source>
         <translation>O bloco 0D é o bloco sintético legado e não verificável.</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4751"/>
+        <location filename="../modernFloorBoard.cpp" line="5075"/>
         <source>COPY MISMATCH</source>
         <translation>DIVERGÊNCIA NA CÓPIA</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4751"/>
+        <location filename="../modernFloorBoard.cpp" line="5075"/>
         <source>COPY FAILED</source>
         <translation>FALHA AO COPIAR</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4752"/>
+        <location filename="../modernFloorBoard.cpp" line="5076"/>
         <source>Destination readback did not confirm the copy.</source>
         <translation>O readback do destino não confirmou a cópia.</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4769"/>
+        <location filename="../modernFloorBoard.cpp" line="5099"/>
         <source>PATCH SAVED</source>
         <translation>PATCH SALVO</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4770"/>
+        <location filename="../modernFloorBoard.cpp" line="5100"/>
         <source>Written and verified successfully.</source>
         <translation>Gravado e verificado com sucesso.</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4774"/>
+        <location filename="../modernFloorBoard.cpp" line="5104"/>
         <source>VERIFICATION FAILED</source>
         <translation>FALHA NA VERIFICAÇÃO</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4775"/>
+        <location filename="../modernFloorBoard.cpp" line="5105"/>
         <source>The patch was sent, but the data read back from this GT-10 User memory does not match the written patch.</source>
         <translation>O Patch foi enviado, mas os dados lidos dessa memória User da GT-10 não correspondem ao Patch gravado.</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4781"/>
+        <location filename="../modernFloorBoard.cpp" line="5111"/>
         <source>VERIFICATION INCOMPLETE</source>
         <translation>VERIFICAÇÃO INCOMPLETA</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4782"/>
+        <location filename="../modernFloorBoard.cpp" line="5112"/>
         <source>The patch was sent, but GT Lab Editor could not verify the result.</source>
         <translation>O Patch foi enviado, mas o GT Lab Editor não conseguiu verificar o resultado.</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="4788"/>
+        <location filename="../modernFloorBoard.cpp" line="5118"/>
         <source>Nothing was written.</source>
         <translation>Nada foi gravado.</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="5130"/>
+        <location filename="../modernFloorBoard.cpp" line="5448"/>
         <source>Load a GT-10 patch to display its real signal chain</source>
         <translation>Carregue um Patch da GT-10 para exibir sua Signal Chain real</translation>
     </message>
     <message>
-        <location filename="../modernFloorBoard.cpp" line="5180"/>
-        <location filename="../modernFloorBoard.cpp" line="5195"/>
+        <location filename="../modernFloorBoard.cpp" line="5498"/>
+        <location filename="../modernFloorBoard.cpp" line="5513"/>
         <source>EMPTY PATH</source>
         <translation>CAMINHO VAZIO</translation>
     </message>

@@ -56,18 +56,27 @@ if (-not $VsInstallPath) {
 }
 if (-not $VsInstallPath) { throw 'A Visual Studio installation containing the v142 x64 tools was not found.' }
 $vcvars = Join-Path $VsInstallPath 'VC\Auxiliary\Build\vcvars64.bat'
-if (-not (Test-Path -LiteralPath $vcvars)) { throw "vcvars64.bat not found: $vcvars" }
+$vcvarsArgs = "-vcvars_ver=$ToolsetVersion"
+if (-not (Test-Path -LiteralPath $vcvars)) {
+    $vcvars = Join-Path $VsInstallPath 'VC\Auxiliary\Build\vcvarsall.bat'
+    $vcvarsArgs = "x64 -vcvars_ver=$ToolsetVersion"
+    if (-not (Test-Path -LiteralPath $vcvars)) {
+        $vcvars = Join-Path $VsInstallPath 'Common7\Tools\VsDevCmd.bat'
+        $vcvarsArgs = "-arch=x64 -host_arch=x64 -vcvars_ver=$ToolsetVersion"
+    }
+}
+if (-not (Test-Path -LiteralPath $vcvars)) { throw "Visual Studio environment bootstrap not found: $vcvars" }
 
 $environmentScript = [IO.Path]::ChangeExtension([IO.Path]::GetTempFileName(), '.cmd')
 try {
     @(
         '@echo off',
-        "call `"$vcvars`" -vcvars_ver=$ToolsetVersion >nul",
+        "call `"$vcvars`" $vcvarsArgs >nul",
         'if errorlevel 1 exit /b %errorlevel%',
         'set'
     ) | Set-Content -LiteralPath $environmentScript -Encoding ASCII
     $environmentLines = & cmd.exe /d /c $environmentScript
-    Assert-LastExitCode 'vcvars64'
+    Assert-LastExitCode 'Visual Studio environment bootstrap'
 } finally {
     if (Test-Path -LiteralPath $environmentScript) { Remove-Item -LiteralPath $environmentScript -Force }
 }
@@ -116,7 +125,7 @@ $buildScript = [IO.Path]::ChangeExtension([IO.Path]::GetTempFileName(), '.cmd')
 try {
     @(
         '@echo off',
-        "call `"$vcvars`" -vcvars_ver=$ToolsetVersion",
+        "call `"$vcvars`" $vcvarsArgs",
         'if errorlevel 1 exit /b %errorlevel%',
         "cd /d `"$BuildRoot`"",
         "`"$qmake`" -early QMAKE_MSC_VER=1929 QMAKE_MSC_FULL_VER=$qmakeMscFullVer -before `"$project`" -spec win32-msvc CONFIG+=release",
@@ -144,7 +153,7 @@ $compilerVersion = ([regex]::Match($compilerText, '\b(19\.29\.[0-9.]+)\b')).Grou
 
 $buildInfo = [ordered]@{
     product = 'GT Lab Editor'
-    version = '1.1.0'
+    version = '1.2.0'
     commit = $gitCommit
     ref = $gitBranch
     timestampUtc = [DateTime]::UtcNow.ToString('o')

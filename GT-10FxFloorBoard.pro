@@ -23,6 +23,8 @@
 #############################################################################
 
 TEMPLATE = app
+VERSION = 1.2.0
+CONFIG += resources_big
 #ifdef Q_OS_MAC
 CONFIG += release
 TARGET = "GTLabEditor"
