@@ -32,6 +32,9 @@
 #include "customComboBox.h"
 #include "globalVariables.h"
 #include "patchTransferCodec.h"
+#if defined(Q_OS_WIN) && defined(GTLAB_FREE_EDITION)
+#include "freeWinUsbStartup.h"
+#endif
 #ifdef Q_OS_WIN
 #include "gt10WinUsbMonitor.h"
 #endif
@@ -266,7 +269,14 @@ floorBoardDisplay::floorBoardDisplay(QWidget *parent, QPoint pos)
                 }
             });
 #endif
-        if(midiIn!="" && midiOut!="")
+        bool startConnection = midiIn != "" && midiOut != "";
+#if defined(Q_OS_WIN) && defined(GTLAB_FREE_EDITION)
+        const bool windows11 = FreeWinUsbStartup::isWindows11();
+        startConnection = FreeWinUsbStartup::shouldConnect(ProductEdition::isFree(),
+            windows11, startConnection,
+            windows11 && FreeWinUsbStartup::functionalBindingAvailable());
+#endif
+        if(startConnection)
         {autoconnect(); };
         }
 

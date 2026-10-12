@@ -1,11 +1,12 @@
+#include "modernWidgets.h"
 #include "productEdition.h"
+#include "freeWinUsbStartup.h"
 #include "mainWindow.h"
 #include "modernFloorBoard.h"
 #include "modernControlAssignEditor.h"
 #include "modernQuickSettingDialog.h"
 #include "modernAboutDialog.h"
 #include "customControlListMenu.h"
-#include "modernWidgets.h"
 #include "patchSidebar.h"
 #include "Preferences.h"
 #include "customKnob.h"
@@ -48,6 +49,24 @@ int main(int argc, char **argv)
 {
     QApplication::setAttribute(Qt::AA_DontUseNativeDialogs);
     QApplication app(argc, argv);
+    using namespace FreeWinUsbStartup;
+    check(shouldConnect(true, true, false, validBinding(true, true, true, true, 0)),
+          "FREE_WIN11_WINUSB_EMPTY_MIDI_SETTINGS_CONNECTS");
+    check(!shouldConnect(true, true, false, validBinding(false, false, false, false, 0)),
+          "FREE_WIN11_NO_GT10_DOES_NOT_CONNECT");
+    check(!shouldConnect(true, true, false, validBinding(true, true, true, false, 31))
+          && !validBinding(true, true, false, true, 0)
+          && !validBinding(false, true, true, true, 0),
+          "FREE_WIN11_BROKEN_WINUSB_DOES_NOT_CONNECT");
+    check(!shouldConnect(false, true, false, true) && shouldConnect(false, true, true, false),
+          "FULL_STARTUP_BEHAVIOR_UNCHANGED");
+    check(!shouldConnect(true, false, false, true) && shouldConnect(true, false, true, false),
+          "WIN10_ROLAND_MIDI_PATH_UNCHANGED");
+#if defined(Q_OS_WIN) && defined(GTLAB_FREE_EDITION)
+    if (functionalBindingAvailable())
+        qFatal("Disconnect GT-10 before running the offline edition harness");
+    check(!functionalBindingAvailable(), "FREE_REAL_NO_GT10_BINDING_REJECTED");
+#endif
     QStandardPaths::setTestModeEnabled(true);
     QCoreApplication::setApplicationName("GT Lab Edition Offline Tests");
     Preferences *preferences = Preferences::Instance();

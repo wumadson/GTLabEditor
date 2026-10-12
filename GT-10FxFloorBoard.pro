@@ -139,6 +139,7 @@ HEADERS += productEdition.h
 contains(CONFIG, gtlab_free) {
     DEFINES += GTLAB_FREE_EDITION
     TARGET = GTLabEditorFree
+    win32:RC_FILE = GTLabEditorFree.rc
     macx {
         QMAKE_APPLICATION_BUNDLE_NAME = "GT Lab Editor Free"
         QMAKE_INFO_PLIST = $$PWD/GTLabEditorFree-Info.plist
