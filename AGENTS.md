@@ -32,9 +32,10 @@ Full source is tagged `v1.2.0`; its binaries are distributed through GT LAB's
 official channels and its GitHub release remains Draft. The older `v1.0.0`
 and `v1.1.0` releases are also Draft. Do not change release visibility casually.
 
-The default branch is `modern-ui`, but its source/packaging metadata still
-precedes the 1.2.0 release tags. A documentation refresh is not a source merge
-or version bump. Use the appropriate tag in an isolated worktree for builds.
+The `integration/full-1.2.0` candidate aligns publicly buildable Full 1.2.0
+source and app-only Windows CI for the future `modern-ui` production base.
+Promotion to `modern-ui` requires explicit authorization. Free remains on its
+own branch/tag; use immutable release tags to reproduce released builds.
 
 Free is a compile-time edition (`CONFIG+=gtlab_free` / `GTLAB_FREE_EDITION`)
 on the Free source ref; default builds remain Full. Restrict only preset

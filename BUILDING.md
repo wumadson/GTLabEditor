@@ -6,9 +6,10 @@ publicam releases automaticamente.
 
 ## Escolha o source correto
 
-A default branch `modern-ui` ainda contém source, metadata e scripts Windows
-rotulados como 1.1.0. Ela não é, por si só, o source das distribuições 1.2.0.
-Use as tags imutáveis em checkouts/worktrees separados:
+A candidata `integration/full-1.2.0` alinha o source Full 1.2.0 compilável
+publicamente e seu pipeline app-only para a futura base de produção `modern-ui`.
+A promoção depende de autorização explícita. Para reproduzir distribuições,
+use as tags imutáveis em checkouts/worktrees separados:
 
 | Edição | Ref de release | Comportamento do build |
 |---|---|---|
@@ -17,8 +18,7 @@ Use as tags imutáveis em checkouts/worktrees separados:
 
 A branch `free/1.2.0` acompanha o desenvolvimento Free; para reproduzir a
 release, prefira sua tag. Não copie installers ou scripts entre as edições
-e não mescle Free na Full para compilar. O refresh documental não atualiza
-código ou pipelines da default branch.
+e não mescle Free na Full para compilar.
 
 O build normal na tag Free continua Full por padrão; a flag Free define
 `GTLAB_FREE_EDITION`, identidade própria e guards somente para Import,
@@ -113,7 +113,10 @@ Defina `QT_ROOT_DIR` e `INNO_SETUP_ROOT`; informe `VsInstallPath` se necessário
 
 O **Universal Installer Full** é `installer/windows/GTLabEditor-Windows.iss`.
 Ele usa os inputs locais auditados de `installer/windows/winusb-lab/`, com
-consentimento para WinUSB no Windows 11. Esses inputs não estão no Git público.
+consentimento para WinUSB no Windows 11. O helper `install-winusb-universal.ps1`
+é versionado na candidata; INF/CAT/CER e o uninstall helper são inputs externos
+auditados de packaging, ausentes do clone público. O build do app Full e o
+installer app-only não dependem desses inputs privados.
 Não gere novos INF/CAT/certificados nem altere binding ao compilar a aplicação.
 
 O `GTLabEditor.iss` usado pelo pipeline automático é **app-only Full**,
@@ -201,9 +204,9 @@ pertence a outro projeto e não é alterado pelo build do Editor.
 
 O workflow Windows `.github/workflows/windows-build.yml` continua como
 pipeline unsigned app-only, disparado por dispatch/push em `modern-ui`.
-Na default branch, nomes e caminhos de artifacts ainda são 1.1.0.
+Na candidata, nomes e caminhos de artifacts são 1.2.0; o source é a HEAD/event
+da branch selecionada. O CI público não instala drivers nem certificados.
 Não equivale ao pacote Free 1.2.0 nem ao Universal Full 1.2.0.
-Esta revisão não corrige scripts/workflows: isso exige outra autorização.
 
 ## Licenças, assinatura e reprodução
 
