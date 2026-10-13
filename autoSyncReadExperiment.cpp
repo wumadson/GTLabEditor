@@ -11,6 +11,9 @@
 #include "MidiTable.h"
 #include "Preferences.h"
 #include "midiIO.h"
+#ifdef Q_OS_WIN
+#include "gt10WinUsbBackend.h"
+#endif
 #include <QApplication>
 #include <QLocalSocket>
 #include <QJsonDocument>
@@ -20,7 +23,17 @@
 #include <QDebug>
 #include <QRegularExpression>
 #include <QMetaProperty>
+#ifdef Q_OS_MAC
 #include <mach/mach.h>
+#elif defined(Q_OS_WIN)
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#include <psapi.h>
+#include <tlhelp32.h>
+#include <QDir>
+#endif
 
 namespace {
 QString widgetFingerprint(QWidget *root) {
@@ -35,9 +48,10 @@ QString widgetFingerprint(QWidget *root) {
     return QString::fromLatin1(QCryptographicHash::hash(values, QCryptographicHash::Sha256).toHex());
 }
 QJsonObject memorySample() {
+    QJsonObject sample;
+#ifdef Q_OS_MAC
     mach_task_basic_info_data_t info{};
     mach_msg_type_number_t count = MACH_TASK_BASIC_INFO_COUNT;
-    QJsonObject sample;
     if (task_info(mach_task_self(), MACH_TASK_BASIC_INFO,
                   reinterpret_cast<task_info_t>(&info), &count) == KERN_SUCCESS)
         sample["rss_bytes"] = double(info.resident_size);
@@ -48,13 +62,41 @@ QJsonObject memorySample() {
         for (unsigned i = 0; i < size; ++i) mach_port_deallocate(mach_task_self(), threads[i]);
         vm_deallocate(mach_task_self(), reinterpret_cast<vm_address_t>(threads), size * sizeof(thread_t));
     }
+#elif defined(Q_OS_WIN)
+    PROCESS_MEMORY_COUNTERS info{};
+    info.cb = sizeof(info);
+    using MemoryInfoFunction = BOOL (WINAPI *)(HANDLE, PPROCESS_MEMORY_COUNTERS, DWORD);
+    const auto memoryInfo = reinterpret_cast<MemoryInfoFunction>(
+        GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "K32GetProcessMemoryInfo"));
+    if (memoryInfo && memoryInfo(GetCurrentProcess(), &info, sizeof(info)))
+        sample["rss_bytes"] = double(info.WorkingSetSize);
+    const HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+    if (snapshot != INVALID_HANDLE_VALUE) {
+        THREADENTRY32 entry{};
+        entry.dwSize = sizeof(entry);
+        int count = 0;
+        if (Thread32First(snapshot, &entry)) {
+            do {
+                if (entry.th32OwnerProcessID == GetCurrentProcessId()) ++count;
+                entry.dwSize = sizeof(entry);
+            } while (Thread32Next(snapshot, &entry));
+            sample["threads"] = count;
+        }
+        CloseHandle(snapshot);
+    }
+#endif
     return sample;
 }
 void sendResult(QLocalSocket *socket, const QJsonObject &result) {
     const QByteArray bytes = QJsonDocument(result).toJson(QJsonDocument::Compact);
     qInfo().noquote() << "READ_EXPERIMENT" << bytes;
+#ifdef Q_OS_WIN
+    QFile log(QDir(QDir::tempPath()).filePath(QString("gtlab-read-experiment-%1.jsonl")
+              .arg(QCoreApplication::applicationPid())));
+#else
     QFile log(QString("/tmp/gtlab-read-experiment-%1.jsonl")
               .arg(QCoreApplication::applicationPid()));
+#endif
     if (log.open(QIODevice::Append)) log.write(bytes + '\n');
     if (socket) { socket->write(bytes + '\n'); socket->flush(); socket->disconnectFromServer(); }
 }
@@ -63,8 +105,13 @@ void sendResult(QLocalSocket *socket, const QJsonObject &result) {
 AutoSyncReadExperiment::AutoSyncReadExperiment(mainWindow *w)
     : QObject(w), window(w) {
     server.setSocketOptions(QLocalServer::UserAccessOption);
+#ifdef Q_OS_WIN
+    const QString path = QString("gtlab-read-experiment-%1")
+        .arg(QCoreApplication::applicationPid());
+#else
     const QString path = QString("/tmp/gtlab-read-experiment-%1.sock")
         .arg(QCoreApplication::applicationPid());
+#endif
     if (!server.listen(path)) { stopped = true; qWarning() << server.errorString(); }
     else qInfo() << "READ_EXPERIMENT_SOCKET" << path;
     connect(&server, &QLocalServer::newConnection, this, [this] {
@@ -166,18 +213,46 @@ void AutoSyncReadExperiment::command(const QByteArray &cmd, QLocalSocket *socket
     // Only this experimental object's default forwarding is removed. Production
     // objects and SysxIO observers are untouched; no generic reply/refresh leaks.
     QObject::disconnect(transaction, nullptr, io, nullptr);
-    const auto ins = transaction->getMidiInDevices();
-    const auto outs = transaction->getMidiOutDevices();
-    bool inOk = false, outOk = false;
-    auto *prefs = Preferences::Instance();
-    int in = prefs->getPreferences("Midi", "MidiIn", "device").toInt(&inOk);
-    int out = prefs->getPreferences("Midi", "MidiOut", "device").toInt(&outOk);
-    if (ins.contains("BOSS GT-10")) { in = ins.indexOf("BOSS GT-10"); inOk = true; }
-    if (outs.contains("BOSS GT-10")) { out = outs.indexOf("BOSS GT-10"); outOk = true; }
-    if (!inOk || !outOk || in < 0 || out < 0 || in >= ins.size() || out >= outs.size()) {
-        delete transaction; transaction = nullptr;
-        g["result"] = "REFUSED_PORTS"; sendResult(socket, g); return;
+    int in = 0, out = 0;
+#ifdef Q_OS_WIN
+    if (midiIO::usingWinUsbBackend()) {
+        const auto &backend = Gt10WinUsbBackend::instance();
+        g["transport"] = "WINUSB";
+        g["port_gate"] = "WINUSB_SESSION";
+        g["winusb_selected"] = backend.wasSelected();
+        g["winusb_open"] = backend.isOpen();
+        g["winusb_device_lost"] = backend.hasDeviceLoss();
+        g["winusb_epoch"] = double(backend.connectionEpoch());
+        if (!g["winusb_selected"].toBool() || !g["winusb_open"].toBool()
+            || g["winusb_device_lost"].toBool()
+            || !io->isConnected() || !io->deviceReady()) {
+            delete transaction; transaction = nullptr;
+            g["port_gate_result"] = "REFUSED";
+            g["result"] = "REFUSED_WINUSB_SESSION";
+            sendResult(socket, g); return;
+        }
+        // Port indices are unused by the existing WinUSB transport; no preferences change.
+        g["port_indices_unused"] = true;
+    } else
+#endif
+    {
+        g["transport"] = "RTMIDI";
+        g["port_gate"] = "RTMIDI_PORTS";
+        const auto ins = transaction->getMidiInDevices();
+        const auto outs = transaction->getMidiOutDevices();
+        bool inOk = false, outOk = false;
+        auto *prefs = Preferences::Instance();
+        in = prefs->getPreferences("Midi", "MidiIn", "device").toInt(&inOk);
+        out = prefs->getPreferences("Midi", "MidiOut", "device").toInt(&outOk);
+        if (ins.contains("BOSS GT-10")) { in = ins.indexOf("BOSS GT-10"); inOk = true; }
+        if (outs.contains("BOSS GT-10")) { out = outs.indexOf("BOSS GT-10"); outOk = true; }
+        if (!inOk || !outOk || in < 0 || out < 0 || in >= ins.size() || out >= outs.size()) {
+            delete transaction; transaction = nullptr;
+            g["port_gate_result"] = "REFUSED";
+            g["result"] = "REFUSED_PORTS"; sendResult(socket, g); return;
+        }
     }
+    g["port_gate_result"] = "PASS";
     result = {{"gates", g}, {"generation", ++generation}, {"kind", QString::fromLatin1(cmd)},
               {"dt1_count", 0}, {"write_count", 0}};
     result["memory_before"] = memorySample();
