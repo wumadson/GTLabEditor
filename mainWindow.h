@@ -35,12 +35,14 @@ class modernFloorBoard;
 class statusBarWidget;
 class BackupCoordinator;
 class QuickSettingService;
+class AutoSyncRuntime;
 class QShowEvent;
 
 //class mainWindow : public QWidget
 class mainWindow : public QMainWindow
 {
     Q_OBJECT
+    friend class AutoSyncRuntime;
 
 public:
     mainWindow();
@@ -128,6 +130,7 @@ private:
         statusBarWidget *statusInfo;
         BackupCoordinator *backupCoordinator;
         QuickSettingService *quickSettingService;
+        AutoSyncRuntime *autoSyncRuntime;
 };
 
 #endif // MAINWINDOW_H

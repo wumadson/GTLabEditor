@@ -25,6 +25,11 @@
 TEMPLATE = app
 VERSION = 1.2.0
 CONFIG += resources_big
+HEADERS += autoSyncCoordinator.h autoSyncRuntime.h
+SOURCES += autoSyncCoordinator.cpp autoSyncRuntime.cpp
+contains(CONFIG, autosync_foundation_test) {
+    DEFINES += GTLAB_AUTOSYNC_FOUNDATION_TEST
+}
 #ifdef Q_OS_MAC
 CONFIG += release
 TARGET = "GTLabEditor"

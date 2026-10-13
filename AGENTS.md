@@ -1007,3 +1007,12 @@ a practical modern editor for the BOSS GT-10
 Preserve what already works.
 Modernize what users actually see and interact with.
 Validate hardware behavior step by step.
+
+## Auto Sync foundation (Phase 3A, pending review)
+
+`AutoSyncCoordinator` is compare-only and `AutoSyncRuntime` binds existing gates
+plus an isolated midiIO transaction. No candidate is applied. Normal builds have
+no trigger, polling, timer, preference or experimental logging. The opt-in
+`autosync_foundation_test` flag enables only Ctrl+Alt+R and result diagnostics.
+See AUTO_SYNC_FOUNDATION.md for source/baseline/identity semantics and the offline
+QtTest target. macOS and hardware validation must be reported separately.

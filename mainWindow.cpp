@@ -92,6 +92,7 @@ struct WindowsEraseFunctions
 #include "backupCoordinator.h"
 #include "patchBackupCodec.h"
 #include "quickSettingService.h"
+#include "autoSyncRuntime.h"
 #include "Preferences.h"
 #include "statusBarWidget.h"
 #include "SysxIO.h"
@@ -151,6 +152,7 @@ mainWindow::mainWindow()
         quickSettingService = new QuickSettingService(legacyFloorBoard, this);
         modernFloorBoardWidget->setQuickSettingService(quickSettingService);
         backupCoordinator = new BackupCoordinator(legacyFloorBoard, this);
+        autoSyncRuntime = new AutoSyncRuntime(this);
         QObject::connect(backupCoordinator, SIGNAL(patchVerified(int,int,QString)),
                          modernFloorBoardWidget, SLOT(patchNameResolved(int,int,QString)));
 
@@ -265,6 +267,7 @@ mainWindow::mainWindow()
 
 mainWindow::~mainWindow()
 {
+        delete autoSyncRuntime;
         Preferences *preferences = Preferences::Instance();
         if(preferences->getPreferences("Window", "Restore", "window")=="true")
         {

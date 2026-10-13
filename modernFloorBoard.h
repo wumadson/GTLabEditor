@@ -55,6 +55,7 @@ enum class QuickSettingEffect;
 class modernFloorBoard : public QWidget
 {
     Q_OBJECT
+    friend class AutoSyncRuntime;
 
 public:
     explicit modernFloorBoard(QWidget *parent = nullptr);
