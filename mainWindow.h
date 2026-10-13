@@ -87,6 +87,9 @@ public slots:
         void about();
 
 private:
+#ifdef GTLAB_AUTOSYNC_READ_EXPERIMENT
+    friend class AutoSyncReadExperiment;
+#endif
         void createActions();
         void createMenus();
         void createStatusBar();

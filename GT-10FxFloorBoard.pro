@@ -25,6 +25,13 @@
 TEMPLATE = app
 VERSION = 1.2.0
 CONFIG += resources_big
+contains(CONFIG, autosync_read_experiment) {
+    !macx:error(The temporary read experiment is macOS-only)
+    DEFINES += GTLAB_AUTOSYNC_READ_EXPERIMENT
+    QT += network
+    SOURCES += autoSyncReadExperiment.cpp
+    HEADERS += autoSyncReadExperiment.h
+}
 #ifdef Q_OS_MAC
 CONFIG += release
 TARGET = "GTLabEditor"

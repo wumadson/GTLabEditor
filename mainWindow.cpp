@@ -25,6 +25,9 @@
 #include <QMenuBar>
 #include <QShowEvent>
 #include <QStyle>
+#ifdef GTLAB_AUTOSYNC_READ_EXPERIMENT
+#include "autoSyncReadExperiment.h"
+#endif
 #ifdef Q_OS_WIN
 #include <windows.h>
 
@@ -261,6 +264,9 @@ mainWindow::mainWindow()
             tr("StatusBar<br>midi activity is displayed here<br>and some status messages are displayed."));
  
         // Modern UI utiliza layout responsivo; nao usa sizeChanged() do floorBoard legado.
+#ifdef GTLAB_AUTOSYNC_READ_EXPERIMENT
+        new AutoSyncReadExperiment(this);
+#endif
 };
 
 mainWindow::~mainWindow()

@@ -167,6 +167,9 @@ private slots:
                                   bool verified, QString detail);
 
 private:
+#ifdef GTLAB_AUTOSYNC_READ_EXPERIMENT
+    friend class AutoSyncReadExperiment;
+#endif
     PatchChangeGuard::Snapshot currentPatchSnapshot(bool *valid = nullptr) const;
     void captureCurrentPatchBaseline();
     void restoreCurrentPatchSelection();
